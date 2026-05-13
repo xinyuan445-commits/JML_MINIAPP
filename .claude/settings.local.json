@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"c:\\\\Users\\\\Administrator\\\\Desktop\\\\金米龙小程序\\\\JML_WX_miniapp\" /b /ad)",
+      "Bash(dir \"c:\\\\Users\\\\Administrator\\\\Desktop\\\\金米龙小程序\\\\JML_WX_miniapp\\\\miniprogram_npm\\\\tdesign-miniprogram\\\\cell\" /b 2>nul)",
+      "Bash(Get-Content \"c:\\\\Users\\\\Administrator\\\\Desktop\\\\金米龙小程序\\\\JML_WX_miniapp\\\\app.json\")",
+      "Bash(Select-String -Pattern \"Mo/\")",
+      "Bash(Select-Object -First 30)",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\Administrator\\\\Desktop\\\\金米龙小程序\\\\JML_WX_miniapp\\\\Mo\\\\WorkStation\")",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\Administrator\\\\Desktop\\\\金米龙小程序\\\\JML_WX_miniapp\\\\Mo\\\\RouteConfig\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Administrator\\Desktop\\金米龙小程序"
+    ]
+  }
+}
