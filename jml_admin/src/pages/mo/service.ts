@@ -1,6 +1,6 @@
 import { request } from '@umijs/max';
 
-const BASE = 'http://localhost:5001/api/mo';
+const BASE = '/api/mo';
 
 // ── 工序 ──────────────────────────────────────────
 export async function getProcessList() {
