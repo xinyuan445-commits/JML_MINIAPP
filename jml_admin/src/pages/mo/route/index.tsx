@@ -222,7 +222,7 @@ const RoutePage: React.FC = () => {
 
       <Drawer
         title={`工序步骤 — ${drawerRoute?.route_name}`}
-        styles={{ body: { width: 640 } }}
+        width={720}
         open={!!drawerRoute}
         closable={false}
         maskClosable={false}
