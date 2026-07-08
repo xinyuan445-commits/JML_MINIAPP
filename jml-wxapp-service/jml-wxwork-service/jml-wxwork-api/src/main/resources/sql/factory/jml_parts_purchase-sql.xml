@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 零配件采购SQL -->
+<sqlGroup namespace="partsPurchase">
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id,
+            a.name AS name,
+            a.device_repair_id as deviceRepairId,
+            dr.name as deviceRepairName,
+            a.job_type as jobType,
+            a.prod_line_or_dept as prodLineOrDept,
+            a.approval_status as approvalStatus,
+            a.status as status,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName
+        <pageTag/>
+        from
+            jml_parts_purchase a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+            left join jml_device_repair as dr on a.device_repair_id = dr.id
+        <where>
+            <!--普通员工查看自己创建的数据-->
+            <if test="staff.factRoleSE == true">
+                and a.created_staff_id = #{staff.staffId}
+            </if>
+            <!--主管/线长看自己所在线体或部门的数据-->
+            <if test="staff.factRoleGM == true">
+                and (a.prod_line_or_dept = #{staff.prodLineOrDept}   and a.status !='DTJ') or a.created_staff_id = #{staff.staffId}
+            </if>
+            <!--厂长/厂助/看模块下所有数据-->
+            <if test="staff.factRoleGMS == true">
+                and a.status !='DTJ'
+            </if>
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%')
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <!--岗位信息筛选-->
+            <if test="prodLineOrDept != null and prodLineOrDept != ''">
+                and a.prod_line_or_dept = #{prodLineOrDept}
+            </if>
+            <!--创建人信息-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+            <!--审批状态-->
+            <if test="approvalStatus != null and approvalStatus != ''">
+                and a.approval_status = #{approvalStatus}
+            </if>
+        </where>
+        group by a.id
+        order by a.update_time desc
+    </select>
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            a.device_repair_id as deviceRepairId,
+            dr.name as deviceRepairName,
+            a.job_type as jobType,
+            a.prod_line_or_dept as prodLineOrDept,
+            a.approval_status as approvalStatus,
+            a.status as status,
+            a.remark as remark,
+            a.update_staff_id AS updateStaffId,
+            a.created_staff_id AS createdStaffId,
+            a.current_approval_staff_id AS currentApprovalStaffId,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName
+        FROM
+            jml_parts_purchase   a
+        left join
+            jml_staff cs on a.created_staff_id = cs.id
+        left join
+            jml_staff us ON a.update_staff_id = us.id
+        left join
+            jml_device_repair as dr on a.device_repair_id = dr.id
+        WHERE
+            a.id = #{id}
+    </select>
+
+    <select id="queryCntByDevRepairId">
+        select
+            count(1) as cnt
+        from
+            jml_parts_purchase
+        where
+            device_repair_id = #{deviceRepairId}
+    </select>
+
+</sqlGroup>

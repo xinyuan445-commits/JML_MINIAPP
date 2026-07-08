@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "天然气登记",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "t-fab": "/miniprogram_npm/tdesign-miniprogram/fab/fab",
+    "t-icon": "/miniprogram_npm/tdesign-miniprogram/icon/icon"
+  }
+}

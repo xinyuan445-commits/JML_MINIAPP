@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- log_wx_member 的SQL -->
+<sqlGroup namespace="log_wx_member">
+
+    <!--根据微信ID删除同步日志-->
+    <delete id="delByWechatId" parameterType="map">
+        delete from log_wx_member where wxappid = #{wxappid}
+    </delete>
+	
+</sqlGroup>

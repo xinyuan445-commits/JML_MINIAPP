@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="jml_function">
+    <!--根据功能地址查询-->
+    <select id="queryByActionUrl" parameterType="map">
+        select
+            a.id,
+            a.function_code,
+            a.name ,
+            a.action_api_url
+        from
+            jml_function a
+        where
+            a.action_api_url = #{actionUrl}
+    </select>
+
+</sqlGroup>

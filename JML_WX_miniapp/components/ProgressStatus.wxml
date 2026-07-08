@@ -1,0 +1,1 @@
+<view class="{{['progress_box', 'data-v-f8cb1ced', virtualHostClass]}}" style="{{virtualHostStyle}}"><view wx:for="{{a}}" wx:for-item="item" wx:key="c" catchtap="{{item.b}}" class="{{['progress_item', 'data-v-f8cb1ced', item.d && 'act', item.e && 'done', b && 'readonly']}}"><label class="data-v-f8cb1ced">{{item.a}}</label></view></view>

@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "第三方维保",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-icon": "../../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-divider": "../../../node-modules/uview-plus/components/u-divider/u-divider",
+    "floating-window": "../../../components/FloatingWindow",
+    "footer-btn": "../../../components/FooterBtn"
+  }
+}

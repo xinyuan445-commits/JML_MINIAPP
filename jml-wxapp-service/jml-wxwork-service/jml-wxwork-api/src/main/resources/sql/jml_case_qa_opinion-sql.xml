@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="caseQaOpinion">
+    <!--获取列表-->
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id AS id,
+            a.cause_analysis AS causeAnalysis,
+            a.corrective_action AS correctiveAction,
+            a.preventive_measure AS preventiveMeasure,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName,
+            a.submit_status AS submitStatus,
+            a.expected_completion_date as expectedCompletionDate
+        from
+            jml_case_qa_opinion a
+            left join jml_staff cs on a.created_staff_id = cs.id
+            left join jml_staff us ON a.update_staff_id = us.id
+		<where>
+			<if test="caseId != null and caseId != ''">
+				and a.case_id = #{caseId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+    </select>
+    <!--查询明细-->
+    <select id="queryDetails" parameterType="map">
+        select
+            a.id AS id,
+            a.cause_analysis AS causeAnalysis,
+            a.corrective_action AS correctiveAction,
+            a.preventive_measure AS preventiveMeasure,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName,
+            a.submit_status AS submitStatus,
+            DATE_FORMAT(a.expected_completion_date, '%Y-%m-%d') as expectedCompletionDate
+        from
+            jml_case_qa_opinion a
+            left join jml_staff cs on a.created_staff_id = cs.id
+            left join jml_staff us ON a.update_staff_id = us.id
+        <where>
+            <if test="id != null and id != ''">
+                a.id=#{id}
+            </if>
+            <if test="caseId != null and caseId != ''">
+                a.case_id = #{caseId}
+            </if>
+        </where>
+    </select>
+</sqlGroup>

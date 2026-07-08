@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 字典管理的SQL -->
+<sqlGroup namespace="sys_dict_type">
+	<!--查询全部字典类型-->
+	<select id="queryAll" parameterType="map">
+		select
+			a.*
+		from
+			sys_dict_type a
+		<where>
+			<if test="name != null and name != ''">
+				and a.dname like '%${name}%'
+			</if>
+			<if test="code != null and code != ''">
+				and a.dcode like '%${code}%'
+			</if>
+		</where>
+		order by
+			a.id desc
+	</select>
+
+	<!--验证字典类型的code的唯一性-->
+	<select id="validateUniqueDcode" parameterType="map">
+		select count(1) as cnt from sys_dict_type a where a.dcode=#{dcode}
+		<if test="id != null and id != ''">
+			<![CDATA[
+				and a.id <> #{id}
+			]]>
+		</if>
+	</select>
+	<!-- 查询出一级支付类型-->
+	<select id="queryPayType">
+	   select a.id,a.dname from sys_dict_type a where a.id in
+	   <foreach collection="tids" index="index" item="tids" open="(" separator="," close=")">
+            #{tids}
+        </foreach>
+	</select>
+	<!-- 查询出 二级支付方法 -->
+	<select id="queryPayMethod" parameterType="map">
+	   SELECT
+		    a.tid,
+		    a.dname,
+		    a.dval,
+		    b.dname AS tname
+		FROM
+		    sys_dict a
+		LEFT JOIN sys_dict_type b ON a.tid = b.id
+		WHERE
+		    a.tid = #{tid};
+	</select>
+
+	<!-- 根据 字典类型 [sys_dict_type] id  查询出，所属字典项。 显示效果 字典类型，字典项信息 -->
+	<select id="queryDictTypeAndDictInfoById" parameterType="map">
+		select
+		    dict_type.id , dict_type.dname ,
+		    dict.id as optionId , dict.dname as optiosnName , dict.dcode as optionCode
+		from
+		        sys_dict_type  dict_type
+		     left join sys_dict  dict on dict.tid = dict_type.id
+		where
+		     dict.status ='1'
+			<if test="dictTypeIdList != null and dictTypeIdList.size() > 0">
+				and dict_type.dcode in
+				<foreach collection="dictTypeIdList" item="dcode" open="(" close=")" separator=",">
+					#{dcode}
+				</foreach>
+			</if>
+	</select>
+
+	<!-- 根据code查询 -->
+	<select id="queryByCode" parameterType="string">
+		select * from sys_dict_type where dcode = #{value}
+	</select>
+
+</sqlGroup>

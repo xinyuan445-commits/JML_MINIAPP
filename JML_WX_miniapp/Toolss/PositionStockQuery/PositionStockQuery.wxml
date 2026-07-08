@@ -1,0 +1,48 @@
+<view class="page">
+
+<!-- 固定查询条件 -->
+<view class="query-card fixed">
+  <view class="row">
+    <text class="label">货位</text>
+    <input
+      class="input"
+      placeholder="请输入货位，如 1101"
+      value="{{position}}"
+      bindinput="onPositionInput"
+    />
+  </view>
+
+  <button class="btn" bindtap="onQuery">查询</button>
+</view>
+
+<!-- 可滚动列表区域 -->
+<scroll-view
+  class="list-scroll"
+  scroll-y
+  bindscrolltolower="onReachBottom"
+>
+  <view class="list" wx:if="{{list.length > 0}}">
+    <view class="item" wx:for="{{list}}" wx:key="index">
+      <view class="line">
+        <text class="title">{{item.cInvCode}}</text>
+        <text class="qty">数量：{{item.iQuantity}}</text>
+      </view>
+      <view class="sub">{{item.cinvname}}</view>
+      <view class="sub">批次：{{item.cBatch || '-'}}</view>
+    </view>
+
+    <view class="loading" wx:if="{{loading}}">
+      加载中…
+    </view>
+
+    <view class="no-more" wx:if="{{!hasMore && list.length > 0}}">
+      没有更多了
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{queried && list.length === 0}}">
+    暂无数据
+  </view>
+</scroll-view>
+
+</view>

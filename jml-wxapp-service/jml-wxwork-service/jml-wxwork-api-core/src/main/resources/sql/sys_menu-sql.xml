@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 菜单管理的SQL -->
+<sqlGroup namespace="sysmenu">
+	<!--查询菜单列表-->
+	<select id="findMenu4Mgr" parameterType="map">
+		select
+			a.*,
+			b1.dname as display_showname,
+			(select count(1) as level from sys_menu aa where find_in_set(aa.id,getMenuParLst(a.id))) as `level`
+		from sys_menu a
+		LEFT JOIN sys_dict b1 ON a.display = b1.dval  and b1.tcode = 'MENU_DISPLAY'
+		<where>
+			<if test="pid != null">
+				and a.pid = #{pid}
+			</if>
+		</where>
+		order by a.seq desc
+	</select>
+
+	<!--校验菜单名称是否已存在-->
+	<select id="validateMenuName" parameterType="map">
+		select * from sys_menu where 1=1 and mname = #{mname}
+		<if test="menuId != null and menuId !=0">
+			and id != #{menuId}
+		</if>
+	</select>
+
+	<!--查询可用菜单列表，树展示-->
+	<select id="menuListTree" parameterType="map">
+		select * from (
+			select distinct
+				concat('m_',m.id) as id,
+				m.`mname` name,
+				concat('m_',m.pid) pId,
+				'1' flag,
+				m.seq
+			from sys_menu m
+			left join sys_rela_role_auth b on m.id = b.authId and b.authType = '1'
+			left join sys_role c on b.roleId = c.id
+			where m.display = #{display}
+			<if test="roleKey != null and roleKey != ''">
+				and c.roleKey = #{roleKey}
+			</if>
+			union all
+				select distinct
+				concat('f_',a.id) as id,
+				a.name,
+				concat('m_',a.menuid) as pId,
+				'2' as flag,
+				a.seq
+			from sys_func a
+			left join sys_rela_role_auth b on a.id=b.authId and b.authType='2'
+			left join sys_role c on b.roleId = c.id
+			left join sys_menu m on m.id=a.menuid
+			where a.actionType='2' and a.display=#{display} and m.display = #{display}
+			<if test="roleKey != null and roleKey != ''">
+				and c.roleKey = #{roleKey}
+			</if>
+		) mf
+		order by mf.pId desc,mf.seq desc
+	</select>
+
+	<!--根据父级ID查询子集菜单数量-->
+	<select id="findCntByPid" parameterType="long">
+		select count(1) as subcount from sys_menu where pid=#{value}
+	</select>
+
+	<!--查询菜单-->
+	<select id="queryMenu" parameterType="map">
+		SELECT DISTINCT
+		a.*,
+		(SELECT count(1) FROM sys_menu b WHERE b.pid = a.id ) AS child
+		FROM
+		sys_menu a
+		<if test="roleIdStr != null and roleIdStr != ''">
+			LEFT JOIN sys_rela_role_auth b on a.id = b.authId
+		</if>
+		WHERE
+		a.display = #{display}
+		<if test="roleIdStr != null and roleIdStr != ''">
+			and b.authType = #{authType} and FIND_IN_SET(b.roleId,#{roleIdStr})
+		</if>
+		order by a.pid desc,a.seq desc
+	</select>
+
+	<!--查询菜单的层级-->
+	<select id="queryMenuLevel" parameterType="long">
+		select count(1) as level from sys_menu a where find_in_set(id,getMenuParLst(#{value}))
+	</select>
+
+	<!--根据条件查询菜单信息-->
+	<select id="queryBy" parameterType="map">
+		select
+			a.*,
+			b.mname as pname
+		from
+			sys_menu a left join sys_menu b on a.pid = b.id
+		<where>
+			<if test="id != null and id != 0">
+				and a.id = #{id}
+			</if>
+			<if test="pid != null">
+				and a.pid = #{pid}
+			</if>
+		</where>
+	</select>
+</sqlGroup>

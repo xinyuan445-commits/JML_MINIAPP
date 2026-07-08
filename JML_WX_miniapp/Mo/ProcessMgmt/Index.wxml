@@ -1,0 +1,51 @@
+<t-pull-down-refresh value="{{refreshing}}" bind:refresh="onRefresh">
+  <view class="page">
+
+    <view wx:if="{{isLoading && list.length === 0}}" class="loading-wrap">
+      <t-loading theme="circular" size="36px" />
+    </view>
+
+    <view wx:elif="{{list.length === 0}}" class="empty-wrap">
+      <t-empty icon="page" description="暂无待开工工单" />
+    </view>
+
+    <block wx:else>
+      <view class="list-header">待开工 · {{list.length}} 条</view>
+
+      <view class="card" wx:for="{{list}}" wx:key="index"
+        data-mocode="{{item.MoCode_a}}" data-sortseq="{{item.SortSeq_b}}" data-deptcode="{{item.DeptCode}}"
+        data-categoryname="{{item.CategoryName}}"
+        bindtap="onTap" hover-class="card-hover">
+        <!-- 顶部：工单号 + 部门 -->
+        <view class="row-top">
+          <text class="mo-code">{{item.MoCode_a}}：{{item.SortSeq_b}}{{item.route_name ? '（' + item.route_name + '）' : ''}}</text>
+          <text class="dept">{{item.cDepName || '-'}}</text>
+        </view>
+
+        <!-- 中间：料号 + 名称 -->
+        <view class="row-mid">
+          <text class="inv-code">{{item.InvCode_b}}</text>
+          <text class="inv-name">{{item.cInvName || '-'}}</text>
+        </view>
+
+        <!-- 底部：工序状态 + 计划数量 -->
+        <view class="row-bot">
+          <view class="process-wrap">
+            <text wx:if="{{item.exec_status === 'done'}}" class="process-label done">已完成</text>
+            <text wx:elif="{{item.exec_status === 'no_route'}}" class="process-label">无路线</text>
+            <text wx:elif="{{item.exec_status === 'needs_receipt'}}" class="process-label receipt">待接收</text>
+            <block wx:else>
+              <text class="process-label {{item.exec_status === 'processing' ? 'active' : ''}}">{{item.exec_status === 'processing' ? '进行中' : '待开工'}}</text>
+            </block>
+            <text wx:if="{{item.process_name && item.exec_status !== 'done' && item.exec_status !== 'no_route'}}" class="process-name">{{item.process_name}}</text>
+          </view>
+          <view class="qty-wrap">
+            <text class="qty-num">{{item.Qty_b}}</text>
+            <text class="qty-unit"> 件</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+  </view>
+</t-pull-down-refresh>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="caseOrderDetail">
+    <!--获取列表-->
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id AS id,
+            a.case_class AS caseClass,
+            a.delivery_warehouse AS deliveryWarehouse,
+            a.product_name AS productName,
+            a.spec AS spec,
+            DATE_FORMAT(a.buy_date, '%Y-%m-%d') AS buyDate,
+            a.unit_price AS unitPrice,
+            a.total_price AS totalPrice,
+            a.bad_qty AS badQty,
+            a.bad_remark AS badRemark,
+            a.order_no AS orderNo,
+            a.buy_qty as buyQty,
+            a.demands AS demands,
+            a.on_site_img1 AS onSiteImg,
+            a.no_img1 AS noImg,
+            a.break_img1 AS breakImg,
+            CONCAT_WS( ";", a.other_img1, a.other_img2, a.other_img3 ) AS otherImg,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName,
+            a.sales_desc AS salesDesc,
+            a.inventory_code as inventoryCode,
+            a.side_code as sideCode
+		from
+            jml_case_order_detail a
+            left join jml_staff cs on a.created_staff_id = cs.id
+            left join jml_staff us ON a.update_staff_id = us.id
+		<where>
+			<if test="caseId != null and caseId != ''">
+				and a.case_id = #{caseId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+    </select>
+    <!--查询明细-->
+    <select id="queryDetails" parameterType="map">
+        select
+            a.id AS id,
+            a.case_class AS caseClass,
+            a.delivery_warehouse AS deliveryWarehouse,
+            a.product_name AS productName,
+            a.spec AS spec,
+            DATE_FORMAT(a.buy_date, '%Y-%m-%d') AS buyDate,
+            a.unit_price AS unitPrice,
+            a.total_price AS totalPrice,
+            a.bad_qty AS badQty,
+            a.bad_remark AS badRemark,
+            a.demands AS demands,
+            a.on_site_img1 AS onSiteImg,
+            a.no_img1 AS noImg,
+            a.break_img1 AS breakImg,
+            CONCAT_WS( ";", a.other_img1, a.other_img2, a.other_img3 ) AS otherImg,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName,
+            a.sales_desc AS salesDesc
+	    from
+            jml_case_order_detail a
+            left join jml_staff cs on a.created_staff_id = cs.id
+            left join jml_staff us ON a.update_staff_id = us.id
+        <where>
+            a.id=#{id}
+        </where>
+    </select>
+</sqlGroup>

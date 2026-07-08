@@ -1,0 +1,46 @@
+.page { padding: 20rpx; background: #f6f7fb; min-height: 100vh; }
+
+/* 单号 */
+.docno {
+  font-weight: 800; font-size: 34rpx; color: #101828;
+  margin-bottom: 20rpx; padding: 8rpx 6rpx;
+}
+
+/* 卡片 */
+.card {
+  background: #fff; border-radius: 16rpx; padding: 20rpx;
+  box-shadow: 0 8rpx 24rpx rgba(16,24,40,.06); margin-bottom: 18rpx;
+}
+.row { display: flex; align-items: center; gap: 20rpx; }
+.flex1 { flex: 1; }
+
+/* 设备 */
+.cell { display: flex; gap: 12rpx; align-items: center; }
+.label { color: #667085; }
+.val { font-weight: 600; color: #111827; }
+
+/* 开关 */
+.switch-area { display: flex; align-items: center; gap: 12rpx; }
+.switch-text { color: #667085; }
+
+/* 上传框 */
+.photo-box {
+  width: 100%; height: 360rpx; border-radius: 16rpx;
+  background: #fafbfe;
+  border: 2rpx dashed #d0d5dd;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.plus { font-size: 64rpx; line-height: 1; color: #98a2b3; }
+.tip { position: absolute; bottom: 18rpx; color: #98a2b3; font-size: 24rpx; }
+.photo { width: 100%; height: 100%; }
+
+
+.submit-btn { border-radius: 999rpx; line-height: 60rpx; }
+
+
+/* 备注 */
+.remark {
+  width: 100%; min-height: 120rpx;
+  font-size: 28rpx; color: #101828;
+}

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "质检质量转换",
+  "usingComponents": {
+    "t-steps": "/miniprogram_npm/tdesign-miniprogram/steps/steps",
+    "t-step-item": "/miniprogram_npm/tdesign-miniprogram/step-item/step-item"
+  }
+}

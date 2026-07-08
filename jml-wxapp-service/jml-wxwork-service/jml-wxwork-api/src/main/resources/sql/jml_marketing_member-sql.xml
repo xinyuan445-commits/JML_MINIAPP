@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 活动成员管理SQL -->
+<sqlGroup namespace="marketingMember">
+	<!--分页查询市场活动成员-->
+	<select id="queryPageBy" parameterType="map">
+		select
+			id,
+			name,
+			`status`,
+			date_format( created_time, '%Y-%m-%d %H:%i:%s' ) as created_time
+		<pageTag/>
+		from
+			jml_marketing_member a
+		<where>
+			<include refid="common.auth"/>
+			<if test="marketingId != null and marketingId != ''">
+				and a.marketing_id = #{marketingId}
+			</if>
+			<if test="salesLeadId != null and salesLeadId != ''">
+				and a.sales_lead_id = #{salesLeadId}
+			</if>
+			<if test="contactId != null and contactId != ''">
+				and a.contact_id = #{contactId}
+			</if>
+		</where>
+		order by
+			created_time desc
+	</select>
+
+	<!--获取市场活动明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			a.name,
+			a.`status`,
+			a.remark,
+			b.`name` as marketingName,
+			c.`name` as salesLeadName,
+			d.`name` as contactName,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName,
+			a.marketing_id,
+			a.sales_lead_id,
+			a.contact_id,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time
+		from
+			jml_marketing_member a
+		 left join
+			jml_marketing b on a.marketing_id = b.id
+		 left join
+			jml_sales_lead c on  a.sales_lead_id = c.id
+		 left join
+			jml_contact d on a.contact_id = d.id
+		left join
+			jml_staff cs on a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+</sqlGroup>

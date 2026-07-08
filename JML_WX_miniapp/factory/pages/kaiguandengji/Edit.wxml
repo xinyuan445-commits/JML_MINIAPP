@@ -1,0 +1,40 @@
+<view class="page">
+  <!-- 单号 -->
+  <view class="docno">{{docNo}}</view>
+
+  <!-- 设备选择 + 开关 -->
+  <view class="card row">
+    <picker range="{{devices}}" range-key="device_name" value="{{deviceIdx}}" bindchange="onDevicePick" class="flex1">
+      <view class="cell">
+        <text class="label">设备</text>
+        <text class="val">{{ deviceName || '请选择' }}</text>
+      </view>
+    </picker>
+
+    <view class="switch-area">
+      <text class="switch-text">开/关</text>
+      <switch checked="{{opType===1}}" bindchange="onSwitchChange"/>
+    </view>
+  </view>
+
+  <!-- 上传框 -->
+  <view class="card">
+    <view class="photo-box" bindtap="onPickAndUpload">
+      <block wx:if="{{photoUrl}}">
+        <image class="photo" src="{{photoUrl}}" mode="aspectFill" />
+      </block>
+      <block wx:else>
+        <view class="plus">+</view>
+        <text class="tip">点击拍照/上传</text>
+      </block>
+    </view>
+  </view>
+  <!-- 备注输入框 -->
+  <view class="card">
+    <textarea class="remark" placeholder="请输入备注..." value="{{remark}}" bindinput="onRemarkInput"></textarea>
+  </view>
+
+  <view class="card">
+  <button class="submit-btn" type="primary" bindtap="onSubmit">提交登记</button>
+</view>
+</view>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 氮气登记表SQL -->
+<sqlGroup namespace="nitrogenLog">
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id,
+            a.name AS name,
+            a.liquid_level AS liquidLevel,
+            a.before_liquid_level AS beforeLiquidLevel,
+            a.before_usage_cm AS beforeUsageCm,
+            a.before_usage_kg AS beforeUsageKg,
+            a.nitrogen_amount AS nitrogenAmount,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName
+        <pageTag/>
+        from
+            jml_nitrogen_log a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+        <where>
+         <!--   <include refid="common-fact.auth"/>-->
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%')
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+        </where>
+        order by a.update_time desc
+    </select>
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            a.liquid_level AS liquidLevel,
+            a.before_liquid_level AS beforeLiquidLevel,
+            a.before_usage_cm AS beforeUsageCm,
+            a.before_usage_kg AS beforeUsageKg,
+            CONCAT_WS( ";", a.liquid_level_img1) AS liquidLevelImg,
+            a.remark AS remark,
+            a.nitrogen_amount AS nitrogenAmount,
+            a.update_staff_id AS updateStaffId,
+            a.created_staff_id AS createdStaffId,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName
+        FROM
+            jml_nitrogen_log   a
+        left join
+            jml_staff cs on a.created_staff_id = cs.id
+        left join
+            jml_staff us ON a.update_staff_id = us.id
+        WHERE
+            a.id = #{id}
+    </select>
+    
+    <select id="queryBeforeLiquid" parameterType="map">
+        SELECT
+            id,
+            (liquid_level + nitrogen_amount) AS beforeLiquidLevel
+        FROM
+            jml_nitrogen_log
+        <!--WHERE
+            created_staff_id = #{staff.staffId}-->
+        ORDER BY
+            created_time DESC
+        LIMIT 1
+    </select>
+
+
+</sqlGroup>

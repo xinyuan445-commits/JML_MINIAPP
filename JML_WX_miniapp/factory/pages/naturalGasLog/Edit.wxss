@@ -1,0 +1,142 @@
+/* 旧版样式完整保留在 Edit.legacy.wxss。 */
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 24rpx 24rpx 140rpx;
+  background: #f5f7fa;
+}
+
+.card {
+  margin-bottom: 20rpx;
+  padding: 28rpx;
+  border-radius: 18rpx;
+  background: #fff;
+  box-shadow: 0 6rpx 22rpx rgba(16, 24, 40, 0.05);
+}
+
+.field-label {
+  margin-bottom: 18rpx;
+  color: #344054;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.required::before {
+  margin-right: 6rpx;
+  color: #e5484d;
+  content: '*';
+}
+
+.picker-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 76rpx;
+  padding: 0 22rpx;
+  border: 2rpx solid #d0d5dd;
+  border-radius: 12rpx;
+  color: #101828;
+  font-size: 28rpx;
+}
+
+.placeholder,
+.muted {
+  color: #98a2b3;
+}
+
+.arrow {
+  color: #98a2b3;
+  font-size: 42rpx;
+}
+
+.reading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.reading-label {
+  color: #667085;
+  font-size: 27rpx;
+}
+
+.reading-value {
+  color: #101828;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.divider {
+  height: 2rpx;
+  margin: 26rpx 0;
+  background: #eaecf0;
+}
+
+.reading-input {
+  height: 78rpx;
+  padding: 0 22rpx;
+  border: 2rpx solid #d0d5dd;
+  border-radius: 12rpx;
+  font-size: 30rpx;
+}
+
+.usage {
+  margin-top: 18rpx;
+  color: #1677ff;
+  font-size: 26rpx;
+}
+
+.usage-error {
+  color: #e5484d;
+}
+
+.photo-box {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  height: 330rpx;
+  overflow: hidden;
+  border: 2rpx dashed #d0d5dd;
+  border-radius: 14rpx;
+  background: #fafafa;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+}
+
+.photo-plus {
+  color: #98a2b3;
+  font-size: 70rpx;
+}
+
+.photo-tip {
+  position: absolute;
+  bottom: 28rpx;
+  color: #98a2b3;
+  font-size: 24rpx;
+}
+
+.remark {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 150rpx;
+  padding: 18rpx 20rpx;
+  border: 2rpx solid #d0d5dd;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.submit {
+  margin-top: 34rpx;
+  border-radius: 999rpx;
+  background: #849eb2;
+  color: #fff;
+  font-size: 30rpx;
+}
+
+.submit::after {
+  border: 0;
+}

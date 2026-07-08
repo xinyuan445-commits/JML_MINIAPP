@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "公司信息详情",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-divider": "../../node-modules/uview-plus/components/u-divider/u-divider",
+    "up-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "floating-window": "../../components/FloatingWindow",
+    "footer-btn": "../../components/FooterBtn",
+    "related-list": "../../components/RelatedList"
+  }
+}

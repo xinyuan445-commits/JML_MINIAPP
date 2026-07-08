@@ -1,0 +1,554 @@
+<view class="page">
+
+  <view wx:if="{{isLoading}}" class="loading-wrap">
+    <t-loading theme="circular" size="36px" />
+  </view>
+
+  <block wx:elif="{{header}}">
+
+    <!-- 固定头部 -->
+    <view class="header-section">
+      <view class="header-card">
+
+        <view class="hd-top">
+          <t-tag wx:if="{{isHistoryMode}}" theme="success" variant="light" size="small">已完成</t-tag>
+          <block wx:elif="{{execStatus}}">
+            <t-tag wx:if="{{execStatus.status === 'processing'}}" theme="warning" variant="light" size="small">进行中</t-tag>
+            <t-tag wx:elif="{{execStatus.status === 'done'}}" theme="success" variant="light" size="small">已完成</t-tag>
+            <t-tag wx:elif="{{execStatus.needs_receipt}}" theme="default" variant="light" size="small">待接收</t-tag>
+            <t-tag wx:else theme="default" variant="light" size="small">待开工</t-tag>
+          </block>
+          <t-tag wx:else theme="default" variant="light" size="small">待开工</t-tag>
+          <text class="mo-code">{{header.MoCode_a}}：{{header.SortSeq_b}}</text>
+        </view>
+
+        <text class="inv-name">{{header.cInvName || '-'}}</text>
+        <text class="inv-code">{{header.InvCode_b}}</text>
+
+        <view class="divider" />
+
+        <view class="metrics">
+          <view class="metric-item">
+            <text class="metric-val">{{header.cDepName || '-'}}</text>
+            <text class="metric-label">生产部门</text>
+          </view>
+          <view class="metric-sep" />
+          <view class="metric-item">
+            <view class="metric-qty">
+              <text class="metric-val bold">{{header.Qty_b}}</text>
+              <text class="metric-unit">件</text>
+            </view>
+            <text class="metric-label">计划数量</text>
+          </view>
+        </view>
+
+      </view>
+
+      <!-- 历史完工记录 -->
+      <view class="history-card" wx:if="{{isHistoryMode && historyRecord}}">
+        <view class="history-title-row">
+          <view>
+            <text class="history-label">已完成工序</text>
+            <text class="history-process">{{historyRecord.process_name}}</text>
+          </view>
+          <t-tag theme="success" variant="light" size="small">已完成</t-tag>
+        </view>
+        <view class="history-grid">
+          <view class="history-item">
+            <text class="history-value">{{historyRecord.station_name || '-'}}</text>
+            <text class="history-caption">工站</text>
+          </view>
+          <view class="history-item">
+            <text class="history-value">{{historyRecord.qty_done}}</text>
+            <text class="history-caption">完工总数</text>
+          </view>
+          <view class="history-item">
+            <text class="history-value grade-a">{{historyRecord.qty_a}}</text>
+            <text class="history-caption">A级</text>
+          </view>
+          <view class="history-item">
+            <text class="history-value grade-c">{{historyRecord.qty_c}}</text>
+            <text class="history-caption">C级</text>
+          </view>
+        </view>
+        <view class="history-line">
+          <text class="history-line-label">开始</text>
+          <text class="history-line-value">{{historyRecord.start_text}}</text>
+        </view>
+        <view class="history-line">
+          <text class="history-line-label">结束</text>
+          <text class="history-line-value">{{historyRecord.end_text}}</text>
+        </view>
+        <view class="history-line">
+          <text class="history-line-label">用时</text>
+          <text class="history-duration">{{historyRecord.duration_text}}</text>
+        </view>
+        <view class="history-line">
+          <text class="history-line-label">人员</text>
+          <view class="history-worker-wrap">
+            <text class="history-worker" wx:for="{{historyRecord.workers}}" wx:key="user_id">{{index ? '、' : ''}}{{item.user_name}}</text>
+            <text wx:if="{{!historyRecord.workers.length}}" class="history-line-value">-</text>
+          </view>
+        </view>
+        <view wx:if="{{historyRecord.start_photo_url}}" class="history-photo-wrap">
+          <text class="history-section-sub">主材照片</text>
+          <image class="history-start-photo" src="{{historyRecord.start_photo_url}}" mode="aspectFill" />
+        </view>
+        <view class="history-reason" wx:if="{{historyRecord.complete_reason}}">
+          <text class="history-reason-label">完工备注</text>
+          <text class="history-reason-text">{{historyRecord.complete_reason}}</text>
+        </view>
+        <view class="history-record-list" wx:if="{{historyRecord.rework_records && historyRecord.rework_records.length}}">
+          <view class="history-section-head" bindtap="toggleHistoryFold" data-key="rework" hover-class="history-section-hover">
+            <view>
+              <text class="history-section-title">返工作业</text>
+              <text class="history-section-sub">{{historyRecord.rework_records.length}} 条记录</text>
+            </view>
+            <text class="history-section-arrow">{{historyFold.rework ? '展开' : '收起'}} {{historyFold.rework ? '⌄' : '⌃'}}</text>
+          </view>
+          <view wx:if="{{!historyFold.rework}}" class="history-record-card rework-work-card" wx:for="{{historyRecord.rework_records}}" wx:key="id">
+            <view class="history-record-head">
+              <text class="history-record-title">返工 {{item.qty_input}} 件</text>
+              <text class="history-status {{item.status === 'processing' ? 'processing' : 'done'}}">{{item.status === 'processing' ? '进行中' : '已完成'}}</text>
+            </view>
+            <text class="history-reason-text" wx:if="{{item.status === 'done'}}">A级 {{item.qty_a}} 件，C级 {{item.qty_c}} 件</text>
+            <text class="history-reason-text">人员：<text wx:for="{{item.workers}}" wx:for-item="worker" wx:key="user_id">{{index ? '、' : ''}}{{worker.user_name}}</text></text>
+            <text class="history-reason-text">开始：{{item.start_time}}</text>
+            <text class="history-reason-text" wx:if="{{item.status === 'done'}}">结束：{{item.end_time}} · 用时 {{item.duration_text}}</text>
+            <text class="history-tag warn" wx:if="{{item.reason}}">原因：{{item.reason}}</text>
+            <text class="history-tag" wx:if="{{item.complete_remark}}">备注：{{item.complete_remark}}</text>
+          </view>
+        </view>
+        <view class="history-record-list" wx:if="{{historyRecord.makeup_records && historyRecord.makeup_records.length}}">
+          <view class="history-section-head" bindtap="toggleHistoryFold" data-key="makeup" hover-class="history-section-hover">
+            <view>
+              <text class="history-section-title">接收流水</text>
+              <text class="history-section-sub">{{historyRecord.makeup_records.length}} 条记录</text>
+            </view>
+            <text class="history-section-arrow">{{historyFold.makeup ? '展开' : '收起'}} {{historyFold.makeup ? '⌄' : '⌃'}}</text>
+          </view>
+          <view wx:if="{{!historyFold.makeup}}" class="history-record-card" wx:for="{{historyRecord.makeup_records}}" wx:key="id">
+            <text class="history-reason-text">接收时间：{{item.create_time}}</text>
+            <text class="history-reason-text">接收 {{item.qty_add}} 件，累计 {{item.qty_after}} / {{item.plan_qty || '-'}} 件</text>
+            <text class="history-tag warn" wx:if="{{item.reason}}">原因：{{item.reason}}</text>
+          </view>
+        </view>
+        <view class="history-record-list" wx:if="{{historyRecord.receive_work_records && historyRecord.receive_work_records.length}}">
+          <view class="history-section-head" bindtap="toggleHistoryFold" data-key="receive" hover-class="history-section-hover">
+            <view>
+              <text class="history-section-title">接收作业</text>
+              <text class="history-section-sub">{{historyRecord.receive_work_records.length}} 条记录</text>
+            </view>
+            <text class="history-section-arrow">{{historyFold.receive ? '展开' : '收起'}} {{historyFold.receive ? '⌄' : '⌃'}}</text>
+          </view>
+          <view wx:if="{{!historyFold.receive}}" class="history-record-card receive-work-card" wx:for="{{historyRecord.receive_work_records}}" wx:key="id">
+            <view class="history-record-head">
+              <text class="history-record-title">接收 {{item.qty_input}} 件</text>
+              <text class="history-status {{item.status === 'processing' ? 'processing' : 'done'}}">{{item.status === 'processing' ? '进行中' : '已完成'}}</text>
+            </view>
+            <text class="history-reason-text" wx:if="{{item.status === 'done'}}">A级 {{item.qty_a}} 件，C级 {{item.qty_c}} 件</text>
+            <text class="history-reason-text">人员：<text wx:for="{{item.workers}}" wx:for-item="worker" wx:key="user_id">{{index ? '、' : ''}}{{worker.user_name}}</text></text>
+            <text class="history-reason-text">开始：{{item.start_time}}</text>
+            <text class="history-reason-text" wx:if="{{item.status === 'done'}}">结束：{{item.end_time}} · 用时 {{item.duration_text}}</text>
+            <image wx:if="{{item.photo_url}}" class="history-photo" src="{{item.photo_url}}" mode="aspectFill" />
+            <text class="history-tag warn" wx:if="{{item.reason}}">原因：{{item.reason}}</text>
+          </view>
+        </view>
+        <view class="history-actions">
+          <view class="history-action-btn history-action-makeup {{historyRecord.has_next ? '' : 'half'}}"
+            bindtap="onMakeup" hover-class="history-action-hover">
+            {{historyRecord.receive_work && historyRecord.receive_work.status === 'processing' ? '接收完工' : '接收'}}
+          </view>
+          <view class="history-action-btn history-action-rework {{historyRecord.has_next ? '' : 'half'}}"
+            wx:if="{{historyRecord.qty_c > 0 || (historyRecord.rework && historyRecord.rework.status === 'processing')}}"
+            bindtap="onRework" hover-class="history-action-hover">
+            {{historyRecord.rework && historyRecord.rework.status === 'processing' ? '返工完工' : '返工'}}
+          </view>
+          <view class="history-action-btn history-action-next" wx:if="{{historyRecord.has_next}}"
+            bindtap="goNextProcess" hover-class="history-action-hover">
+            {{historyRecord.next_status === 'done' ? '查看下一步（已完成）' : (historyRecord.next_status === 'processing' ? '查看下一步（进行中）' : '进入下一步')}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 执行状态卡 -->
+      <view class="exec-card" wx:if="{{execStatus && !isHistoryMode}}">
+
+        <!-- 无路线 -->
+        <view wx:if="{{!execStatus.has_route}}">
+          <text class="exec-warn">⚠ 未配置工艺路线，请联系PMC</text>
+        </view>
+
+        <!-- 已完成 -->
+        <view wx:elif="{{execStatus.status === 'done'}}">
+          <text class="exec-done">✓ 所有工序已完成</text>
+        </view>
+
+        <!-- 进行中 → 完工 -->
+        <view wx:elif="{{execStatus.status === 'processing'}}">
+          <view class="exec-row">
+            <view class="exec-info">
+              <t-tag theme="warning" variant="light" size="small">进行中</t-tag>
+              <text class="exec-process">{{execStatus.process_name}}</text>
+              <text wx:if="{{execStatus.active_station}}" class="exec-station">@ {{execStatus.active_station}}</text>
+            </view>
+          </view>
+          <view wx:if="{{execStatus.workers.length}}" class="active-workers">
+            <text class="worker-label">开工人员</text>
+            <text class="worker-names" wx:for="{{execStatus.workers}}" wx:key="user_id">{{index ? '、' : ''}}{{item.user_name}}</text>
+          </view>
+          <view class="start-wrap">
+            <t-button theme="primary" size="large" block
+              loading="{{isCompleting}}" bind:tap="onComplete">完工</t-button>
+          </view>
+        </view>
+
+        <!-- 待接收 → 接收 -->
+        <view wx:elif="{{execStatus.needs_receipt}}">
+          <view class="exec-row">
+            <view class="exec-info">
+              <t-tag theme="default" variant="light" size="small">待接收</t-tag>
+              <text class="exec-process">{{execStatus.process_name}}</text>
+            </view>
+          </view>
+          <view class="handover-hint">
+            <text class="hint-text">上工序《{{execStatus.handover.prev_process_name}}》完工 <text class="hint-num">{{execStatus.handover.qty_out}}</text> 件</text>
+            <text wx:if="{{execStatus.handover.complete_reason}}" class="hint-reason">备注：{{execStatus.handover.complete_reason}}</text>
+          </view>
+          <view class="start-wrap">
+            <t-button theme="warning" size="large" block
+              loading="{{isReceiving}}" bind:tap="onReceive">接收</t-button>
+          </view>
+        </view>
+
+        <!-- 待开工 → 开工 -->
+        <view wx:else>
+          <view class="exec-row">
+            <view class="exec-info">
+              <t-tag theme="default" variant="light" size="small">步骤 {{execStatus.current_seq}}</t-tag>
+              <text class="exec-process">{{execStatus.process_name}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{execStatus.stations.length > 1}}" class="station-section">
+            <text class="station-label">选择工站</text>
+            <t-radio-group value="{{selectedStationId}}" bind:change="onSelectStation">
+              <t-radio wx:for="{{execStatus.stations}}" wx:key="id"
+                label="{{item.name}}" value="{{item.id}}" />
+            </t-radio-group>
+          </view>
+
+          <view wx:elif="{{execStatus.stations.length === 1}}" class="exec-row">
+            <text class="station-label">工站</text>
+            <text class="exec-station">{{execStatus.stations[0].name}}</text>
+          </view>
+
+          <view class="worker-select-row" bindtap="openWorkerPopup" hover-class="worker-select-hover">
+            <view>
+              <text class="worker-select-title">开工人员</text>
+              <text class="worker-select-value">{{selectedWorkerText || '请选择'}}</text>
+            </view>
+            <text class="worker-select-arrow">›</text>
+          </view>
+
+          <view class="receive-photo-box start-photo-box" bindtap="onPickStartPhoto">
+            <block wx:if="{{startPhotoUrl}}">
+              <image class="receive-photo" src="{{startPhotoUrl}}" mode="aspectFill" />
+            </block>
+            <block wx:else>
+              <text class="receive-photo-plus">+</text>
+              <text class="receive-photo-tip">{{execStatus.current_seq === 1 ? '第一道工序主材拍照' : '点击拍主材照片'}}</text>
+            </block>
+          </view>
+
+          <view class="start-wrap">
+            <t-button theme="primary" size="large" block
+              loading="{{isStarting}}" bind:tap="onStart">开工</t-button>
+          </view>
+        </view>
+
+      </view>
+
+      <view class="list-title">子件清单 · {{components.length}} 项</view>
+    </view>
+
+    <!-- 可滚动子件列表 -->
+    <scroll-view class="scroll-body" scroll-y>
+      <t-cell-group wx:if="{{components.length > 0}}">
+        <t-cell wx:for="{{components}}" wx:key="sub_code">
+          <view slot="title">
+            <text class="sub-name">{{item.sub_name || '-'}}</text>
+          </view>
+          <view slot="description">
+            <text class="sub-code">{{item.sub_code}}</text>
+          </view>
+          <view slot="note" class="issue-col">
+            <view class="issue-row">
+              <text class="issue-label">应领</text>
+              <text class="issue-num">{{item.qty_plan}}</text>
+            </view>
+            <view class="issue-row">
+              <text class="issue-label">已领</text>
+              <text class="issue-num {{item.qty_issued >= item.qty_plan ? 'done' : 'warn'}}">{{item.qty_issued}}</text>
+            </view>
+          </view>
+        </t-cell>
+      </t-cell-group>
+      <view wx:else class="no-data">暂无子件数据</view>
+      <view class="scroll-foot" />
+    </scroll-view>
+
+  </block>
+
+  <!-- ══ 开工人员选择 ══ -->
+  <t-popup visible="{{showWorkerPopup}}" placement="bottom"
+    bind:visible-change="onWorkerPopupChange">
+    <view class="worker-popup">
+      <view class="worker-popup-head">
+        <text class="worker-popup-title">选择{{workerSelectionPurpose === 'rework' ? '返工' : (workerSelectionPurpose === 'receive' ? '接收' : '开工')}}人员</text>
+        <text class="worker-popup-count">已选 {{draftWorkerIds.length + draftTempWorkerCount}} 人</text>
+      </view>
+      <view wx:if="{{workersLoading}}" class="worker-loading"><t-loading theme="circular" size="32px" /></view>
+      <block wx:elif="{{departmentSelecting}}">
+        <scroll-view class="dept-breadcrumb" scroll-x>
+          <text class="dept-crumb" wx:for="{{deptTrail}}" wx:key="dept_id"
+            data-index="{{index}}" bindtap="jumpDepartment">{{index ? ' / ' : ''}}{{item.dept_name}}</text>
+        </scroll-view>
+        <view class="dept-current" bindtap="useCurrentDepartment">
+          <view>
+            <text class="dept-current-title">{{currentDeptId === 1 ? '查看全部人员' : '查看当前部门及下级人员'}}</text>
+            <text class="dept-current-sub">{{currentDeptName}}</text>
+          </view>
+          <text class="dept-arrow">›</text>
+        </view>
+        <scroll-view class="dept-level-list" scroll-y>
+          <view class="dept-level-item" wx:for="{{childDepartments}}" wx:key="dept_id"
+            data-deptid="{{item.dept_id}}" bindtap="enterDepartment">
+            <text class="dept-level-name">{{item.dept_name}}</text>
+            <text class="dept-arrow">›</text>
+          </view>
+          <view wx:if="{{!childDepartments.length}}" class="worker-empty">当前部门没有下级部门</view>
+        </scroll-view>
+      </block>
+      <block wx:else>
+        <view class="selected-dept-bar" bindtap="changeDepartment">
+          <text>{{selectedDeptLabel}}</text>
+          <text class="selected-dept-change">更换部门 ›</text>
+        </view>
+        <block wx:if="{{selectedDeptId === -1}}">
+          <view class="temp-worker-panel">
+            <text class="temp-worker-hint">用到几名临时工，就添加几次；同时至少选择1名正式员工</text>
+            <view class="temp-worker-controls">
+              <button class="temp-worker-control" bindtap="removeTempWorker">−</button>
+              <text class="temp-worker-count">{{draftTempWorkerCount}} 人</text>
+              <button class="temp-worker-control add" bindtap="addTempWorker">＋</button>
+            </view>
+            <view class="temp-worker-tags">
+              <text class="temp-worker-tag" wx:for="{{draftTempWorkers}}" wx:key="*this">{{item}}</text>
+            </view>
+          </view>
+        </block>
+        <block wx:else>
+          <input class="worker-search" placeholder="搜索姓名" value="{{workerKeyword}}"
+            bindinput="onWorkerKeywordInput" />
+          <scroll-view class="worker-list" scroll-y>
+          <view class="worker-item {{item.selected ? 'selected' : ''}}"
+            wx:for="{{filteredWorkers}}" wx:key="user_id"
+            data-userid="{{item.user_id}}" bindtap="toggleWorker">
+            <view class="worker-avatar">{{item.avatar_text}}</view>
+            <view class="worker-info">
+              <text class="worker-name">{{item.user_name}}</text>
+              <text class="worker-dept">{{item.main_dept_path || '未设置部门'}}</text>
+            </view>
+            <text class="worker-check">{{item.selected ? '✓' : ''}}</text>
+          </view>
+          <view wx:if="{{!filteredWorkers.length}}" class="worker-empty">暂无匹配人员</view>
+          </scroll-view>
+        </block>
+      </block>
+      <view class="worker-actions">
+        <t-button theme="default" size="large" bind:tap="closeWorkerPopup">取消</t-button>
+        <t-button theme="primary" size="large" bind:tap="confirmWorkers">确定（{{draftWorkerIds.length + draftTempWorkerCount}}）</t-button>
+      </view>
+    </view>
+  </t-popup>
+
+  <!-- ══ 完工弹窗 ══ -->
+  <t-popup visible="{{showCompletePopup}}" placement="center"
+    bind:visible-change="onCompletePopupChange">
+    <view class="popup-box">
+      <text class="popup-title">完工</text>
+      <view class="popup-tip">
+        <text class="popup-tip-label">{{compThresholdLabel}}</text>
+        <text class="popup-tip-value">{{compThreshold}} 件</text>
+      </view>
+      <t-input label="A级数量" type="digit" placeholder="输入A级数量" maxlength="5"
+        value="{{completeForm.qty_a}}" bind:change="onCompleteQtyAInput"
+        adjust-position="{{false}}" borderless />
+      <t-input label="C级数量" type="digit" placeholder="{{completeQtyCDisabled ? 'A级已达参考数量' : '输入C级数量（可为0）'}}" maxlength="5"
+        value="{{completeForm.qty_c}}" bind:change="onCompleteQtyCInput"
+        disabled="{{completeQtyCDisabled}}"
+        adjust-position="{{false}}" borderless />
+      <view class="popup-total">
+        <text class="popup-total-label">完工总数</text>
+        <text class="popup-total-val">{{(completeForm.qty_a * 1 + completeForm.qty_c * 1) || 0}} 件</text>
+      </view>
+      <view class="popup-warn-block">
+        <text wx:if="{{completeQtyWarn || completeQtyOver}}" class="popup-warn">{{completeQtyOver ? '完工总数超出参考值，需填写说明' : '完工总数不足参考值，需填写说明'}}</text>
+        <t-input label="" placeholder="{{completeQtyWarn || completeQtyOver ? '填写说明（必填）' : '填写备注（选填）'}}"
+          value="{{completeForm.reason}}" bind:change="onCompleteReasonInput"
+          adjust-position="{{false}}" borderless />
+      </view>
+      <view class="popup-actions">
+        <t-button theme="default" size="medium" bind:tap="closeComplete">取消</t-button>
+        <t-button theme="primary" size="medium" loading="{{isCompleting}}" bind:tap="submitComplete">提交完工</t-button>
+      </view>
+    </view>
+  </t-popup>
+
+  <!-- ══ 接收弹窗 ══ -->
+  <t-popup visible="{{showReceivePopup}}" placement="center"
+    bind:visible-change="onReceivePopupChange">
+    <view class="popup-box">
+      <text class="popup-title">接收</text>
+      <view class="popup-tip">
+        <text class="popup-tip-label">上工序完工数量</text>
+        <text class="popup-tip-value">{{currentHandover.qty_out}} 件</text>
+      </view>
+      <text wx:if="{{currentHandover.complete_reason}}" class="popup-sub">备注：{{currentHandover.complete_reason}}</text>
+      <t-input label="接收数量" type="digit" placeholder="输入接收数量" maxlength="5"
+        value="{{receiveForm.qty}}" bind:change="onReceiveQtyInput"
+        adjust-position="{{false}}" borderless />
+      <view wx:if="{{receiveQtyWarn || receiveQtyOver}}" class="popup-warn-block">
+        <text class="popup-warn">{{receiveQtyOver ? '接收数量超出交接数量，需填写说明' : '接收数量不足交接数量，需填写说明'}}</text>
+        <t-input label="" placeholder="填写说明（必填）"
+          value="{{receiveForm.reason}}" bind:change="onReceiveReasonInput"
+          adjust-position="{{false}}" borderless />
+      </view>
+      <view class="popup-actions">
+        <t-button theme="default" size="medium" bind:tap="closeReceive">取消</t-button>
+        <t-button theme="warning" size="medium" loading="{{isReceiving}}" bind:tap="submitReceive">确认接收</t-button>
+      </view>
+    </view>
+  </t-popup>
+
+  <!-- ══ 追加接收弹窗 ══ -->
+  <t-popup visible="{{showMakeupPopup}}" placement="center"
+    bind:visible-change="onMakeupPopupChange">
+    <view class="popup-box">
+      <text class="popup-title">接收</text>
+      <view class="receive-available-card">
+        <text class="receive-available-label">剩余可接收</text>
+        <text class="receive-available-value">{{currentLatestExec.receive_available_qty || 0}}</text>
+        <text class="receive-available-unit">件</text>
+      </view>
+      <view class="receive-input-card">
+        <text class="receive-input-label">接收数量</text>
+        <input class="receive-input" type="digit" placeholder="输入接收数量"
+          value="{{makeupForm.qty}}" bindinput="onMakeupQtyInput" />
+        <text class="receive-input-unit">件</text>
+      </view>
+      <view class="worker-select-row" bindtap="openReceiveWorkers" hover-class="worker-select-hover">
+        <view>
+          <text class="worker-select-title">接收人员</text>
+          <text class="worker-select-value">{{selectedReceiveWorkerText || '请选择'}}</text>
+        </view>
+        <text class="worker-select-arrow">›</text>
+      </view>
+      <view class="receive-photo-box" bindtap="onPickReceivePhoto">
+        <block wx:if="{{makeupForm.photo_url}}">
+          <image class="receive-photo" src="{{makeupForm.photo_url}}" mode="aspectFill" />
+        </block>
+        <block wx:else>
+          <text class="receive-photo-plus">+</text>
+          <text class="receive-photo-tip">点击拍领用照片</text>
+        </block>
+      </view>
+      <view wx:if="{{makeupOverPlan}}" class="popup-warn-block">
+        <text class="popup-warn">累计接收数量将超过上工序完工数量，需填写原因</text>
+        <t-input label="" placeholder="填写超出原因（必填）"
+          value="{{makeupForm.reason}}" bind:change="onMakeupReasonInput"
+          adjust-position="{{false}}" borderless />
+      </view>
+      <view class="popup-actions">
+        <t-button theme="default" size="medium" bind:tap="closeMakeup">取消</t-button>
+        <t-button theme="primary" size="medium" loading="{{isMakingUp}}" bind:tap="submitMakeup">开始接收</t-button>
+      </view>
+    </view>
+  </t-popup>
+
+  <!-- ══ 接收完工 ══ -->
+  <t-popup visible="{{showReceiveWorkCompletePopup}}" placement="center">
+    <view class="popup-box">
+      <text class="popup-title">接收完工</text>
+      <view class="receive-available-card">
+        <text class="receive-available-label">本次接收</text>
+        <text class="receive-available-value">{{historyRecord.receive_work.qty_input}}</text>
+        <text class="receive-available-unit">件</text>
+      </view>
+      <t-input label="A级数量" type="digit" placeholder="接收后A级数量"
+        value="{{receiveWorkCompleteForm.qty_a}}" bind:change="onReceiveWorkCompleteAInput"
+        adjust-position="{{false}}" borderless />
+      <t-input label="C级数量" type="digit" placeholder="接收后C级数量"
+        value="{{receiveWorkCompleteForm.qty_c}}" bind:change="onReceiveWorkCompleteCInput"
+        adjust-position="{{false}}" borderless />
+      <view class="popup-actions">
+        <t-button theme="default" size="medium" bind:tap="closeReceiveWorkComplete">取消</t-button>
+        <t-button theme="primary" size="medium" loading="{{isMakingUp}}" bind:tap="submitReceiveWorkComplete">确认完工</t-button>
+      </view>
+    </view>
+  </t-popup>
+
+  <!-- ══ C级品返工开工 ══ -->
+  <t-popup visible="{{showReworkStartPopup}}" placement="center">
+    <view class="popup-box">
+      <text class="popup-title">C级品返工</text>
+      <view class="popup-tip">
+        <text class="popup-tip-label">当前可返工数量</text>
+        <text class="popup-tip-value">{{historyRecord.qty_c}} 件</text>
+      </view>
+      <t-input label="返工数量" type="digit" placeholder="输入C级品返工数量"
+        value="{{reworkForm.qty}}" bind:change="onReworkQtyInput"
+        adjust-position="{{false}}" borderless />
+      <t-input label="返工说明" placeholder="填写返工说明（必填）"
+        value="{{reworkForm.reason}}" bind:change="onReworkReasonInput"
+        adjust-position="{{false}}" borderless />
+      <view class="worker-select-row" bindtap="openReworkWorkers" hover-class="worker-select-hover">
+        <view>
+          <text class="worker-select-title">返工人员</text>
+          <text class="worker-select-value">{{selectedReworkWorkerText || '请选择'}}</text>
+        </view>
+        <text class="worker-select-arrow">›</text>
+      </view>
+      <view class="popup-actions">
+        <t-button theme="default" size="medium" bind:tap="closeReworkStart">取消</t-button>
+        <t-button theme="primary" size="medium" loading="{{isReworking}}" bind:tap="submitReworkStart">开始返工</t-button>
+      </view>
+    </view>
+  </t-popup>
+
+  <!-- ══ 返工完工 ══ -->
+  <t-popup visible="{{showReworkCompletePopup}}" placement="center">
+    <view class="popup-box">
+      <text class="popup-title">返工完工</text>
+      <view class="popup-tip">
+        <text class="popup-tip-label">返工投入数量</text>
+        <text class="popup-tip-value">{{historyRecord.rework.qty_input}} 件</text>
+      </view>
+      <t-input label="A级数量" type="digit" placeholder="返工后A级数量"
+        value="{{reworkCompleteForm.qty_a}}" bind:change="onReworkCompleteAInput"
+        adjust-position="{{false}}" borderless />
+      <t-input label="C级数量" type="digit" placeholder="返工后仍为C级的数量"
+        value="{{reworkCompleteForm.qty_c}}" bind:change="onReworkCompleteCInput"
+        adjust-position="{{false}}" borderless />
+      <t-input label="备注" placeholder="填写备注（选填）"
+        value="{{reworkCompleteForm.remark}}" bind:change="onReworkCompleteRemarkInput"
+        adjust-position="{{false}}" borderless />
+      <view class="popup-actions">
+        <t-button theme="default" size="medium" bind:tap="closeReworkComplete">取消</t-button>
+        <t-button theme="primary" size="medium" loading="{{isReworking}}" bind:tap="submitReworkComplete">提交完工</t-button>
+      </view>
+    </view>
+  </t-popup>
+
+</view>

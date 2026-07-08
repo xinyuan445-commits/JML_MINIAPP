@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 岗位分工员工SQL -->
+<sqlGroup namespace="deviceRepairStaffCfg">
+    <!--获取分配员工列表-->
+    <select id="queryRepairStaffId" parameterType="map">
+        select
+            a.staff_id AS repairStaffId
+        from
+        jml_device_repair_staff_cfg a
+        where
+           a.prod_line = #{prodLine}
+        and
+            a.`enable` = '1'
+    </select>
+
+</sqlGroup>

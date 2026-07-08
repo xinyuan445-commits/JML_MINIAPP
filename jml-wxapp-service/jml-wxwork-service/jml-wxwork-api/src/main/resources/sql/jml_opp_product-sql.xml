@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 机会产品管理SQL -->
+<sqlGroup namespace="oppProduct">
+	<!--分页查询机会产品根据业务机会信息-->
+	<select id="queryPageBy" parameterType="map">
+		select
+			a.id,
+			b.`name` as productName,
+			a.qty,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time
+		<pageTag/>
+		from
+			jml_opp_product a
+		left join
+			jml_product b on a.product_id = b.id
+		<where>
+			<if test="oppId != null and oppId != ''">
+				a.opportunity_id = #{oppId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取机会产品明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.name,
+			a.id,
+			b.`name` as productName,
+			a.product_id,
+			a.qty,
+			a.unit_price,
+			a.list_price,
+			a.total_amount,
+			a.total_list_amount,
+			a.product_id,
+			a.delivery_date,
+			a.remark,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time
+		from
+			jml_opp_product a
+		left join
+			jml_product b on a.product_id = b.id
+		left join
+			jml_staff cs on a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+</sqlGroup>

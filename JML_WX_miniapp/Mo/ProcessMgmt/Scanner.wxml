@@ -1,0 +1,69 @@
+<view class="page">
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input class="search-input" placeholder="输入工单号" value="{{searchVal}}"
+      bindinput="onInput" bindconfirm="onSearch" confirm-type="search" />
+    <view class="scan-btn" bindtap="onScan">
+      <text class="scan-txt">扫码</text>
+    </view>
+  </view>
+
+  <!-- 今日记录 -->
+  <view wx:if="{{isLoading}}" class="loading-wrap">
+    <t-loading theme="circular" size="36px" />
+  </view>
+
+  <block wx:else>
+    <t-collapse value="{{expandedPanels}}" bind:change="onCollapseChange">
+
+      <!-- 进行中 -->
+      <t-collapse-panel value="processing" header="进行中 · {{processingRecs.length}} 条">
+        <view wx:if="{{processingRecs.length === 0}}" class="panel-empty">暂无</view>
+        <view class="rec-card" wx:for="{{processingRecs}}" wx:key="id"
+          data-execid="{{item.id}}" data-status="{{item.status}}"
+          data-mocode="{{item.mo_code}}" data-sortseq="{{item.sort_seq}}" data-categoryname="{{item.category_name}}"
+          bindtap="onTapRecord" hover-class="card-hover">
+          <view class="rec-top">
+            <text class="rec-mocode">{{item.mo_code}}：{{item.sort_seq}}</text>
+            <t-tag theme="warning" variant="light" size="small">进行中</t-tag>
+          </view>
+          <text wx:if="{{item.inv_name}}" class="rec-invname">{{item.inv_name}}</text>
+          <text class="rec-process">{{item.process_name || '-'}}</text>
+          <view class="rec-bot">
+            <text class="rec-time">{{item.start_str}} → {{item.end_str}}</text>
+            <view class="rec-qty-wrap">
+              <text class="rec-qty">{{item.qty_str}}</text>
+              <text class="rec-unit"> 件</text>
+            </view>
+          </view>
+        </view>
+      </t-collapse-panel>
+
+      <!-- 已完成 -->
+      <t-collapse-panel value="done" header="已完成 · {{doneRecs.length}} 条">
+        <view wx:if="{{doneRecs.length === 0}}" class="panel-empty">暂无</view>
+        <view class="rec-card" wx:for="{{doneRecs}}" wx:key="id"
+          data-execid="{{item.id}}" data-status="{{item.status}}"
+          data-mocode="{{item.mo_code}}" data-sortseq="{{item.sort_seq}}" data-categoryname="{{item.category_name}}"
+          bindtap="onTapRecord" hover-class="card-hover">
+          <view class="rec-top">
+            <text class="rec-mocode">{{item.mo_code}}：{{item.sort_seq}}</text>
+            <t-tag theme="success" variant="light" size="small">已完工</t-tag>
+          </view>
+          <text wx:if="{{item.inv_name}}" class="rec-invname">{{item.inv_name}}</text>
+          <text class="rec-process">{{item.process_name || '-'}}</text>
+          <view class="rec-bot">
+            <text class="rec-time">{{item.start_str}} → {{item.end_str}}</text>
+            <view class="rec-qty-wrap">
+              <text class="rec-qty">{{item.qty_str}}</text>
+              <text class="rec-unit"> 件</text>
+            </view>
+          </view>
+        </view>
+      </t-collapse-panel>
+
+    </t-collapse>
+  </block>
+
+</view>

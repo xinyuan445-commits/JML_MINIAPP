@@ -1,0 +1,13 @@
+{
+  "component": true,
+  "usingComponents": {
+    "u-icon": "../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-sticky": "../node-modules/uview-plus/components/u-sticky/u-sticky",
+    "u-badge": "../node-modules/uview-plus/components/u-badge/u-badge",
+    "uni-calendar": "../uni_modules/uni-calendar/components/uni-calendar/uni-calendar",
+    "u-divider": "../node-modules/uview-plus/components/u-divider/u-divider",
+    "u-popup": "../node-modules/uview-plus/components/u-popup/u-popup",
+    "drag-box": "../components/DragBox",
+    "select-map": "../components/SelectMap"
+  }
+}

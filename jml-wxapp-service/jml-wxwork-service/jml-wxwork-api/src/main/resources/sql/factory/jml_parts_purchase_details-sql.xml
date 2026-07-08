@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 零配件采购清单 -->
+<sqlGroup namespace="partsPurchaseDetails">
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id as id,
+            a.name as name,
+            a.unit as unit,
+            a.qty as qty,
+            CONCAT_WS( ";", a.part_img1, a.part_img2, a.part_img3) AS partImg,
+            a.supplier,
+            a.damage_desc as damageDesc,
+            a.remark as remark,
+            a.handling_method as handlingMethod,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime
+        from
+            jml_parts_purchase_details a
+        where
+            a.parts_purchase_id = #{partsPurchaseId}
+        order by a.update_time desc
+    </select>
+</sqlGroup>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 零配件采购清单 -->
+<sqlGroup namespace="printingLineReportDetail">
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id AS id,
+            a.people_num AS peopleNum,
+            a.material AS material,
+            a.good_qty AS goodQty,
+            a.defective_qty AS defectiveQty,
+            a.print_qty AS printQty,
+            a.defective_desc AS defectiveDesc,
+            a.remark as remark,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime
+          from
+              jml_printing_line_report_detail a
+          where
+              a.printing_line_report_id = #{printingLineReportId}
+          order by
+                a.update_time desc
+    </select>
+
+    <select id="sumPrintQtyBy" parameterType="map">
+        select
+          sum( print_qty ) as printQty
+        from
+          jml_printing_line_report_detail
+        where
+          printing_line_report_id = #{printingLineReportId}
+    </select>
+
+</sqlGroup>

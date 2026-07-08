@@ -1,0 +1,22 @@
+{
+  "component": true,
+  "usingComponents": {
+    "u-icon": "../../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-search": "../../../node-modules/uview-plus/components/u-search/u-search",
+    "u-divider": "../../../node-modules/uview-plus/components/u-divider/u-divider",
+    "u-tag": "../../../node-modules/uview-plus/components/u-tag/u-tag",
+    "uni-swipe-action-item": "../../../uni_modules/uni-swipe-action/components/uni-swipe-action-item/uni-swipe-action-item",
+    "uni-swipe-action": "../../../uni_modules/uni-swipe-action/components/uni-swipe-action/uni-swipe-action",
+    "u-empty": "../../../node-modules/uview-plus/components/u-empty/u-empty",
+    "u-calendar": "../../../node-modules/uview-plus/components/u-calendar/u-calendar",
+    "u-picker": "../../../node-modules/uview-plus/components/u-picker/u-picker",
+    "u--textarea": "../../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u-form-item": "../../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u--form": "../../../node-modules/uview-plus/components/u-form/u-form",
+    "u-modal": "../../../node-modules/uview-plus/components/u-modal/u-modal",
+    "u-radio": "../../../node-modules/uview-plus/components/u-radio/u-radio",
+    "u-radio-group": "../../../node-modules/uview-plus/components/u-radio-group/u-radio-group",
+    "floating-window": "../../../components/FloatingWindow",
+    "progress-status": "../../../components/ProgressStatus"
+  }
+}

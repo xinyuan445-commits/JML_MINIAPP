@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- jml_staff_area  -->
+<sqlGroup namespace="jml_staff_area">
+
+	<!--根据staffId查询员工关联的管理域-->
+	<select id="queryByStaffId" parameterType="map">
+		SELECT
+			b.`name` as district,
+			b.area_code as areaCode,
+			b.area_name as areaName,
+			b.area_id as areaId
+		FROM
+			jml_staff_area a
+			INNER JOIN jml_area_district b ON a.area_id = b.area_id
+		WHERE
+			a.staff_id = #{staffId}
+			and a.enable = '1'
+			and b.enable = '1'
+	</select>
+</sqlGroup>

@@ -1,0 +1,51 @@
+<view class="page">
+  <!-- 顶部：与 Edit 风格一致的简洁胶囊 -->
+  <view class="toolbar">
+    <view class="dates">
+      <picker mode="date" value="{{start}}" bindchange="onStartChange">
+        <view class="chip">{{start}}</view>
+      </picker>
+      <text class="dash">—</text>
+      <picker mode="date" value="{{end}}" bindchange="onEndChange">
+        <view class="chip">{{end}}</view>
+      </picker>
+    </view>
+    <button class="create" type="primary" size="mini" bindtap="onCreate">新建</button>
+  </view>
+
+  <!-- 列表（卡片与 Edit 保持同系设计） -->
+  <scroll-view class="list" scroll-y>
+    <block wx:for="{{list}}" wx:key="doc_no">
+      <view class="card" bindtap="goDetail" data-docno="{{item.doc_no}}">
+        <view class="top">
+          <text class="doc">{{item.doc_no}}</text>
+          <text class="badge {{item.op_type==1?'on':'off'}}">{{ item.op_type==1 ? '开机' : '关机' }}</text>
+        </view>
+
+        <view class="row">
+          <text class="label">设备</text>
+          <text class="val strong">{{item.device_name}}</text>
+        </view>
+
+        <!-- 新增：人员 -->
+        <view class="row">
+          <text class="label">人员</text>
+          <text class="val">{{item.staff_name || '-'}}</text>
+        </view>
+
+        <!-- 时间：改用本地格式化后的字段 -->
+        <view class="row">
+          <text class="label">时间</text>
+          <text class="val">{{item.created_time_txt}}</text>
+        </view>
+
+        <view class="row" wx:if="{{item.remark}}">
+          <text class="label">备注</text>
+          <text class="val remark">{{item.remark}}</text>
+        </view>
+      </view>
+    </block>
+
+    <view class="empty" wx:if="{{!list.length}}">暂无数据</view>
+  </scroll-view>
+</view>

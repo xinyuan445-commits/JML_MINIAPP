@@ -1,0 +1,1 @@
+<view id="{{b}}" style="{{c + ';' + virtualHostStyle}}" class="{{['u-sticky', 'data-v-a2c39d76', virtualHostClass]}}"><view style="{{a}}" class="u-sticky__content data-v-a2c39d76"><slot/></view></view>

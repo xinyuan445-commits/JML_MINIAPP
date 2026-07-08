@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 项目管理SQL -->
+<sqlGroup namespace="project">
+	<!--分页查询项目-->
+	<select id="queryPage" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.stage,
+			a.type,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			cs.`name` AS createdStaffName
+		<pageTag/>
+		from
+			jml_project a
+		left join
+			jml_staff cs ON a.created_staff_id = cs.id
+		<where>
+			<if test="multiFiled != null and multiFiled != ''">
+				and a.name like '%${multiFiled}%'
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取项目明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.stage,
+			date_format(a.start_date,'%Y-%m-%d') as start_date,
+			date_format(a.end_date,'%Y-%m-%d') as end_date,
+			a.type,
+			a.investment,
+			a.output,
+			a.product_code,
+			a.category,
+			a.spec_desc,
+			CONCAT_WS( ";", a.spec_desc_img1, a.spec_desc_img2) AS spec_desc_img,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time,
+			a.area_code,
+			ar.name as areaName,
+			a.district
+		from
+			jml_project a
+		left join
+			jml_staff cs on a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		left join
+			jml_area ar on a.area_code = ar.area_code
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+</sqlGroup>

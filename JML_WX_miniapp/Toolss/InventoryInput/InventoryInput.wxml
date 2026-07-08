@@ -1,0 +1,118 @@
+<view class="inv-page">
+  <view class="head">盘点输入工具</view>
+
+  <view class="form-card">
+    <!-- 料号：空格/逗号分词 + 查询按钮 -->
+    <view class="form-row">
+      <text class="label">料号</text>
+      <view class="ipt-row">
+        <input class="ipt" placeholder="空格或逗号分词，回车或点查询" value="{{form.itemCode}}" bindinput="onItemCodeInput" confirm-type="search" bindconfirm="onSearchItemCode" />
+        <button class="mini-btn" size="mini" loading="{{searching}}" bindtap="onSearchItemCode">
+          查询
+        </button>
+      </view>
+    </view>
+
+
+
+    <!-- 批号 -->
+    <view class="form-row">
+      <text class="label">批号</text>
+      <view class="ipt-row">
+        <input class="ipt" placeholder="请输入批号" value="{{form.batchNo}}" bindinput="onBatchInput" />
+        <button class="mini-btn" size="mini" bindtap="onConvertBatch">转换</button>
+      </view>
+    </view>
+
+
+    <!-- 货位 -->
+    <view class="form-row">
+      <text class="label">货位</text>
+      <input class="ipt" placeholder="货位/库位" value="{{form.binLoc}}" bindinput="onLocInput" />
+    </view>
+
+    <!-- 数量 -->
+    <view class="form-row">
+      <text class="label">数量</text>
+      <input class="ipt" type="digit" placeholder="请输入数量（自动保留两位）" value="{{form.qty}}" bindinput="onQtyInput" bindblur="onQtyBlur" />
+    </view>
+  </view>
+
+
+  <view class="btns">
+    <button class="btn reset" bindtap="onReset">清空</button>
+    <button class="btn submit" bindtap="onSubmit">提交</button>
+  </view>
+
+  <!-- ================== 输入历史 ================== -->
+  <view class="history-container">
+
+<view class="history-title">今日输入记录</view>
+
+<scroll-view scroll-y="true" class="history-scroll">
+
+  <view wx:if="{{inputHistory.length == 0}}" class="empty">
+    暂无记录
+  </view>
+
+  <view wx:for="{{inputHistory}}"
+        wx:key="id"
+        class="card"
+        bindlongpress="onLongPressDelete"
+        data-id="{{item.id}}">
+
+    <view class="card-header">
+      <view class="invcode">{{item.cinvcode}}</view>
+      <view class="qty-badge">{{item.qty_fmt}}</view>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="info-row">
+      <text class="label2">批号</text>
+      <text class="value">{{item.cbatch}}</text>
+    </view>
+
+    <view class="info-row">
+      <text class="label2">时间</text>
+      <text class="value">{{item.time_fmt}}</text>
+    </view>
+
+  </view>
+
+</scroll-view>
+</view>
+
+
+
+
+
+
+
+  <!-- 自定义可滚动选择器 -->
+  <view wx:if="{{selectorVisible}}" class="picker-mask" catchtouchmove="noop">
+    <view class="picker-panel">
+      <view class="picker-head">
+        <text>匹配到 {{totalCount}} 条（已加载 {{selectorList.length}} 条）</text>
+        <text class="picker-close" bindtap="closeSelector">关闭</text>
+      </view>
+
+      <scroll-view class="picker-body" scroll-y>
+        <block wx:for="{{selectorList}}" wx:key="code">
+          <view class="picker-item" bindtap="pickItem" data-code="{{item.code}}" data-name="{{item.name}}">
+            <text class="code">{{item.code}}</text>
+            <text class="name">{{item.name}}</text>
+          </view>
+        </block>
+        <view class="picker-empty" wx:if="{{!selectorList.length && !loadingMore}}">暂无数据</view>
+        <view class="picker-loading" wx:if="{{loadingMore}}">加载中...</view>
+      </scroll-view>
+
+      <view class="picker-foot">
+        <button size="mini" class="btn-ghost" bindtap="loadMore" disabled="{{noMore}}">
+          {{ noMore ? '没有更多了' : '加载更多' }}
+        </button>
+      </view>
+    </view>
+  </view>
+</view>

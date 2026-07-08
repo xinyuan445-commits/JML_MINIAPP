@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 维修历史SQL -->
+<sqlGroup namespace="partsPurchaseApprovalHistory">
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id as id,
+            a.remark as remark,
+            a.approval_status as approvalStatus,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName
+        from
+            jml_parts_purchase_approval_history a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+        where
+            a.parts_purchase_id = #{partsPurchaseId}
+            order by a.created_time desc
+    </select>
+</sqlGroup>

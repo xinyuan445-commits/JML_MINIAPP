@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "工单详情",
+  "usingComponents": {
+    "t-cell":        "../../miniprogram_npm/tdesign-miniprogram/cell/cell",
+    "t-cell-group":  "../../miniprogram_npm/tdesign-miniprogram/cell-group/cell-group",
+    "t-tag":         "../../miniprogram_npm/tdesign-miniprogram/tag/tag",
+    "t-loading":     "../../miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-button":      "../../miniprogram_npm/tdesign-miniprogram/button/button",
+    "t-radio":       "../../miniprogram_npm/tdesign-miniprogram/radio/radio",
+    "t-radio-group": "../../miniprogram_npm/tdesign-miniprogram/radio-group/radio-group",
+    "t-popup":       "../../miniprogram_npm/tdesign-miniprogram/popup/popup",
+    "t-input":       "../../miniprogram_npm/tdesign-miniprogram/input/input"
+  }
+}

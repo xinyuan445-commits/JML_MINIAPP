@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "工序管理",
+  "usingComponents": {
+    "t-pull-down-refresh": "../../miniprogram_npm/tdesign-miniprogram/pull-down-refresh/pull-down-refresh",
+    "t-empty":             "../../miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-loading":           "../../miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-tag":               "../../miniprogram_npm/tdesign-miniprogram/tag/tag"
+  }
+}

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="caseAcceptanceHistory">
+    <!--获取列表显示的类容-->
+    <select id="queryHistoryShowList" parameterType="map">
+        SELECT
+            h.case_stage_name,
+            h.case_stage_code,
+            IF(
+                EXISTS (SELECT 1 FROM jml_case WHERE id = #{caseId} AND case_stage_code = h.case_stage_code),
+                '2',
+                 h.show_related
+            ) AS flag
+        FROM
+            jml_case_acceptance_history h
+        WHERE
+            h.show_list = '1'
+            AND h.case_id =  #{caseId}
+        ORDER BY
+            h.sort ASC
+    </select>
+    <!--获取明细相关列表显示的类容-->
+    <select id="queryHistoryShowRelated" parameterType="map">
+        select
+            date_format(update_time,'%Y-%m-%d %H:%i:%s') as acceptance_time,
+            acceptance_status,
+            acceptance_staff_name
+        from
+            jml_case_acceptance_history
+        where
+            show_related = '1'
+            and case_id = #{caseId}
+            order by sort desc
+    </select>
+    <!--获取更新的阶段-->
+    <select id="queryUpdateStageBy" parameterType="map">
+      select
+            id,
+            case_id,
+            case_stage_code,
+            show_related,
+            show_list,
+            acceptance_status,
+            acceptance_staff_id
+       from
+            jml_case_acceptance_history
+       where
+            case_stage_code = #{stageCode}
+            and case_id = #{caseId}
+    </select>
+
+    <!--客诉明细获取下一阶段-->
+    <select id="queryNextStage" parameterType="map">
+        SELECT
+            CASE
+                WHEN conditions.check_stage_code IS NOT NULL THEN 'SMT'
+                ELSE a.case_stage_code
+            END AS case_stage_code,
+            CASE
+                WHEN conditions.check_stage_code IS NOT NULL THEN '提交'
+                ELSE a.acceptance_status
+            END AS acceptance_status,
+            EXISTS(SELECT 1 FROM jml_case_stage_conditions_cfg WHERE check_stage_code = #{stageCode}) AS check_stage_exists
+        FROM
+            jml_case_acceptance_history AS a
+        JOIN (
+            SELECT sort,show_related
+            FROM jml_case_acceptance_history
+            WHERE case_stage_code =  #{stageCode} AND case_id =  #{caseId} AND show_list = '1'
+        ) AS b ON a.sort > b.sort
+        LEFT JOIN jml_case_stage_conditions_cfg AS conditions ON conditions.check_stage_code = #{stageCode}
+        WHERE
+            a.case_id =  #{caseId}
+            AND a.show_list = '1'
+        ORDER BY
+            a.sort
+        LIMIT 1
+    </select>
+
+    <!--更新工厂意见的受理人-->
+    <update id="updateFMBy" parameterType="map">
+        UPDATE jml_case_acceptance_history AS a
+        JOIN (
+            select
+                a.acceptance_staff_name,
+                a.acceptance_staff_id,
+                a.acceptance_role_name,
+                a.acceptance_status,
+                a.case_stage_code
+            from
+                jml_case_user_cfg a
+                LEFT JOIN jml_case_stage_cfg b ON a.case_stage_code = b.stage_code
+            where
+                a.acceptance_role_code = 'QA'
+                and a.factory_code = #{factoryCode}
+                and a.`enable` = '1'
+                and b.`enable` = '1'
+            ) AS c ON a.case_stage_code = c.case_stage_code
+            SET a.acceptance_status = c.acceptance_status,
+            a.acceptance_staff_id = c.acceptance_staff_id,
+            a.acceptance_staff_name = c.acceptance_staff_name,
+            a.acceptance_role_name = c.acceptance_role_name
+        WHERE
+            a.case_stage_code = 'ZLYJ'
+            AND a.case_id = #{caseId}
+    </update>
+    <!--修改跳过的阶段-->
+    <update id="updateCloseStage" parameterType="map">
+        update jml_case_acceptance_history
+        set
+            show_list = '0'
+        where
+            case_stage_code != #{stageCode}
+            and show_related = '0'
+            and case_id = #{caseId}
+    </update>
+
+    <!--删除受理历史-->
+    <delete id="deleteByCaseId">
+        delete from jml_case_acceptance_history where case_id = #{caseId}
+    </delete>
+
+
+    <!--获取对应的openid根据阶段和caseId-->
+    <select id="querySendTmplInfoBy" parameterType="map">
+       SELECT
+            a.case_id as id,
+            a.case_stage_code,
+            c.openid,
+            a.acceptance_staff_name as acceptanceStaffName,
+            e.name as createStaffName,
+            date_format( now(), '%Y年%m月%d日 %H:%i:%s' ) AS submitTime,
+            f.`name` as accName,
+            a.acceptance_role_name,
+            d.service_type,
+            d.name,
+            d.approval_status,
+            a.case_stage_name,
+            d.case_stage,
+            g.name as returnStaffName
+        FROM
+            jml_case_acceptance_history a
+        LEFT JOIN jml_staff b ON a.acceptance_staff_id = b.id
+        LEFT JOIN wx_member c ON b.unionid = c.unionid
+        LEFT JOIN jml_case d ON a.case_id = d.id
+        LEFT JOIN jml_staff e ON a.created_staff_id = e.id
+        LEFT JOIN jml_account f ON d.account_id = f.id
+        LEFT JOIN jml_staff g ON d.return_staff_id = g.id
+        WHERE
+            a.case_id = #{caseId}  and a.show_list = '1'
+    </select>
+    <!--获取销售人员对应的openid根据caseId-->
+    <select id ="querySalesOpenIdInfoBy" parameterType="map">
+        select
+            a.sales_staff_id,
+            c.openid,
+            b.`name` as salesStaffName
+        from
+            jml_case a
+            LEFT JOIN jml_staff b ON a.sales_staff_id = b.id
+            LEFT JOIN wx_member c ON b.unionid = c.unionid
+        where
+            a.id = #{caseId}
+            and c.openid is not null
+    </select>
+
+    <!--更新质量受理的阶段-->
+    <update id="updateZLYJBy" parameterType="map">
+        update
+            jml_case_acceptance_history
+        set
+            show_list = '1'
+        where
+            case_stage_code = #{stageCode}
+            and case_id = #{caseId}
+    </update>
+
+
+</sqlGroup>

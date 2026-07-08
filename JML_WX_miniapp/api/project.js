@@ -1,0 +1,1 @@
+"use strict";const t=require("../utils/http.js");exports.queryDetails=function(e){return t.request({url:"/api/project/queryProjectDetails",method:"get",data:{id:e}})},exports.queryPageData=function(e){return t.request({url:"/api/project/queryProjectPage",method:"get",data:e})},exports.saveEdit=function(e){return t.request({url:"/api/project/saveProject",method:"post",data:e})};

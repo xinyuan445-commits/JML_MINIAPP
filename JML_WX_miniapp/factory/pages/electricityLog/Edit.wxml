@@ -1,0 +1,42 @@
+<view class="{{['page', 'pd100', 'data-v-f6d653d5', virtualHostClass]}}" style="{{virtualHostStyle}}">
+  <view class="card_info data-v-f6d653d5">
+    <u--form wx:if="{{s}}" class="r data-v-f6d653d5" virtualHostClass="r data-v-f6d653d5" u-s="{{['d']}}" u-r="form1" u-i="f6d653d5-0" bind:__l="__l" u-p="{{s}}">
+      <view class="card data-v-f6d653d5">
+        <view class="u-form-item__body__left__content data-v-f6d653d5" style="font-size:15px;padding-top:10px">
+          <uni-text u-s="{{['d']}}" class="u-form-item__body__left__content__label data-v-f6d653d5" virtualHostClass="u-form-item__body__left__content__label data-v-f6d653d5" u-i="f6d653d5-1,f6d653d5-0" bind:__l="__l"><label class="data-v-f6d653d5">上一次用电示数：</label> {{a}}</uni-text>
+        </view>
+        <u-form-item wx:if="{{f}}" class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" u-s="{{['d']}}" u-i="f6d653d5-2,f6d653d5-0" bind:__l="__l" u-p="{{f}}">
+          <uni-data-picker wx:if="{{e}}" class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" u-s="{{['d']}}" bindchange="{{d}}" u-i="f6d653d5-3,f6d653d5-2" bind:__l="__l" u-p="{{e}}">
+            <view wx:for="{{b}}" wx:for-item="v0" wx:key="c" slot="{{v0.d}}">
+              <view wx:if="{{c}}" class="selected showarea data-v-f6d653d5"><text class="data-v-f6d653d5">{{v0.a}} - {{v0.b}}</text></view>
+              <view wx:else class="showarea data-v-f6d653d5"><text class="readonly data-v-f6d653d5">请选择</text></view>
+            </view>
+
+          </uni-data-picker>
+
+        </u-form-item>
+        <!-- 灰色提示 -->
+        <view wx:if="{{meterRatio}}" class="ratio-tip">
+  电表倍率：{{meterRatio}}
+</view>
+
+
+        <u-form-item wx:if="{{i}}" class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" u-s="{{['d']}}" u-i="f6d653d5-4,f6d653d5-0" bind:__l="__l" u-p="{{i}}">
+          <u--input wx:if="{{h}}" class="int data-v-f6d653d5" virtualHostClass="int data-v-f6d653d5" u-i="f6d653d5-5,f6d653d5-4" bind:__l="__l" bindupdateModelValue="{{g}}" u-p="{{h}}" />
+        </u-form-item>
+        <u-form-item wx:if="{{m}}" class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" u-s="{{['d']}}" u-i="f6d653d5-6,f6d653d5-0" bind:__l="__l" u-p="{{m}}">
+          <u-upload wx:if="{{l}}" class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" bindafterRead="{{j}}" binddelete="{{k}}" u-i="f6d653d5-7,f6d653d5-6" bind:__l="__l" u-p="{{l}}"></u-upload>
+        </u-form-item>
+        <view class="u-form-item__body__left__content data-v-f6d653d5" style="font-size:15px;margin-top:10px">
+          <uni-text u-s="{{['d']}}" class="u-form-item__body__left__content__label data-v-f6d653d5" virtualHostClass="u-form-item__body__left__content__label data-v-f6d653d5" u-i="f6d653d5-8,f6d653d5-0" bind:__l="__l"><label class="data-v-f6d653d5">本次用电耗用量（单位：度）：</label> {{n}}</uni-text>
+        </view>
+        <u-form-item wx:if="{{q}}" class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" u-s="{{['d']}}" u-i="f6d653d5-9,f6d653d5-0" bind:__l="__l" u-p="{{q}}">
+          <u--textarea wx:if="{{p}}" class="int data-v-f6d653d5" virtualHostClass="int data-v-f6d653d5" u-i="f6d653d5-10,f6d653d5-9" bind:__l="__l" bindupdateModelValue="{{o}}" u-p="{{p}}" />
+        </u-form-item>
+      </view>
+    </u--form>
+  </view>
+  <u-datetime-picker wx:if="{{y}}" class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" bindconfirm="{{t}}" bindcancel="{{v}}" bindclose="{{w}}" u-i="f6d653d5-11" bind:__l="__l" bindupdateModelValue="{{x}}" u-p="{{y}}"></u-datetime-picker>
+  <footer-btn wx:if="{{A}}" class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" bindonconfirm="{{z}}" u-i="f6d653d5-12" bind:__l="__l" u-p="{{A}}"></footer-btn>
+  <floating-window class="data-v-f6d653d5" virtualHostClass="data-v-f6d653d5" u-i="f6d653d5-13" bind:__l="__l"></floating-window>
+</view>

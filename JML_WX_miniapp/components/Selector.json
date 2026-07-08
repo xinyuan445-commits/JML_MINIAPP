@@ -1,0 +1,11 @@
+{
+  "component": true,
+  "usingComponents": {
+    "uni-icons": "../uni_modules/uni-icons/components/uni-icons/uni-icons",
+    "u-checkbox": "../node-modules/uview-plus/components/u-checkbox/u-checkbox",
+    "u-divider": "../node-modules/uview-plus/components/u-divider/u-divider",
+    "u-checkbox-group": "../node-modules/uview-plus/components/u-checkbox-group/u-checkbox-group",
+    "u-empty": "../node-modules/uview-plus/components/u-empty/u-empty",
+    "u-popup": "../node-modules/uview-plus/components/u-popup/u-popup"
+  }
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 功能查询的SQL -->
+<sqlGroup namespace="sys_func">
+	<!-- 根据条件查询功能清单 -->
+	<select id="queryBy" parameterType="map">
+		select
+			a.*
+		from sys_func a
+		left join sys_menu b on a.menuid=b.id
+		<where>
+			<if test="id != null and id != 0">
+				and a.id = #{id}
+			</if>
+			<if test="name != null and name != ''">
+				and a.name = #{name}
+			</if>
+			<if test="code != null and code != ''">
+				and a.code = #{code}
+			</if>
+			<if test="actionType != null and actionType != ''">
+				and a.actionType = #{actionType}
+			</if>
+			<if test="action != null and action != ''">
+				and a.action = #{action}
+			</if>
+			<if test="targetAction != null and targetAction != ''">
+				and a.targetAction = #{targetAction}
+			</if>
+			<if test="actionQ != null and actionQ != ''">
+				and (a.action = #{actionQ} or a.targetAction = #{actionQ})
+			</if>
+			<if test="display != null and display != ''">
+				and a.display = #{display}
+			</if>
+			<if test="menuid != null and menuid != 0">
+				and a.menuid = #{menuid}
+			</if>
+			<if test="url != null and url != ''">
+				and b.url = #{url}
+			</if>
+		</where>
+	</select>
+
+	<!--根据条件查询权限信息-->
+	<select id="queryAuthBy" parameterType="map">
+		select
+			a.`action`,
+			'1' as flag
+		from
+			sys_func a
+		left join sys_menu b on a.menuid = b.id
+		left join sys_rela_role_auth c on a.id = c.authId and c.authType='2'
+		left join sys_rela_role_user d on d.roleId = c.roleId
+		where
+			a.`action` = #{action}
+			and a.actionType = '2'
+			and b.url = #{controllerKey}
+			and d.userId = #{userId}
+	</select>
+
+	<!--根据ID删除功能-->
+	<delete id="delByIds" parameterType="map">
+		delete from sys_func where id in
+		<foreach collection="ids" open="(" close=")" item="id" separator=",">
+			#{id}
+		</foreach>
+	</delete>
+</sqlGroup>

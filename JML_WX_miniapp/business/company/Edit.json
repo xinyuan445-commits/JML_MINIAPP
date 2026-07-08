@@ -1,0 +1,20 @@
+{
+  "navigationBarTitleText": "公司",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "zxz-uni-data-select": "../../uni_modules/zxz-uni-data-select/components/zxz-uni-data-select/zxz-uni-data-select",
+    "u-form-item": "../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u--input": "../../node-modules/uview-plus/components/u-input/u-input",
+    "uni-data-picker": "../../uni_modules/uni-data-picker/components/uni-data-picker/uni-data-picker",
+    "u-radio": "../../node-modules/uview-plus/components/u-radio/u-radio",
+    "u-radio-group": "../../node-modules/uview-plus/components/u-radio-group/u-radio-group",
+    "u--textarea": "../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "piaoyi-select": "../../uni_modules/piaoyi-select/components/piaoyi-select/piaoyi-select",
+    "u--form": "../../node-modules/uview-plus/components/u-form/u-form",
+    "u-datetime-picker": "../../node-modules/uview-plus/components/u-datetime-picker/u-datetime-picker",
+    "floating-window": "../../components/FloatingWindow",
+    "load-selector": "../../components/LoadSelector",
+    "footer-btn": "../../components/FooterBtn"
+  }
+}

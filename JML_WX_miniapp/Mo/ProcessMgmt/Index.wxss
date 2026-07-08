@@ -1,0 +1,112 @@
+.page {
+  background: #f2f2f7;
+  min-height: 100vh;
+  padding-bottom: 60rpx;
+}
+
+.loading-wrap { display: flex; justify-content: center; padding: 120rpx 0; }
+.empty-wrap   { padding: 120rpx 0; }
+
+.list-header {
+  padding: 24rpx 32rpx 12rpx;
+  font-size: 24rpx;
+  color: #8e8e93;
+}
+
+/* ── 卡片 ── */
+.card-hover { opacity: 0.7; }
+.card {
+  margin: 0 16rpx 12rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 28rpx 24rpx;
+}
+
+/* 顶部：工单号 + 状态 */
+.row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.mo-code {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #007aff;
+  letter-spacing: 0.5rpx;
+}
+
+/* 中间：料号 + 名称 */
+.row-mid {
+  margin-bottom: 20rpx;
+}
+.inv-code {
+  display: block;
+  font-size: 22rpx;
+  color: #aeaeb2;
+  margin-bottom: 6rpx;
+}
+.inv-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1c1c1e;
+  line-height: 1.4;
+}
+
+/* 底部：工序状态 + 数量 */
+.row-bot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f2f2f7;
+}
+.process-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+.process-label {
+  font-size: 20rpx;
+  color: #8e8e93;
+  background: #f2f2f7;
+  border-radius: 8rpx;
+  padding: 4rpx 14rpx;
+  flex-shrink: 0;
+  line-height: 1.5;
+}
+.process-label.active {
+  color: #ff9500;
+  background: rgba(255, 149, 0, 0.1);
+}
+.process-label.receipt {
+  color: #ff9500;
+  background: rgba(255, 149, 0, 0.1);
+}
+.process-label.done {
+  color: #34c759;
+  background: rgba(52, 199, 89, 0.1);
+}
+.process-name {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #1c1c1e;
+}
+.dept {
+  font-size: 24rpx;
+  color: #8e8e93;
+}
+.qty-wrap {
+  display: flex;
+  align-items: baseline;
+}
+.qty-num {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1c1c1e;
+}
+.qty-unit {
+  font-size: 22rpx;
+  color: #8e8e93;
+}

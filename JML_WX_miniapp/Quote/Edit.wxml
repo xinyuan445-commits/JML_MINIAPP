@@ -1,0 +1,165 @@
+<view class="page">
+  <view class="tips-entry" hover-class="tips-entry-hover" bindtap="showTips">
+    <view class="tips-badge">!</view>
+    <text class="tips-text">注意事项</text>
+  </view>
+
+  <view class="group">
+    <view class="row">
+      <text class="label">客户</text>
+      <input class="input" placeholder="请输入" placeholder-class="ph" value="{{form.customer}}"
+             bindinput="onCustInput" bindfocus="onCustFocus" bindblur="onCustBlur" />
+      <view class="search-btn" hover-class="search-btn-hover" catchtap="goCustHistory">历史</view>
+    </view>
+    <block wx:if="{{custSugVisible}}">
+      <view wx:for="{{custSugs}}" wx:key="*this" class="cust-sug" hover-class="row-hover"
+            catchtap="pickCust" data-name="{{item}}">
+        <text class="cust-sug-text">{{item}}</text>
+      </view>
+    </block>
+    <picker mode="selector" range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+      <view class="row last" hover-class="row-hover">
+        <text class="label">产品类型</text>
+        <text class="value {{form.categoryName ? '' : 'ph'}}">{{form.categoryName || '请选择'}}</text>
+        <view class="chevron"></view>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 成本明细（按产品工艺路线计算） -->
+  <block wx:if="{{calc}}">
+    <view class="section-title">完整工艺路线</view>
+    <view class="route-card">
+      <text class="route-text">{{calc.route_desc || '暂未配置完整路线'}}</text>
+    </view>
+
+    <view class="section-title">成本汇总</view>
+    <view class="cost-card">
+      <view class="cost-block" wx:for="{{costItems}}" wx:key="key">
+        <view class="cost-main" hover-class="row-hover" bindtap="toggleCost" data-key="{{item.key}}">
+          <text class="cost-name">{{item.name}}</text>
+          <text class="cost-amount">¥ {{item.amount}}</text>
+          <view class="chevron-down {{expandedCost === item.key ? 'up' : ''}}"></view>
+        </view>
+        <view class="cost-detail" wx:if="{{expandedCost === item.key}}">
+          <view class="cost-detail-row" wx:for="{{item.details}}" wx:for-item="detail" wx:key="name">
+            <text class="cost-detail-name">{{detail.name}}</text>
+            <text class="cost-detail-amount">{{detail.amount}}</text>
+          </view>
+          <view class="cost-detail-empty" wx:if="{{!item.details.length}}">该路线没有此项工序成本</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 材料明细（可折叠，未税计入成本） -->
+    <view class="section-title">材料</view>
+    <view class="group">
+      <view class="row {{materialOpen ? '' : 'last'}}" hover-class="row-hover" bindtap="toggleMaterial">
+        <text class="label strong">材料明细</text>
+        <text class="value">{{materials.length}} 项 · ¥{{materialTotal}}</text>
+        <view class="chevron-down {{materialOpen ? 'up' : ''}}"></view>
+      </view>
+      <block wx:if="{{materialOpen}}">
+        <view class="mat-head">
+          <text class="mat-type">类型</text>
+          <text class="mat-code">料号</text>
+          <text class="mat-price">未税价</text>
+          <text class="mat-logistics">物流</text>
+          <text class="mat-use">使用</text>
+          <text class="mat-del"></text>
+        </view>
+        <view class="mat-row" wx:for="{{materials}}" wx:key="key">
+          <picker class="mat-type" mode="selector" range="{{matTypes}}" value="{{item.typeIndex}}" data-index="{{index}}" bindchange="onMatType">
+            <view class="mat-type-cell">{{item.typeName}}</view>
+          </picker>
+          <input class="mat-code mat-input" placeholder="料号(搜)" placeholder-class="ph" value="{{item.code}}" data-index="{{index}}" bindinput="onMatCode" bindblur="onMatCodeBlur" confirm-type="search" bindconfirm="searchMat" />
+          <input class="mat-price mat-input" type="digit" value="{{item.priceExcl}}" data-index="{{index}}" bindinput="onMatPriceExcl" />
+          <input class="mat-logistics mat-input {{item.logisticsEnabled ? '' : 'mat-disabled'}}" type="digit"
+                 disabled="{{!item.logisticsEnabled}}" value="{{item.logisticsCost}}"
+                 data-index="{{index}}" bindinput="onMatLogisticsInput" />
+          <switch class="mat-use mat-switch" color="#007AFF" checked="{{item.logisticsEnabled}}"
+                  data-index="{{index}}" bindchange="onMatLogisticsSwitch" />
+          <view class="mat-del" data-index="{{index}}" catchtap="delMaterial">✕</view>
+        </view>
+        <view class="mat-add" hover-class="row-hover" bindtap="addMaterial">＋ 添加材料</view>
+      </block>
+    </view>
+
+    <!-- 报价参数（默认值可按单修改） -->
+    <view class="section-title">报价参数 · 单位：{{calc.unit || '—'}}</view>
+    <view class="group">
+      <view class="row">
+        <text class="label">一次合格率</text>
+        <input class="input" type="digit" value="{{rates.firstPass}}" data-field="firstPass" bindinput="onRateInput" />
+        <text class="unit">%</text>
+      </view>
+      <view class="row">
+        <text class="label">直营毛利率</text>
+        <input class="input" type="digit" value="{{rates.gross}}" data-field="gross" bindinput="onRateInput" />
+        <text class="unit">%</text>
+      </view>
+      <view class="row">
+        <text class="label">经销商毛利率</text>
+        <input class="input" type="digit" value="{{rates.dealer}}" data-field="dealer" bindinput="onRateInput" />
+        <text class="unit">%</text>
+      </view>
+      <view class="row last">
+        <text class="label">报价税率</text>
+        <input class="input" type="digit" value="{{rates.tax}}" data-field="tax" bindinput="onRateInput" />
+        <text class="unit">%</text>
+      </view>
+    </view>
+
+    <!-- 报价结果 -->
+    <view class="result-card">
+      <view class="result-cap">含税报价参考价 · 每{{calc.unit || '张'}}</view>
+      <block wx:if="{{result && (result.hasDirect || result.hasDealer)}}">
+        <view wx:if="{{result.hasDirect}}" class="quote-row">
+          <text class="quote-tag">直营</text>
+          <text class="quote-price">¥ {{result.directIncl}}</text>
+          <text class="quote-excl">未税 ¥{{result.directExcl}}</text>
+        </view>
+        <view wx:if="{{result.hasDealer}}" class="quote-row">
+          <text class="quote-tag">经销商</text>
+          <text class="quote-price">¥ {{result.dealerIncl}}</text>
+          <text class="quote-excl">未税 ¥{{result.dealerExcl}}</text>
+        </view>
+        <view class="result-sub">含合格率成本 ¥{{result.afterYield}}</view>
+      </block>
+      <view wx:else class="result-hint">报价计算中</view>
+
+      <view class="formula-toggle" hover-class="row-hover" bindtap="toggleFormula">
+        <text class="formula-toggle-text">计算说明</text>
+        <view class="chevron-down {{formulaOpen ? 'up' : ''}}"></view>
+      </view>
+      <view wx:if="{{formulaOpen}}" class="formula-box">
+        <view class="formula-line">辅助材料未税 = 辅助材料含税金额 ÷ 1.13</view>
+        <view class="formula-line">成本未税 = 人工（含管理费用） + 能耗（含公摊） + 辅材未税（含包装） + 材料未税价 + 已启用的逐行物流费</view>
+        <view class="formula-line">含合格率成本 = 成本未税 ÷ 一次合格率，结果向上取整到整数</view>
+        <view class="formula-line">报价未税 = 含合格率成本 ÷ (1 - 售价毛利率)</view>
+        <view class="formula-line">报价含税 = 报价未税 ×(1 + 报价税率)</view>
+        <view class="formula-tip">合格率成本直接向上进位、不保留小数；直营和经销商分别使用各自毛利率；其他金额截断保留两位，不四舍五入。</view>
+      </view>
+    </view>
+  </block>
+
+  <view class="save-wrap">
+    <view class="save-btn {{saving ? 'save-btn-disabled' : ''}}" hover-class="save-btn-hover" bindtap="onSave">{{saving ? '保存中…' : '保存'}}</view>
+  </view>
+</view>
+
+<!-- 材料料号查询结果选择 -->
+<view wx:if="{{invPopupVisible}}" class="mask" bindtap="closeInv" catchtouchmove="noop">
+  <view class="sheet" catchtap="noop">
+    <view class="sheet-header">
+      <text>选择存货</text>
+      <text class="sheet-close" bindtap="closeInv">关闭</text>
+    </view>
+    <scroll-view scroll-y class="sheet-list">
+      <view wx:for="{{invResults}}" wx:key="code" class="sheet-item" data-code="{{item.code}}" hover-class="row-hover" bindtap="pickInv">
+        <text class="sheet-code">{{item.code}}</text>
+        <text class="sheet-name">{{item.name}}</text>
+      </view>
+    </scroll-view>
+  </view>
+</view>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="factoryNotice">
+    <!--
+       工厂首页日历查询sql
+    -->
+    <select id="queryNoticeDay"  parameterType="map">
+        select
+            'jobAssignment' AS noticeType,
+            DATE_FORMAT(ja.task_date,'%Y-%m-%d') as day
+        from
+            jml_job_assignment ja
+        join
+            jml_job_assignment_staff jas
+        on
+            ja.id = jas.job_assignment_id
+        <where>
+            jas.assigned_engineer_staff_id = #{staffId}
+            and
+            DATE_FORMAT(task_date,'%Y-%m') between #{lastMonth} and #{preMonth}
+        </where>
+        group by day
+
+        <!--UNION ALL
+        select
+        'deviceRepair' AS noticeType,
+        DATE_FORMAT(assign_time,'%Y-%m-%d') as day
+        from
+            jml_device_repair
+        <where>
+            repairer_staff_id = #{staffId}
+            and
+            DATE_FORMAT(assign_time,'%Y-%m') between #{lastMonth} and #{preMonth}
+        </where>
+        group by day-->
+
+       <!-- UNION ALL
+        select
+        'partsPurchase' AS noticeType,
+        DATE_FORMAT(created_time,'%Y-%m-%d') as day
+        from
+        jml_parts_purchase
+        <where>
+            current_approval_staff_id  = #{staffId}
+            and
+            DATE_FORMAT(created_time,'%Y-%m') between #{lastMonth} and #{preMonth}
+        </where>
+        group by day-->
+    </select>
+    <!--根据日期获取当天的提醒事项-->
+
+    <!--获取岗位分工的提醒，BY day-->
+    <select id="queryJobANoticeByDay" parameterType="map">
+        select
+            'jobAssignment' AS noticeType,
+            ja.notice_no as name,
+            ja.id,
+            ja.completion_location as completionLocation,
+            ja.expected_qty as expectedQty,
+            ja.expected_work_hours as expectedWorkHours
+        from
+            jml_job_assignment ja
+            join jml_job_assignment_staff jas on ja.id = jas.job_assignment_id
+        <where>
+            jas.assigned_engineer_staff_id = #{staffId}
+            and
+            DATE_FORMAT(ja.task_date, '%Y-%m-%d' ) = #{day}
+        </where>
+    </select>
+
+
+    <!--获取岗位分工的提醒，- 代办事项 BY 当前人-->
+    <select id="queryPartsPNoticeByStaffId" parameterType="map">
+       select
+            'partsPurchase' AS noticeType,
+            a.name as name,
+            a.id as id,
+            c.name as deviceName,
+            a.approval_status as approvalStatus,
+            ( select count( id ) from jml_parts_purchase_details where parts_purchase_id = a.id ) as partCnt
+        from
+            jml_parts_purchase a
+            left join jml_device_repair b on a.device_repair_id = b.id
+            left join jml_device c on b.device_id = c.id
+        <where>
+            current_approval_staff_id  = #{staffId}  and a.status ='SPZ'
+        </where>
+    </select>
+
+    <!--获取每日巡检报告，- 代办事项 BY 当前人-->
+    <select id="queryInspectionNoticeByStaffId" parameterType="map">
+        SELECT
+          a.name,
+          a.id,
+          b.name AS inspectionStaffName,
+          DATE_FORMAT(a.created_time, '%Y-%m-%d') AS inspectionDate
+        FROM
+          jml_daily_inspection_report a
+        LEFT JOIN
+          jml_staff b ON a.inspector_staff_id = b.id
+        WHERE
+          (
+            (a.eb_skin_confirm_staff_id =  #{staffId} AND a.eb_skin_confirm_status = '0') OR
+            (a.press_confirm_staff_id =  #{staffId} AND a.press_confirm_status = '0') OR
+            (a.chamfer_confirm_staff_id =  #{staffId} AND a.chamfer_confirm_status = '0') OR
+            (a.print_line_confirm_staff_id = #{staffId} AND a.print_line_confirm_status = '0')
+          )
+        GROUP BY
+          a.id, a.name, b.name, a.created_time
+    </select>
+</sqlGroup>

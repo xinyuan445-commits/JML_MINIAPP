@@ -1,0 +1,25 @@
+{
+  "navigationBarTitleText": "客服服务详情",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-divider": "../../node-modules/uview-plus/components/u-divider/u-divider",
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-tag": "../../node-modules/uview-plus/components/u-tag/u-tag",
+    "zxz-uni-data-select": "../../uni_modules/zxz-uni-data-select/components/zxz-uni-data-select/zxz-uni-data-select",
+    "u-form-item": "../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u--textarea": "../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u-upload": "../../node-modules/uview-plus/components/u-upload/u-upload",
+    "u--input": "../../node-modules/uview-plus/components/u-input/u-input",
+    "u--form": "../../node-modules/uview-plus/components/u-form/u-form",
+    "u-modal": "../../node-modules/uview-plus/components/u-modal/u-modal",
+    "u-datetime-picker": "../../node-modules/uview-plus/components/u-datetime-picker/u-datetime-picker",
+    "floating-window": "../../components/FloatingWindow",
+    "footer-btn": "../../components/FooterBtn",
+    "progress-status": "../../components/ProgressStatus",
+    "related-list": "../../components/RelatedList",
+    "approve-list": "./components/ApproveList",
+    "approve-btn": "./components/ApproveBtn",
+    "product-list": "./components/ProductList",
+    "solution-list": "./components/SolutionList"
+  }
+}

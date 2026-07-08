@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="caseSolution">
+    <!--获取列表-->
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id AS id,
+            a.order_detail_id AS orderDetailId,
+            a.solution_type AS solutionType,
+            a.solution_role AS solutionRole,
+            b.product_name AS productName,
+            b.order_no AS orderNo,
+            a.return_num AS returnNum,
+            a.exchange_num AS exchangeNum,
+            a.rework_num AS reworkNum,
+            a.discounts_amount AS discountsAmount,
+            a.claimant_amount AS claimantAmount,
+            a.undo_reason AS undoReason,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName,
+            a.judge AS judge,
+            a.judge_desc AS judgeDesc,
+            a.problem_type AS problemType
+        from
+            jml_case_solution a
+            left join jml_staff cs on a.created_staff_id = cs.id
+            left join jml_staff us ON a.update_staff_id = us.id
+            left join jml_case_order_detail b on a.order_detail_id = b.id
+		<where>
+			<if test="caseId != null and caseId != ''">
+				and a.case_id = #{caseId}
+			</if>
+            <if test="solutionRole != null and solutionRole != ''">
+                and a.solution_role = #{solutionRole}
+            </if>
+		</where>
+		order by
+			a.created_time desc
+    </select>
+    <!--查询明细-->
+    <select id="queryDetails" parameterType="map">
+        select
+            a.id AS id,
+            a.order_detail_id AS orderDetailId,
+            a.solution_type AS solutionType,
+            a.solution_role AS solutionRole,
+            b.product_name AS productName,
+            a.return_num AS returnNum,
+            a.exchange_num AS exchangeNum,
+            a.rework_num AS reworkNum,
+            a.discounts_amount AS discountsAmount,
+            a.claimant_amount AS claimantAmount,
+            a.undo_reason AS undoReason,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName,
+            a.judge AS judge,
+            a.judge_desc AS judgeDesc,
+            a.problem_type AS problemType
+        from
+            jml_case_solution a
+            left join jml_staff cs on a.created_staff_id = cs.id
+            left join jml_staff us ON a.update_staff_id = us.id
+            left join jml_case_order_detail b on a.order_detail_id = b.id
+        <where>
+            a.id=#{id}
+        </where>
+    </select>
+    <!--查询字段-->
+    <select id="queryCheckFiledList"  parameterType="map">
+        select
+            a.return_num,
+            a.exchange_num,
+            a.rework_num,
+            a.discounts_amount,
+            a.claimant_amount
+        from
+            jml_case_solution a
+        where
+            case_id = #{caseId}
+            and solution_type != '不予受理'
+            and solution_role = '销售总监'
+    </select>
+
+
+    <!--获取分组的角色-->
+    <select id ="querySolutionRole" parameterType="map">
+        select
+            solution_role,
+            CONCAT(solution_role, '方案') AS solBlockName
+        from
+            jml_case_solution
+        where
+            case_id = #{caseId}
+        GROUP BY solution_role
+    </select>
+
+    <!--一个订单明细只能对应一个角色的解决方案，防止重复入库校验-->
+    <select id="checkSolutionRole" parameterType="map">
+        select
+         count(id) cnt
+        from
+            jml_case_solution
+        where
+            case_id = #{caseId}  and solution_role = #{solutionRole} and order_detail_id = #{orderDetailId}
+    </select>
+
+</sqlGroup>

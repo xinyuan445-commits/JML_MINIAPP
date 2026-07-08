@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 登录记录表的SQL -->
+<sqlGroup namespace="sys_login_log">
+
+	<!--查询最新的10条信息-->
+	<select id="queryTop10" parameterType="map">
+		select
+			a.username ,
+			a.login_status ,
+			a.login_time
+		from
+			sys_login_log a
+		order by
+			a.login_time desc
+		limit 0,10
+	</select>
+
+
+</sqlGroup>

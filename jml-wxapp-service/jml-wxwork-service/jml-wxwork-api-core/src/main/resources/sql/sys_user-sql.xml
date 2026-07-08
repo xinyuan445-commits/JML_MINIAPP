@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!--用户管理的SQL-->
+<sqlGroup namespace="sys_user">
+
+	<!--用户查询条件-->
+	<sql id="queryParams">
+		<where>
+			<if test="id != null and id != 0">
+				and a.id = #{id}
+			</if>
+			<if test="mobile != null and mobile != ''">
+				and a.mobile = #{mobile}
+			</if>
+			<if test="pwd != null and pwd != ''">
+				and a.pwd = #{pwd}
+			</if>
+			<if test="orgId != null">
+				and a.orgId = #{orgId}
+			</if>
+			<if test="status != null and status != '' ">
+				and a.status = #{status}
+			</if>
+			<if test="keywords != null and keywords != ''">
+				AND (
+				         a.`username` like '%${keywords}%'
+				      or a.`nickName` like '%${keywords}%'
+				      or a.mobile like '%${keywords}%'
+				)
+			</if>
+		</where>
+	</sql>
+
+	<!--根据手机号码和机构ID更新用户的微信openId-->
+	<update id="updateOpenIdBy" parameterType="map">
+		update sys_user set openid = #{openId} where mobile = #{mobile} and orgId = #{orgId}
+	</update>
+
+	<!-- 根据条件查询数量 -->
+	<select id="findCntBy" parameterType="map">
+		select COUNT(1) as cnt from sys_user a
+		<include refid="sys_user.queryParams"/>
+	</select>
+
+	<!--单表查询-->
+	<select id="querySingleTableBy" parameterType="map">
+		select * from sys_user a
+		<include refid="sys_user.queryParams"/>
+	</select>
+
+	<!--分页查询用户信息-->
+	<select id="findSysUserByPage" parameterType="map">
+		select
+			a.*,
+			b.dname sexName,
+			d.cname as orgName,
+			c.dname as acctTypeName,
+			(select group_concat(bb.rolename) from sys_rela_role_user aa left join sys_role bb on aa.`roleId`=bb.id where aa.`userId`=a.id) as roleNames
+		<pageTag/>
+		from sys_user a
+		LEFT join sys_dict b on a.sex=b.dval and b.tcode='SEX'
+		left join sys_dict c on c.dval=a.`acctType` and c.tcode='USER_TYPE'
+		left join sys_org d on a.`orgId`=d.id
+		<where>
+			<if test="status != null and status != ''">
+				and a.status = #{status}
+			</if>
+			<if test="mobile != null and mobile != ''">
+				and a.mobile = #{mobile}
+			</if>
+			<if test="email != null and email != ''">
+				and a.email = #{email}
+			</if>
+			<if test="nickName != null and nickName != ''">
+				and a.nickName = #{nickName}
+			</if>
+			<if test="acctType != null and acctType != ''">
+				and a.acctType = #{acctType}
+			</if>
+			<if test="acctTypeList != null and acctTypeList.size() > 0">
+				and a.acctType in 
+				<foreach collection="acctTypeList" item="at" open="(" close=")" separator=",">
+					#{at}
+				</foreach>
+			</if>
+			<if test="username != null and username != ''">
+				and a.username like '%${username}%'
+			</if>
+			<if test="orgId != null">
+				and a.orgId = #{orgId}
+			</if>
+			<if test="pwd != null and pwd != ''">
+				and a.pwd=#{pwd}
+			</if>
+			<if test="openid != null and openid != ''">
+				and a.openid=#{openid}
+			</if>
+		</where>
+		order by a.id desc
+	</select>
+
+	<!--校验字段唯一性-->
+	<select id="vaildUnique" parameterType="map">
+		select id from sys_user where ${key} = #{val}
+		<if test="id != null and id != 0">
+			and id != #{id}
+		</if>
+	</select>
+
+	<!--更新用户失败次数-->
+	<update id="updateFailCnt" parameterType="map">
+		update
+			sys_user
+		set
+			failCnt = ifnull(failCnt,0) + 1,
+			status=(case when failCnt+1 >=3 then '0' else status end)
+		where
+			username = #{userName}
+	</update>
+
+	<!--重置用户失败次数-->
+	<update id="resetFailtCnt" parameterType="map">
+		update
+			sys_user
+		set
+			failCnt = 0
+		where
+			username = #{userName}
+	</update>
+
+	<!--更新用户状态，将密码更新时间超过三个月的账号设置为不可用-->
+	<update id="updateUserStatus" parameterType="map">
+		update
+			sys_user
+		set
+			status = '0'
+		where
+			acctType != '999'
+			and date_add(updatePwdTime , interval 3 MONTH) <![CDATA[<]]> now()
+	</update>
+</sqlGroup>

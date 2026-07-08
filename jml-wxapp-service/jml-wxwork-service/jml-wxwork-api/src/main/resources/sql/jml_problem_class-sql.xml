@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="problemClass">
+    <!--获取列表-->
+    <select id="queryListBy" parameterType="map">
+        select
+            problem_class
+		from
+            jml_problem_class
+		<where>
+            factory = #{factory} and problem_type = #{problemType}
+        </where>
+    </select>
+</sqlGroup>

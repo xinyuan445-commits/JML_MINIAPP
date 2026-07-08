@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="internalTicketAcceptanceHistory">
+    <!--获取列表显示的类容-->
+    <select id="queryHistoryShowList" parameterType="map">
+        SELECT
+            h.stage_code,
+            h.stage_name,
+            IF(
+                EXISTS (SELECT 1 FROM jml_internal_ticket WHERE id = #{ticketId} AND stage_code = h.stage_code),
+                '2',
+                 h.show_related
+            ) AS flag
+        FROM
+            jml_internal_ticket_acceptance_history h
+        WHERE
+            h.show_list = '1'
+            AND h.ticket_id = #{ticketId}
+        ORDER BY
+            h.sort ASC;
+    </select>
+    <!--获取明细相关列表显示的类容-->
+    <select id="queryHistoryShowRelated" parameterType="map">
+        select
+            date_format(update_time,'%Y-%m-%d %H:%i:%s') as acceptance_time,
+            acceptance_status,
+            acceptance_staff_name
+        from
+            jml_internal_ticket_acceptance_history
+        where
+            show_related = '1'
+            and ticket_id = #{ticketId}
+            order by sort desc
+    </select>
+    <!--获取更新的阶段-->
+    <select id="queryUpdateStageBy" parameterType="map">
+      select
+            id,
+            ticket_id,
+            stage_code,
+            show_related,
+            show_list,
+            acceptance_status,
+            acceptance_staff_id
+       from
+            jml_internal_ticket_acceptance_history
+       where
+            stage_code = #{stageCode}
+            and ticket_id = #{ticketId}
+    </select>
+
+    <!--客诉明细获取下一阶段-->
+    <select id="queryNextStage" parameterType="map">
+     SELECT
+        a.acceptance_status,
+        a.stage_code
+     FROM
+        jml_internal_ticket_acceptance_history AS a
+        JOIN ( SELECT sort FROM jml_internal_ticket_acceptance_history WHERE stage_code = #{stageCode} AND ticket_id = #{ticketId} AND show_list = '1' ) AS b ON a.sort > b.sort
+     WHERE
+        a.ticket_id = #{ticketId}
+        AND a.show_list = '1'
+     ORDER BY
+        a.sort
+        LIMIT 1
+    </select>
+    <!--删除受理历史-->
+    <delete id="deleteByTicketId" parameterType="map">
+        delete from jml_internal_ticket_acceptance_history where ticket_id = #{ticketId}
+    </delete>
+
+</sqlGroup>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- sys_token的SQL -->
+<sqlGroup namespace="sysToken">
+
+	<!--分页查询接口密钥-->
+	<select id="pageBy" parameterType="map">
+		select
+			a.id,
+			a.`appKey`,
+			a.`appSercet`,
+			a.`dailyLimit`,
+			a.`usedCnt`,
+			date_format(a.`expireDate`,'%Y-%m-%d') as expireDate,
+			a.status,
+			b.dname as statusName,
+			a.remark,
+			a.`createTime`,
+			a.creator
+		<pageTag/>
+		from
+			sys_token a
+		left join sys_dict b on b.dval=a.status and b.tcode='TOKEN_STATUS'
+		<where>
+			<if test="appKey != null and appKey != ''">
+				and a.appKey = #{appKey}
+			</if>
+			<if test="appSercet != null and appSercet != ''">
+				and a.appSercet = #{appSercet}
+			</if>
+			<if test="status != null and status != ''">
+				and a.status = #{status}
+			</if>
+		</where>
+		order by a.createTime desc
+	</select>
+</sqlGroup>

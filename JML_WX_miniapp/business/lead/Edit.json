@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "线索",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "zxz-uni-data-select": "../../uni_modules/zxz-uni-data-select/components/zxz-uni-data-select/zxz-uni-data-select",
+    "u-form-item": "../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u--input": "../../node-modules/uview-plus/components/u-input/u-input",
+    "uni-data-picker": "../../uni_modules/uni-data-picker/components/uni-data-picker/uni-data-picker",
+    "u--textarea": "../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u--form": "../../node-modules/uview-plus/components/u-form/u-form",
+    "floating-window": "../../components/FloatingWindow",
+    "footer-btn": "../../components/FooterBtn"
+  }
+}

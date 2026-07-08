@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "业务机会产品",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "zxz-uni-data-select": "../../uni_modules/zxz-uni-data-select/components/zxz-uni-data-select/zxz-uni-data-select",
+    "u-form-item": "../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u--input": "../../node-modules/uview-plus/components/u-input/u-input",
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u--form": "../../node-modules/uview-plus/components/u-form/u-form",
+    "u-datetime-picker": "../../node-modules/uview-plus/components/u-datetime-picker/u-datetime-picker",
+    "floating-window": "../../components/FloatingWindow",
+    "footer-btn": "../../components/FooterBtn"
+  }
+}

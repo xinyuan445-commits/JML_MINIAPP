@@ -1,0 +1,1 @@
+<view style="{{a + ';' + virtualHostStyle}}" class="{{['u-safe-bottom', 'data-v-6e02536d', b, virtualHostClass]}}"></view>

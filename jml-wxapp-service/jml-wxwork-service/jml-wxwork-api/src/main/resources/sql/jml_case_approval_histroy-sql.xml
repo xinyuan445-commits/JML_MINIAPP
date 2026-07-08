@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="caseApprovalHistory">
+    <!--获取列表显示的类容-->
+    <select id="queryListBy" parameterType="map">
+        select
+            a.approval_status as approvalStatus,
+            a.remark,
+            a.case_stage as caseStage,
+            date_format(a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName
+        from
+            jml_case_approval_history a
+            left join jml_staff cs on a.created_staff_id = cs.id
+        where
+            case_id = #{caseId}
+        order by
+            a.created_time desc
+    </select>
+
+    <!--判断新建阶段只能生成一个-->
+    <select id="checkNewCntBy">
+        select
+            count(id) as cnt
+        from
+            jml_case_approval_history
+        where
+            case_id = #{caseId}
+            and case_stage_code = 'NEW'
+
+    </select>
+
+</sqlGroup>

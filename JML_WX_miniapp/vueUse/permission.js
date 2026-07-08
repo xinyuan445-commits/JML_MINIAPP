@@ -1,0 +1,1 @@
+"use strict";require("../common/vendor.js");const e=require("../store/modules/userStore.js");exports.usePermission=function(){const r=e.useUserStore$1(),{userId:s,token:n,menuList:o}=r;return{hasPermission:(e,r)=>{if(!s||!o)return!1;return!!o.find((s=>s.menu_code==e&&s.function_code==r))}}};

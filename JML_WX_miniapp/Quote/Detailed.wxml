@@ -1,0 +1,116 @@
+<view class="page" wx:if="{{rec}}">
+  <!-- 基本信息 -->
+  <view class="group">
+    <view class="row">
+      <text class="label">报价单号</text>
+      <text class="value">{{rec.quote_no}}</text>
+    </view>
+    <view class="row" hover-class="{{rec.customer ? 'row-hover' : ''}}" bindtap="goCustHistory">
+      <text class="label">客户</text>
+      <text class="value">{{rec.customer || '—'}}</text>
+      <view wx:if="{{rec.customer}}" class="chevron"></view>
+    </view>
+    <view class="row">
+      <text class="label">产品类别</text>
+      <text class="value">{{rec.category_name || '—'}}</text>
+    </view>
+    <view class="row">
+      <text class="label">创建人</text>
+      <text class="value">{{rec.created_staff_name || '—'}}</text>
+    </view>
+    <view class="row last">
+      <text class="label">创建时间</text>
+      <text class="value">{{rec.created_at || '—'}}</text>
+    </view>
+  </view>
+
+  <!-- 成本明细 -->
+  <view class="section-title">完整工艺路线</view>
+  <view class="route-card">{{rec.route_desc || '—'}}</view>
+
+  <view class="section-title">成本明细</view>
+  <view class="group">
+    <block wx:for="{{costRows}}" wx:key="type">
+      <view class="row" hover-class="row-hover" data-index="{{index}}" bindtap="toggleCat">
+        <text class="label">{{item.name}}</text>
+        <text class="value">{{item.amount}}</text>
+        <view class="chevron-down {{item.expanded ? 'up' : ''}}"></view>
+      </view>
+      <view wx:if="{{item.expanded}}" class="sub">
+        <view wx:for="{{item.items}}" wx:for-item="it" wx:key="name" class="sub-row">
+          <text class="sub-name">{{it.name}}</text>
+          <text class="sub-amount">{{it.amount}}</text>
+        </view>
+        <view wx:if="{{!item.items.length}}" class="sub-row">
+          <text class="sub-empty">无成本数据</text>
+        </view>
+      </view>
+    </block>
+    <view class="row last">
+      <text class="label strong">成本未税合计</text>
+      <text class="value strong">{{result.base}}</text>
+    </view>
+  </view>
+
+  <!-- 报价参数 -->
+  <view class="section-title">报价参数</view>
+  <view class="group">
+    <view class="row">
+      <text class="label">一次合格率</text>
+      <text class="value">{{rates.firstPass}}</text>
+    </view>
+    <view class="row">
+      <text class="label">直营毛利率</text>
+      <text class="value">{{rates.direct}}</text>
+    </view>
+    <view class="row">
+      <text class="label">经销商毛利率</text>
+      <text class="value">{{rates.dealer}}</text>
+    </view>
+    <view class="row last">
+      <text class="label">税率</text>
+      <text class="value">{{rates.tax}}</text>
+    </view>
+  </view>
+
+  <!-- 报价结果 -->
+  <view class="result-card">
+    <view class="result-cap">报价结果 · 每{{rec.unit || '单位'}}</view>
+    <view wx:if="{{result.directIncl}}" class="quote-row">
+      <text class="quote-tag">直营</text>
+      <text class="result-price">¥ {{result.directIncl}}</text>
+      <text class="quote-excl">未税 ¥{{result.directExcl}}</text>
+    </view>
+    <view wx:if="{{result.dealerIncl}}" class="quote-row">
+      <text class="quote-tag">经销商</text>
+      <text class="result-price">¥ {{result.dealerIncl}}</text>
+      <text class="quote-excl">未税 ¥{{result.dealerExcl}}</text>
+    </view>
+    <view class="result-sub">含合格率成本 ¥{{result.afterYield}}</view>
+
+    <view class="formula-toggle" hover-class="row-hover" bindtap="toggleFormula">
+      <text class="formula-toggle-text">计算说明</text>
+      <view class="chevron-down {{formulaOpen ? 'up' : ''}}"></view>
+    </view>
+    <view wx:if="{{formulaOpen}}" class="formula-box">
+      <view class="formula-line">成本未税 = 人工 + 辅材未税 + 能耗 + 材料未税价 + 已启用物流费</view>
+      <view class="formula-line">含合格率成本 = 成本未税合计 ÷ 一次合格率，结果向上取整到整数</view>
+      <view class="formula-line">报价未税 = 含合格率成本 ÷ (1 - 对应售价毛利率)</view>
+      <view class="formula-line">报价含税 = 报价未税 × (1 + 报价税率)</view>
+      <view class="formula-tip">合格率成本直接向上进位、不保留小数；其他金额截断保留两位，不四舍五入。</view>
+    </view>
+  </view>
+
+  <!-- 悬浮操作：滚动时收缩到右边缘，停下展开 -->
+  <t-fab customStyle="{{scrolling ? 'right:0;bottom:120rpx;' : 'right:32rpx;bottom:48rpx;'}}">
+    <view wx:if="{{!scrolling}}" class="fab-wrap" catch:tap="onCopy">
+      <view class="fab-item">
+        <t-icon name="file-copy" size="22" />
+        <view class="fab-text">复制</view>
+      </view>
+    </view>
+    <view wx:else class="fab-symbol">
+      <t-icon name="chevron-left" size="20" />
+    </view>
+  </t-fab>
+</view>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 岗位分工SQL -->
+<sqlGroup namespace="tpServiceProvider">
+    <select id="queryList" parameterType="map">
+        select
+            a.id as id,
+            a.tp_service_full_name as name
+        from
+            jml_tp_service_provider a
+        where
+            a.enable = '1'
+    </select>
+</sqlGroup>

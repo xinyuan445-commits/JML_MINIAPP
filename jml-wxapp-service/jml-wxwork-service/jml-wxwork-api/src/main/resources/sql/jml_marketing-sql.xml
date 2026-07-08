@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 活动管理SQL -->
+<sqlGroup namespace="marketing">
+	<!--分页查询市场活动-->
+	<select id="queryPage" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			campaign_type,
+			date_format(a.start_date,'%Y-%m-%d') as start_date,
+			date_format(a.end_date,'%Y-%m-%d') as end_date,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			cs.`name` AS createdStaffName
+		<pageTag/>
+		from
+			jml_marketing a
+		left join
+			jml_staff cs ON a.created_staff_id = cs.id
+		<where>
+			<include refid="common.auth"/>
+			<if test="multiFiled != null and multiFiled != ''">
+				and a.name like '%${multiFiled}%'
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取市场活动明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			date_format(a.start_date,'%Y-%m-%d') as start_date,
+			date_format(a.end_date,'%Y-%m-%d') as end_date,
+			budget,
+			(select COUNT(*) FROM jml_marketing_lead_and_contact WHERE marketing_id = a.id) AS lead_qty,
+			cost,
+			a.status,
+			remark,
+			campaign_type,
+			(select COUNT(*) FROM jml_opportunity WHERE marketing_id = a.id) AS opp_qty,
+			(select COUNT(*) FROM jml_opportunity WHERE marketing_id = a.id and stage='合同签订') AS win_opp_qty,
+			(select COUNT(*) FROM jml_marketing_lead_and_contact WHERE marketing_id = a.id) AS contact_qty,
+			cancel_reason,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			date_format(a.update_time,'%Y-%m-%d %H:%i:%s') as update_time,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName
+		from
+			jml_marketing a
+		left join
+			jml_staff cs ON a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+	<!--根据员工信息获取活动列表信息-->
+	<select id="queryListByStaff" parameterType="map">
+		select
+			id,
+			name
+		from
+			jml_marketing a
+		<where>
+			<include refid="common.auth"/>
+		</where>
+	</select>
+</sqlGroup>

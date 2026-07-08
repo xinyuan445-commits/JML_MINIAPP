@@ -1,0 +1,97 @@
+<!-- 旧版页面完整保留在 Index.legacy.wxml。 -->
+<view class="page">
+  <view class="filter-card">
+    <view class="query-layout">
+      <view class="query-main">
+        <input
+          class="search-input"
+          value="{{keyword}}"
+          placeholder="搜索单号或设备"
+          confirm-type="search"
+          bindinput="onKeywordInput"
+          bindconfirm="onSearch"
+        />
+
+        <view class="filter-row">
+          <picker class="filter-picker" mode="selector" range="{{factoryOptions}}" range-key="name" value="{{factoryIndex}}" bindchange="onFactoryChange">
+            <view class="filter-chip">{{factoryName}}</view>
+          </picker>
+          <picker class="filter-picker" mode="date" value="{{startDate}}" bindchange="onStartDate">
+            <view class="filter-chip">{{startDate || '开始日期'}}</view>
+          </picker>
+          <picker class="filter-picker" mode="date" value="{{endDate}}" bindchange="onEndDate">
+            <view class="filter-chip">{{endDate || '结束日期'}}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="search-btn" bindtap="onSearch">
+        <text class="query-char">查</text>
+        <text class="query-char">询</text>
+      </view>
+    </view>
+    <view class="reset-row"><text bindtap="clearFilters">重置筛选</text></view>
+  </view>
+
+  <view wx:if="{{list.length}}" class="list">
+    <view
+      wx:for="{{list}}"
+      wx:key="id"
+      class="record-card"
+      data-id="{{item.id}}"
+      bindtap="openDetail"
+    >
+      <view class="doc-no">{{item.name}}</view>
+
+      <view class="detail-rows">
+        <view class="detail-row">
+          <text class="row-label">所属工厂</text>
+          <text class="row-value">{{item.factoryLabel}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="row-label">天然气表</text>
+          <text class="row-value">{{item.device_name}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="row-label">本次示数</text>
+          <text class="row-value">{{item.daily_reading}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="row-label">上次示数</text>
+          <text class="row-value">{{item.before_reading}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="row-label">本次耗用量</text>
+          <text class="row-value">{{item.before_usage}}</text>
+        </view>
+      </view>
+
+      <view class="record-footer">
+        <view class="footer-info">
+          <view class="detail-row">
+            <text class="row-label">创建时间</text>
+            <text class="row-value">{{item.createdTimeText}}</text>
+          </view>
+          <view class="detail-row">
+            <text class="row-label">创建员工</text>
+            <text class="row-value">{{item.created_staff_name || item.created_staff_id}}</text>
+          </view>
+        </view>
+        <view class="view-link">查看 <text class="view-arrow">›</text></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">暂无登记记录</view>
+  <view wx:if="{{loading}}" class="status">加载中...</view>
+  <view wx:if="{{finished && list.length}}" class="status">没有更多了</view>
+
+  <t-fab customStyle="{{scrolling ? 'right:0;bottom:120rpx;' : 'right:32rpx;bottom:48rpx;'}}">
+    <view wx:if="{{!scrolling}}" class="fab-wrap" catchtap="openCreate">
+      <t-icon name="add" size="22" />
+      <view class="fab-text">登记</view>
+    </view>
+    <view wx:else class="fab-symbol">
+      <t-icon name="chevron-left" size="20" />
+    </view>
+  </t-fab>
+</view>

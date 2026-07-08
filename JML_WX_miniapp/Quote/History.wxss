@@ -1,0 +1,100 @@
+.page {
+  min-height: 100vh;
+  background: #F2F2F7;
+  padding: 24rpx 0 60rpx;
+  box-sizing: border-box;
+}
+
+.list {
+  margin: 0 24rpx;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 26rpx 28rpx 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 18rpx rgba(28, 28, 30, 0.04);
+}
+
+.card-hover { background: #F7F7FA; }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quote-no {
+  color: #1C1C1E;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.category {
+  margin-top: 22rpx;
+  color: #1C1C1E;
+  font-size: 32rpx;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.price-panel {
+  display: flex;
+  align-items: stretch;
+  margin-top: 22rpx;
+  padding: 22rpx 12rpx;
+  border-radius: 18rpx;
+  background: #F7F8FA;
+}
+
+.price-cell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.price-label {
+  color: #8E8E93;
+  font-size: 23rpx;
+}
+
+.price {
+  margin-top: 7rpx;
+  color: #007AFF;
+  font-size: 35rpx;
+  font-weight: 700;
+}
+
+.price-divider {
+  width: 1px;
+  margin: 2rpx 12rpx;
+  background: #E5E5EA;
+}
+
+.staff {
+  font-size: 24rpx;
+  color: #636366;
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+  padding-top: 18rpx;
+  border-top: 1px solid #F0F0F2;
+}
+
+.date { font-size: 24rpx; color: #C7C7CC; }
+
+.empty {
+  padding-top: 200rpx;
+  text-align: center;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #C7C7CC;
+}

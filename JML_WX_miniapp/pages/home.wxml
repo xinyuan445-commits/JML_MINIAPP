@@ -1,0 +1,1 @@
+<factory-user-home wx:if="{{a}}" u-i="7d0e9dee-0" bind:__l="__l"></factory-user-home><user-home wx:else u-i="7d0e9dee-1" bind:__l="__l"></user-home>

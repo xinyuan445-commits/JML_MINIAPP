@@ -1,0 +1,40 @@
+.page {
+  background: #f2f2f7;
+  min-height: 100vh;
+  padding: 24rpx 16rpx;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  margin-bottom: 32rpx;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid #f2f2f7;
+}
+.form-row.no-border { border-bottom: none; }
+
+.form-label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #3c3c43;
+  flex-shrink: 0;
+}
+.form-label.required::before {
+  content: '* ';
+  color: #ff3b30;
+}
+
+.form-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #1c1c1e;
+  text-align: right;
+}
+
+.submit-wrap { padding: 0 4rpx; }

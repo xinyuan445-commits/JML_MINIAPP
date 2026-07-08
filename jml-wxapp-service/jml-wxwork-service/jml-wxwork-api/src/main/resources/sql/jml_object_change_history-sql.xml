@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="objectChangeHistory">
+    <!--获取列表-->
+    <select id="queryListBy" parameterType="map">
+        select
+            old_val,
+            new_val,
+            field_name,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) AS created_time,
+            cs.`name` AS createdStaffName
+        <pageTag/>
+        from
+            jml_object_change_history a
+            left join jml_staff cs on a.created_staff_id = cs.id
+        <where>
+            object_code = #{objectCode}
+            and object_id = #{objectId}
+        </where>
+        order by
+            a.update_time desc
+    </select>
+
+
+
+
+
+
+
+
+</sqlGroup>

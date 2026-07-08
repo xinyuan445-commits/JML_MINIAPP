@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="comments">
+    <!--根据报告id获取评论信息-->
+    <select id="queryParentPageBy" parameterType="map">
+        SELECT
+            b.id as staffId,
+            b.name,
+            b.avatar,
+            a.content,
+            date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+            a.id,
+            b.userid
+        <pageTag/>
+        FROM
+            jml_comments a
+            LEFT JOIN jml_staff b ON a.created_staff_id = b.id
+        <where>
+            a.parent_comment_id is null and top_comment_id is null and a.sales_report_id = #{salesReportId}
+        </where>
+            order by a.created_time desc
+    </select>
+    <!--查询列表-->
+    <select id="queryList" parameterType="map">
+        SELECT
+            b.name,
+            b.avatar,
+            a.content,
+            date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+            a.id,
+            a.parent_comment_id,
+            b.userid
+        FROM
+            jml_comments a
+        LEFT JOIN jml_staff b ON a.created_staff_id = b.id
+        <where>
+           a.sales_report_id = #{salesReportId}
+        </where>
+        order by a.created_time desc
+    </select>
+    <!--查询子评论信息-->
+    <select id="querySubCommentsByTopId" parameterType="map">
+        SELECT
+            b.name,
+            b.avatar,
+            a.content,
+            date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+            a.id,
+            b.userid
+        FROM
+            jml_comments a
+            LEFT JOIN jml_staff b ON a.created_staff_id = b.id
+        <where>
+            a.top_comment_id = #{topCommentId}
+        </where>
+            order by a.parent_comment_id,a.id desc
+    </select>
+    <!--查询明细-->
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            b.name,
+            b.avatar,
+            a.content,
+            a.created_time,
+            a.id,
+            b.userid
+        FROM
+            jml_comments a
+            LEFT JOIN jml_staff b ON a.created_staff_id = b.id
+        <where>
+            a.id =#{id}
+        </where>
+    </select>
+</sqlGroup>

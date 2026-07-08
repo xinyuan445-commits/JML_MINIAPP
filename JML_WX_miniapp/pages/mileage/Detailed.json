@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "里程认证详情",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-divider": "../../node-modules/uview-plus/components/u-divider/u-divider",
+    "u-image": "../../node-modules/uview-plus/components/u-image/u-image",
+    "floating-window": "../../components/FloatingWindow"
+  }
+}

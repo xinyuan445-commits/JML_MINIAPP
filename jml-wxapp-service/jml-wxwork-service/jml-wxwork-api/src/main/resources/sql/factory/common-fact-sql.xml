@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="common-fact">
+    <!--
+        数据授权的公共逻辑
+        要求：
+        1、必须使用Base4JmlAuthController.initQueryMap初始化查询参数
+        2、主表的别名必须是a
+        3、创建员工字段必须为created_staff_id
+        4、地域字段必须为region_code
+    -->
+    <sql id="auth">
+        1 = 1
+        <!--主管/厂长/厂助看模块下所有数据-->
+        <if test="staff.factRoleGM == true || staff.factRoleGMS == true">
+
+        </if>
+        <!--普通员工：私有属性，具有新建和编辑的权限，仅能查看个人数据-->
+        <if test="staff.factRoleSE == true">
+           and a.created_staff_id = #{staff.staffId}
+        </if>
+    </sql>
+</sqlGroup>

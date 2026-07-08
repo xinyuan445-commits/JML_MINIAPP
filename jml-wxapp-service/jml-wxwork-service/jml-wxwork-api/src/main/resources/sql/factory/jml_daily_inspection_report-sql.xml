@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 第三方维保 -->
+<sqlGroup namespace="dailyInspectionReport">
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id,
+            a.name AS name,
+            a.inspection_status AS inspectionStatus,
+            ins.`name` AS inspectorStaffName,
+            eb.name As ebSkinConfirmStaffName,
+            press.name As pressConfirmStaffName,
+            print.name As printLineConfirmStaffName,
+            chamfer.name As chamferConfirmStaffName,
+            DATE_FORMAT(a.eb_skin_inspection_date, '%Y-%m-%d') AS ebSkinInspectionDate,
+            a.eb_skin_inspection_start_time AS ebSkinInspectionStartTime,
+            a.eb_skin_inspection_end_time AS ebSkinInspectionEndTime,
+            a.eb_skin_confirm_status AS ebSkinConfirmStatus,
+            DATE_FORMAT(a.press_inspection_date, '%Y-%m-%d') AS pressInspectionDate,
+            a.press_inspection_start_time AS pressInspectionStartTime,
+            a.press_inspection_end_time AS pressInspectionEndTime,
+            a.press_confirm_status AS pressConfirmStatus,
+            DATE_FORMAT(a.chamfer_inspection_date, '%Y-%m-%d') AS chamferInspectionDate,
+            a.chamfer_inspection_start_time AS chamferInspectionStartTime,
+            a.chamfer_inspection_end_time AS chamferInspectionEndTime,
+            a.chamfer_confirm_status AS chamferConfirmStatus,
+            DATE_FORMAT(a.print_line_inspection_date, '%Y-%m-%d') AS printLineInspectionDate,
+            a.print_line_inspection_start_time AS  printLineInspectionStartTime,
+            a.print_line_inspection_end_time AS printLineInspectionEndTime,
+            a.print_line_confirm_status AS printLineConfirmStatus,
+            a.inspection_prod_line AS inspectionProdLine,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            a.created_staff_id AS createdStaffId,
+            cs.`name` AS createdStaffName
+        <pageTag/>
+        from
+            jml_daily_inspection_report a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+            left join jml_staff ins ON a.inspector_staff_id = ins.id
+            left join jml_staff eb ON a.eb_skin_confirm_staff_id = eb.id
+            left join jml_staff press ON a.press_confirm_staff_id = press.id
+            left join jml_staff chamfer ON a.chamfer_confirm_staff_id = chamfer.id
+            left join jml_staff print ON a.print_line_confirm_staff_id = print.id
+        <where>
+            <include refid="common-fact.auth"/>
+               <if test="staff.staffId != null">
+                   OR
+                   (
+                       (a.eb_skin_confirm_staff_id = #{staff.staffId} AND a.eb_skin_confirm_status = '0') OR
+                       (a.press_confirm_staff_id =  #{staff.staffId} AND a.press_confirm_status = '0') OR
+                       (a.chamfer_confirm_staff_id =  #{staff.staffId} AND a.chamfer_confirm_status = '0') OR
+                       (a.print_line_confirm_staff_id = #{staff.staffId} AND a.print_line_confirm_status = '0')
+                   )
+               </if>
+
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%')
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+        </where>
+        group by a.id
+        order by a.update_time desc
+    </select>
+    <!-- 统计肤感线、EB线 check值 -->
+    <select id="countCheckEbSkin" parameterType="map">
+        SELECT
+            -- 统计值为0的字段数量
+            (
+                IFNULL((CASE WHEN eb_skin_comp_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_eq_inspect_done = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_daily_maint_done = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_air_press_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_belt_pos_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_blade_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_glue_leak_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_coater_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_loader_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_curing_box_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_conv_cleanliness = '0' THEN 1 ELSE 0 END), 0)
+            ) AS totalUnchecked,
+
+            -- 统计值为1的字段数量
+            (
+                IFNULL((CASE WHEN eb_skin_comp_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_eq_inspect_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_daily_maint_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_air_press_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_belt_pos_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_blade_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_glue_leak_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_coater_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_loader_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_curing_box_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_conv_cleanliness = '1' THEN 1 ELSE 0 END), 0)
+            ) AS totalChecked,
+
+            -- 统计值为空的字段数量
+            (
+                IFNULL((CASE WHEN eb_skin_comp_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_eq_inspect_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_daily_maint_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_air_press_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_belt_pos_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_blade_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_glue_leak_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_coater_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_loader_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_curing_box_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_conv_cleanliness IS NULL THEN 1 ELSE 0 END), 0)
+            ) AS totalNulls
+        FROM
+            jml_daily_inspection_report a
+        <where>
+            a.id = #{id}
+        </where>
+    </select>
+    <!-- 统计压贴线 check值 -->
+    <select id="countCheckPress" parameterType="map">
+        SELECT
+            -- 统计 press_* 字段中值为 0 的总数
+            (
+                IFNULL((CASE WHEN press_eq_inspection_done = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_daily_maintenance_done = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_air_pressure_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_tool_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_sensor_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_locator_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_conveyor_cleanliness = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_machine_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_loader_check = '0' THEN 1 ELSE 0 END), 0)
+            ) AS totalUnchecked,
+
+            -- 统计 press_* 字段中值为 1 的总数
+            (
+                IFNULL((CASE WHEN press_eq_inspection_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_daily_maintenance_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_air_pressure_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_tool_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_sensor_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_locator_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_conveyor_cleanliness = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_machine_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_loader_check = '1' THEN 1 ELSE 0 END), 0)
+            ) AS totalChecked,
+
+            -- 统计 press_* 字段中值为 NULL 的总数
+            (
+                IFNULL((CASE WHEN press_eq_inspection_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_daily_maintenance_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_air_pressure_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_tool_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_sensor_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_locator_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_conveyor_cleanliness IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_machine_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_loader_check IS NULL THEN 1 ELSE 0 END), 0)
+            ) AS totalNulls
+        FROM
+            jml_daily_inspection_report a
+        <where>
+            a.id = #{id}
+        </where>
+    </select>
+    <!-- 统计倒角线 check值 -->
+    <select id="countCheckChamfer" parameterType="map">
+        SELECT
+            -- 统计 chamfer_* 字段中值为 0 的总数
+            (
+            IFNULL((CASE WHEN chamfer_eq_inspection_done = '0' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_daily_maintenance_done = '0' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_air_pressure_check = '0' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_tool_check = '0' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_sensor_check = '0' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_locator_check = '0' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_conveyor_cleanliness = '0' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_brush_machine_check = '0' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_loader_check = '0' THEN 1 ELSE 0 END), 0)
+            ) AS totalUnchecked,
+
+            -- 统计 chamfer_* 字段中值为 1 的总数
+            (
+            IFNULL((CASE WHEN chamfer_eq_inspection_done = '1' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_daily_maintenance_done = '1' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_air_pressure_check = '1' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_tool_check = '1' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_sensor_check = '1' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_locator_check = '1' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_conveyor_cleanliness = '1' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_brush_machine_check = '1' THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_loader_check = '1' THEN 1 ELSE 0 END), 0)
+            ) AS totalChecked,
+
+            -- 统计 chamfer_* 字段中值为 NULL 的总数
+            (
+            IFNULL((CASE WHEN chamfer_eq_inspection_done IS NULL THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_daily_maintenance_done IS NULL THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_air_pressure_check IS NULL THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_tool_check IS NULL THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_sensor_check IS NULL THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_locator_check IS NULL THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_conveyor_cleanliness IS NULL THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_brush_machine_check IS NULL THEN 1 ELSE 0 END), 0) +
+            IFNULL((CASE WHEN chamfer_loader_check IS NULL THEN 1 ELSE 0 END), 0)
+            ) AS totalNulls
+        FROM
+            jml_daily_inspection_report a
+        <where>
+            a.id = #{id}
+        </where>
+    </select>
+
+    <!-- 统计打印线 check值 -->
+    <select id="countPrintLine" parameterType="map">
+        SELECT
+            -- 统计所有 press_*、chamfer_* 和 print_line_* 字段中值为 0 的总数
+            (
+                IFNULL((CASE WHEN print_line_comp_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_eq_inspect_done = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_daily_maint_done = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_air_press_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_belt_pos_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_glue_leak_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_dust_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_roller_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_temp_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_hopper_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_conveyor_clean = '0' THEN 1 ELSE 0 END), 0)
+            ) AS totalUnchecked,
+
+            -- 统计所有 press_*、chamfer_* 和 print_line_* 字段中值为 1 的总数
+            (
+                IFNULL((CASE WHEN print_line_comp_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_eq_inspect_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_daily_maint_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_air_press_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_belt_pos_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_glue_leak_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_dust_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_roller_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_temp_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_hopper_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_conveyor_clean = '1' THEN 1 ELSE 0 END), 0)
+            ) AS totalChecked,
+
+            -- 统计所有 press_*、chamfer_* 和 print_line_* 字段中值为 NULL 的总数
+            (
+                IFNULL((CASE WHEN print_line_comp_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_eq_inspect_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_daily_maint_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_air_press_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_belt_pos_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_glue_leak_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_dust_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_roller_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_temp_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_hopper_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_conveyor_clean IS NULL THEN 1 ELSE 0 END), 0)
+            ) AS totalNulls
+        FROM
+            jml_daily_inspection_report a
+        <where>
+            a.id = #{id}
+        </where>
+    </select>
+
+    <!-- 统计所有check值 -->
+    <select id="countCheckAll" parameterType="map">
+        SELECT
+            -- 统计所有 press_* 和 chamfer_* 字段中值为 0 的总数
+            (
+                IFNULL((CASE WHEN eb_skin_comp_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_eq_inspect_done = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_daily_maint_done = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_air_press_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_belt_pos_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_blade_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_glue_leak_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_coater_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_loader_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_curing_box_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN eb_skin_conv_cleanliness = '0' THEN 1 ELSE 0 END), 0)+
+                IFNULL((CASE WHEN press_eq_inspection_done = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN press_daily_maintenance_done = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN press_air_pressure_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN press_tool_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN press_sensor_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN press_locator_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN press_conveyor_cleanliness = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN press_brush_machine_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN press_brush_loader_check = '0' THEN 1 ELSE 0 END), 0)+
+				IFNULL((CASE WHEN chamfer_eq_inspection_done = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN chamfer_daily_maintenance_done = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN chamfer_air_pressure_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN chamfer_tool_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN chamfer_sensor_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN chamfer_locator_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN chamfer_conveyor_cleanliness = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN chamfer_brush_machine_check = '0' THEN 1 ELSE 0 END), 0) +
+				IFNULL((CASE WHEN chamfer_loader_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_comp_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_eq_inspect_done = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_daily_maint_done = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_air_press_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_belt_pos_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_glue_leak_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_dust_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_roller_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_temp_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_hopper_check = '0' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_conveyor_clean = '0' THEN 1 ELSE 0 END), 0)
+            ) AS totalUnchecked,
+
+            -- 统计所有 press_* 和 chamfer_* 字段中值为 1 的总数
+            (
+                IFNULL((CASE WHEN eb_skin_comp_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_eq_inspect_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_daily_maint_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_air_press_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_belt_pos_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_blade_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_glue_leak_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_coater_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_loader_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_curing_box_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_conv_cleanliness = '1' THEN 1 ELSE 0 END), 0)+
+                IFNULL((CASE WHEN press_eq_inspection_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_daily_maintenance_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_air_pressure_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_tool_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_sensor_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_locator_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_conveyor_cleanliness = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_machine_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_loader_check = '1' THEN 1 ELSE 0 END), 0)+
+                IFNULL((CASE WHEN chamfer_eq_inspection_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_daily_maintenance_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_air_pressure_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_tool_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_sensor_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_locator_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_conveyor_cleanliness = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_brush_machine_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_loader_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_comp_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_eq_inspect_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_daily_maint_done = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_air_press_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_belt_pos_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_glue_leak_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_dust_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_roller_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_temp_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_hopper_check = '1' THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_conveyor_clean = '1' THEN 1 ELSE 0 END), 0)
+            ) AS totalChecked,
+
+            -- 统计所有 press_* 和 chamfer_* 字段中值为 NULL 的总数
+            (
+                IFNULL((CASE WHEN eb_skin_comp_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_eq_inspect_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_daily_maint_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_air_press_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_belt_pos_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_blade_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_glue_leak_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_coater_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_loader_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_curing_box_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN eb_skin_conv_cleanliness IS NULL THEN 1 ELSE 0 END), 0)+
+                IFNULL((CASE WHEN press_eq_inspection_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_daily_maintenance_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_air_pressure_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_tool_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_sensor_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_locator_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_conveyor_cleanliness IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_machine_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN press_brush_loader_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_eq_inspection_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_daily_maintenance_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_air_pressure_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_tool_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_sensor_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_locator_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_conveyor_cleanliness IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_brush_machine_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN chamfer_loader_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_comp_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_eq_inspect_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_daily_maint_done IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_air_press_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_belt_pos_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_glue_leak_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_dust_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_roller_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_temp_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_hopper_check IS NULL THEN 1 ELSE 0 END), 0) +
+                IFNULL((CASE WHEN print_line_conveyor_clean IS NULL THEN 1 ELSE 0 END), 0)
+            ) AS totalNulls
+         FROM
+            jml_daily_inspection_report a
+        <where>
+            a.id = #{id}
+        </where>
+    </select>
+
+    <!-- 查询详情 -->
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            a.inspection_status AS inspectionStatus,
+            a.inspector_staff_id AS inspectorStaffId,
+            ins.name AS inspectorStaffName,
+            DATE_FORMAT(a.eb_skin_inspection_date, '%Y-%m-%d') AS ebSkinInspectionDate,
+            a.eb_skin_inspection_start_time AS ebSkinInspectionStartTime,
+            a.eb_skin_inspection_end_time AS ebSkinInspectionEndTime,
+            a.eb_skin_confirm_staff_id AS ebSkinConfirmStaffId,
+            a.eb_skin_confirm_status  AS ebSkinConfirmStatus,
+            DATE_FORMAT(a.eb_skin_confirm_time, '%Y-%m-%d %H:%i:%s') AS ebSkinConfirmTime,
+            ebcn.`name` AS ebSkinInspectorStaffName,
+            DATE_FORMAT(a.press_inspection_date, '%Y-%m-%d') AS pressInspectionDate,
+            a.press_inspection_start_time AS pressInspectionStartTime,
+            a.press_inspection_end_time AS pressInspectionEndTime,
+            a.press_confirm_staff_id AS pressConfirmStaffId,
+            a.press_confirm_status AS pressConfirmStatus,
+            DATE_FORMAT(a.press_confirm_time, '%Y-%m-%d %H:%i:%s') AS pressConfirmTime,
+            pcn.`name` AS pressConfirmStaffName,
+            DATE_FORMAT(a.chamfer_inspection_date, '%Y-%m-%d') AS chamferInspectionDate,
+            a.chamfer_inspection_start_time AS chamferInspectionStartTime,
+            a.chamfer_inspection_end_time AS chamferInspectionEndTime,
+            a.chamfer_confirm_staff_id AS chamferConfirmStaffId,
+            a.chamfer_confirm_status AS chamferConfirmStatus,
+            DATE_FORMAT(a.chamfer_confirm_time, '%Y-%m-%d %H:%i:%s') AS chamferConfirmTime,
+            chcn.`name` AS chamferConfirmStaffName,
+            DATE_FORMAT(a.print_line_inspection_date, '%Y-%m-%d') AS  printLineInspectionDate,
+            a.print_line_inspection_start_time AS printLineInspectionStartTime,
+            a.print_line_inspection_end_time AS printLineInspectionEndTime,
+            a.print_line_confirm_staff_id AS printLineConfirmStaffId,
+            a.print_line_confirm_status AS printLineConfirmStatus,
+            DATE_FORMAT(a.print_line_confirm_time, '%Y-%m-%d %H:%i:%s') AS printLienConfirmTime,
+            print.`name` AS printLineConfirmStaffName,
+            a.inspection_prod_line AS inspectionProdLine,
+            a.eb_skin_comp_check AS ebSkinCompCheck,
+            a.eb_skin_comp_check_sol AS ebSkinCompCheckSol,
+            a.eb_skin_comp_check_img AS ebSkinCompCheckImg,
+            a.eb_skin_eq_inspect_done AS ebSkinEqInspectDone,
+            a.eb_skin_eq_inspect_done_sol AS ebSkinEqInspectDoneSol,
+            a.eb_skin_eq_inspect_done_img AS ebSkinEqInspectDoneImg,
+            a.eb_skin_daily_maint_done AS ebSkinDailyMaintDone,
+            a.eb_skin_daily_maint_done_sol AS ebSkinDailyMaintDoneSol,
+            a.eb_skin_daily_maint_done_img AS ebSkinDailyMaintDoneImg,
+            a.eb_skin_air_press_check AS ebSkinAirPressCheck,
+            a.eb_skin_air_press_check_sol AS ebSkinAirPressCheckSol,
+            a.eb_skin_air_press_check_img AS ebSkinAirPressCheckImg,
+            a.eb_skin_belt_pos_check AS ebSkinBeltPosCheck,
+            a.eb_skin_belt_pos_check_sol AS ebSkinBeltPosCheckSol,
+            a.eb_skin_belt_pos_check_img AS ebSkinBeltPosCheckImg,
+            a.eb_skin_blade_check AS ebSkinBladeCheck,
+            a.eb_skin_blade_check_sol AS ebSkinBladeCheckSol,
+            a.eb_skin_blade_check_img AS ebSkinBladeCheckImg,
+            a.eb_skin_glue_leak_check AS ebSkinGlueLeakCheck,
+            a.eb_skin_glue_leak_check_sol AS ebSkinGlueLeakCheckSol,
+            a.eb_skin_glue_leak_check_img AS ebSkinGlueLeakCheckImg,
+            a.eb_skin_coater_check AS ebSkinCoaterCheck,
+            a.eb_skin_coater_check_sol AS ebSkinCoaterCheckSol,
+            a.eb_skin_coater_check_img AS ebSkinCoaterCheckImg,
+            a.eb_skin_loader_check AS ebSkinLoaderCheck,
+            a.eb_skin_loader_check_sol AS ebSkinLoaderCheckSol,
+            a.eb_skin_loader_check_img AS ebSkinLoaderCheckImg,
+            a.eb_skin_curing_box_check AS ebSkinCuringBoxCheck,
+            a.eb_skin_curing_box_check_sol AS ebSkinCuringBoxCheckSol,
+            a.eb_skin_curing_box_check_img AS ebSkinCuringBoxCheckImg,
+            a.eb_skin_conv_cleanliness AS ebSkinConvCleanliness,
+            a.eb_skin_conv_cleanliness_sol AS ebSkinConvCleanlinessSol,
+            a.eb_skin_conv_cleanliness_img AS ebSkinConvCleanlinessImg,
+            a.press_eq_inspection_done AS pressEqInspectionDone,
+            a.press_eq_inspection_done_sol AS pressEqInspectionDoneSol,
+            a.press_eq_inspection_done_img AS pressEqInspectionDoneImg,
+            a.press_daily_maintenance_done AS pressDailyMaintenanceDone,
+            a.press_daily_maintenance_done_sol AS pressDailyMaintenanceDoneSol,
+            a.press_daily_maintenance_done_img AS pressDailyMaintenanceDoneImg,
+            a.press_air_pressure_check AS pressAirPressureCheck,
+            a.press_air_pressure_check_sol AS pressAirPressureCheckSol,
+            a.press_air_pressure_check_img AS pressAirPressureCheckImg,
+            a.press_tool_check AS pressToolCheck,
+            a.press_tool_check_sol AS pressToolCheckSol,
+            a.press_tool_check_img AS pressToolCheckImg,
+            a.press_sensor_check AS pressSensorCheck,
+            a.press_sensor_check_sol AS pressSensorCheckSol,
+            a.press_sensor_check_img AS pressSensorCheckImg,
+            a.press_locator_check AS pressLocatorCheck,
+            a.press_locator_check_sol AS pressLocatorCheckSol,
+            a.press_locator_check_img AS pressLocatorCheckImg,
+            a.press_conveyor_cleanliness AS pressConveyorCleanliness,
+            a.press_conveyor_cleanliness_sol AS pressConveyorCleanlinessSol,
+            a.press_conveyor_cleanliness_img AS pressConveyorCleanlinessImg,
+            a.press_brush_machine_check AS pressBrushMachineCheck,
+            a.press_brush_machine_check_sol AS pressBrushMachineCheckSol,
+            a.press_brush_machine_check_img AS pressBrushMachineCheckImg,
+            a.press_brush_loader_check AS pressBrushLoaderCheck,
+            a.press_brush_loader_check_sol AS pressBrushLoaderCheckSol,
+            a.press_brush_loader_check_img AS pressBrushLoaderCheckImg,
+            a.chamfer_eq_inspection_done AS chamferEqInspectionDone,
+            a.chamfer_eq_inspection_done_sol AS chamferEqInspectionDoneSol,
+            a.chamfer_eq_inspection_done_img AS chamferEqInspectionDoneImg,
+            a.chamfer_daily_maintenance_done AS chamferDailyMaintenanceDone,
+            a.chamfer_daily_maintenance_done_sol AS chamferDailyMaintenanceDoneSol,
+            a.chamfer_daily_maintenance_done_img AS chamferDailyMaintenanceDoneImg,
+            a.chamfer_air_pressure_check AS chamferAirPressureCheck,
+            a.chamfer_air_pressure_check_sol AS chamferAirPressureCheckSol,
+            a.chamfer_air_pressure_check_img AS chamferAirPressureCheckImg,
+            a.chamfer_tool_check AS chamferToolCheck,
+            a.chamfer_tool_check_sol AS chamferToolCheckSol,
+            a.chamfer_tool_check_img AS chamferToolCheckImg,
+            a.chamfer_sensor_check AS chamferSensorCheck,
+            a.chamfer_sensor_check_sol AS chamferSensorCheckSol,
+            a.chamfer_sensor_check_img AS chamferSensorCheckImg,
+            a.chamfer_locator_check AS chamferLocatorCheck,
+            a.chamfer_locator_check_sol AS chamferLocatorCheckSol,
+            a.chamfer_locator_check_img AS chamferLocatorCheckImg,
+            a.chamfer_conveyor_cleanliness AS chamferConveyorCleanliness,
+            a.chamfer_conveyor_cleanliness_sol AS chamferConveyorCleanlinessSol,
+            a.chamfer_conveyor_cleanliness_img AS chamferConveyorCleanlinessImg,
+            a.chamfer_brush_machine_check AS chamferBrushMachineCheck,
+            a.chamfer_brush_machine_check_sol AS chamferBrushMachineCheckSol,
+            a.chamfer_brush_machine_check_img AS chamferBrushMachineCheckImg,
+            a.chamfer_loader_check AS chamferLoaderCheck,
+            a.chamfer_loader_check_sol AS chamferLoaderCheckSol,
+            a.chamfer_loader_check_img AS chamferLoaderCheckImg,
+            a.print_line_comp_check AS printLineCompCheck,
+            a.print_line_comp_check_sol AS printLineCompCheckSol,
+            a.print_line_comp_check_img AS printLineCompCheckImg,
+            a.print_line_eq_inspect_done AS printLineEqInspectDone,
+            a.print_line_eq_inspect_done_sol AS printLineEqInspectDoneSol,
+            a.print_line_eq_inspect_done_img AS printLineEqInspectDoneImg,
+            a.print_line_daily_maint_done AS printLineDailyMaintDone,
+            a.print_line_daily_maint_done_sol AS printLineDailyMaintDoneSol,
+            a.print_line_daily_maint_done_img AS printLineDailyMaintDoneImg,
+            a.print_line_air_press_check AS printLineAirPressCheck,
+            a.print_line_air_press_check_sol AS printLineAirPressCheckSol,
+            a.print_line_air_press_check_img AS printLineAirPressCheckImg,
+            a.print_line_belt_pos_check AS printLineBeltPosCheck,
+            a.print_line_belt_pos_check_sol AS printLineBeltPosCheckSol,
+            a.print_line_belt_pos_check_img AS printLineBeltPosCheckImg,
+            a.print_line_glue_leak_check AS printLineGlueLeakCheck,
+            a.print_line_glue_leak_check_sol AS printLineGlueLeakCheckSol,
+            a.print_line_glue_leak_check_img AS printLineGlueLeakCheckImg,
+            a.print_line_dust_check AS printLineDustCheck,
+            a.print_line_dust_check_sol AS printLineDustCheckSol,
+            a.print_line_dust_check_img AS printLineDustCheckImg,
+            a.print_line_roller_check AS printLineRollerCheck,
+            a.print_line_roller_check_sol AS printLineRollerCheckSol,
+            a.print_line_roller_check_img AS printLineRollerCheckImg,
+            a.print_line_temp_check AS printLineTempCheck,
+            a.print_line_temp_check_sol AS printLineTempCheckSol,
+            a.print_line_temp_check_img AS printLineTempCheckImg,
+            a.print_line_hopper_check AS printLineHopperCheck,
+            a.print_line_hopper_check_sol AS printLineHopperCheckSol,
+            a.print_line_hopper_check_img AS printLineHopperCheckImg,
+            a.print_line_conveyor_clean AS printLineConveyorClean,
+            a.print_line_conveyor_clean_sol AS printLineConveyorCleanSol,
+            a.print_line_conveyor_clean_img AS printLineConveyorCleanImg,
+            a.update_staff_id AS updateStaffId,
+            a.created_staff_id AS createdStaffId,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName
+        FROM
+            jml_daily_inspection_report a
+        left join
+            jml_staff cs on a.created_staff_id = cs.id
+        left join
+            jml_staff us ON a.update_staff_id = us.id
+        left join
+             jml_staff ins ON a.inspector_staff_id = ins.id
+        left join
+            jml_staff ebcn ON a.eb_skin_confirm_staff_id = ebcn.id
+        left join
+            jml_staff pcn ON a.press_confirm_staff_id = pcn.id
+        left join
+            jml_staff chcn ON a.chamfer_confirm_staff_id = chcn.id
+        left join
+            jml_staff print ON a.print_line_confirm_staff_id = print.id
+        WHERE
+            a.id = #{id}
+    </select>
+
+    <select id="checkAllConfirmed" parameterType="map">
+        select
+          count( id ) as cnt
+        from
+          jml_daily_inspection_report
+        where
+          eb_skin_confirm_status = '1'
+          and press_confirm_status = '1'
+          and chamfer_confirm_status = '1'
+          and print_line_confirm_status = '1'
+          and id = #{id}
+    </select>
+
+
+</sqlGroup>

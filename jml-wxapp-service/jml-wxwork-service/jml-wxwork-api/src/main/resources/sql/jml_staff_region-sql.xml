@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="jml_staff_region">
+    <!--根据员工ID查询-->
+    <select id="queryByStaffId" parameterType="map">
+        select
+            a.id,
+            a.staff_id ,
+            b.id region_id ,
+            b.region_code,
+            b.name as region_name,
+            b.area_id ,
+            b.area_code ,
+            c.name as area_name
+        from
+            jml_staff_area a
+        left join jml_region b on a.area_code = b.area_code
+        left join jml_area c on b.area_code = c.area_code
+        where
+            a.staff_id = #{staffId}
+            and a.enable = '1'
+    </select>
+
+    <!--递归查询员工的管理域-->
+    <select id="queryRecursiveByStaffId" parameterType="map">
+        with recursive region_tree as
+        (
+            select aa.* from jml_region aa inner join jml_staff_area aa1 on aa.area_code = aa1.area_code where aa1.staff_id = #{staffId}
+            union all
+            select bb.* from jml_region bb inner join region_tree cc on bb.parent_id = cc.id
+        )
+        select distinct
+            a.id,
+            a.name,
+            a.region_code,
+            a.area_id,
+            a.area_code,
+            a.parent_id
+        from region_tree a
+    </select>
+</sqlGroup>

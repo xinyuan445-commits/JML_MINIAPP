@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "烤漆线-生产工艺单",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-divider": "../../../node-modules/uview-plus/components/u-divider/u-divider",
+    "floating-window": "../../../components/FloatingWindow",
+    "footer-btn": "../../../components/FooterBtn"
+  }
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="jmlDbUpdateSFIdComm">
+    <!--更新工作报告上的费用的SFId-->
+    <update id="updateSRRemIdSfIdByRemId">
+        UPDATE jml_sales_report a
+        JOIN jml_reimbursement b ON a.reimbursement_id = b.id
+        and b.sfid is not null
+        SET a.reimbursement_sfid = b.sfid,
+        a.sync_status = '1'
+        WHERE
+            (
+            a.reimbursement_sfid IS NULL
+            or a.reimbursement_sfid = '')
+    </update>
+</sqlGroup>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 微信会员的SQL -->
+<sqlGroup namespace="wxmember">
+	<!--根据微信ID删除会员记录-->
+	<delete id="delByWechatid" parameterType="map">
+		delete from wx_member where wechatid = #{wechatid}
+	</delete>
+
+	<!-- 微信会员表列 -->
+	<sql id="wx_member_col">
+		wechatid,
+		subscribe,
+		openid,
+		nickname,
+		sex,
+		city,
+		country,
+		province,
+		`language`,
+		headimgurl,
+		subscribe_time,
+		unionid,
+		remark,
+		groupid
+	</sql>
+
+	<!--列的SQL-->
+	<select id="columnsSQL">
+		<include refid="wxmember.wx_member_col"/>
+	</select>
+
+	<!-- 批量新增-->
+	<update id="batchInsert">
+		insert into wx_member(
+			wxappid,
+			subscribe,
+			openid,
+			nickname,
+			sex,
+			city,
+			country,
+			province,
+			headimgurl,
+			subscribe_time,
+			unionid,
+			remark,
+			groupid
+		)
+		values(
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?,
+			?
+		)
+	</update>
+
+	<!--根据条件查询微信粉丝信息-->
+	<select id="queryBy" parameterType="map">
+		select
+			a.*,
+			(case when a.sex = '1' then '男' when a.sex ='2' then '女' else  '其他' end) as sexName,
+			(case when a.subscribe = '0' then '未关注' when a.subscribe = '1' then '已关注' else '未知' end) as subscribeName
+		<pageTag/>
+		from
+			wx_member a
+		<where>
+			1 = 1
+			<if test="wechatid != null and wechatid != 0">
+				and a.wechatid = #{wechatid}
+			</if>
+			<if test="openid != null and openid != ''">
+				and a.openid = #{openid}
+			</if>
+			<if test="unionid != null and unionid != ''">
+				and a.unionid = #{unionid}
+			</if>
+			<if test="nickName != null and nickName != ''">
+				and a.nickname like '%${nickName}%'
+			</if>
+		</where>
+		order by a.id desc
+	</select>
+
+	<!--批量从粉丝日志表同步-->
+	<update id="batchInsert4Sync" parameterType="map">
+		insert into wx_member (
+			wxappid,
+			subscribe,
+			openid,
+			nickname,
+			sex,
+			city,
+			country,
+			province,
+			headimgurl,
+			subscribe_time,
+			unionid,
+			remark,
+			groupid
+		)
+		select
+			wxappid,
+			subscribe,
+			openid,
+			nickname,
+			sex,
+			city,
+			country,
+			province,
+			headimgurl,
+			subscribe_time,
+			unionid,
+			remark,
+			groupid
+		from
+			log_wx_member a
+
+		where
+			a.batchNo = #{batchNo}
+			and not exists (select aa.openid from wx_member aa where aa.openid = a.openid)
+	</update>
+
+	<!--批量从粉丝日志表更新-->
+	<update id="batchUpdate4Sync" parameterType="map">
+		update
+			wx_member a
+		inner join log_wx_member b on a.openid = b.openid
+		set
+		 a.nickname = b.nickname ,
+		 a.sex = b.sex ,
+		 a.city = b.city ,
+		 a.country = b.country ,
+		 a.province = b.province ,
+		 a.headimgurl = b.headimgurl ,
+		 a.subscribe = b.subscribe,
+		 a.subscribe_time = b.subscribe_time,
+		 a.unionid = b.unionid,
+		 a.remark = b.remark,
+		 a.groupid = b.groupid
+		where
+			b.batchNo = #{batchNo}
+	</update>
+
+	<!--更新订阅标记-根据openId-->
+	<update id="updateSubscribeFlagByOpenId" parameterType="map">
+		update
+			wx_member
+		set
+			subscribe = #{subscribe}
+		where
+			openid = #{openId}
+	</update>
+
+	<!--更新订阅标记-->
+	<update id="updateSubscribeFlag" parameterType="map">
+		update
+			wx_member
+		set
+			subscribe = '0'
+		where
+			wxappid = #{wxappid}
+			and not exists (select a.id from log_wx_member a where a.wxappid = #{wxappid} and a.openid = openid)
+	</update>
+
+	<!--更新订阅标记为非订阅-->
+	<update id="updateSubscribeFlag2" parameterType="map">
+		update wx_member a
+		left join log_wxopenid_sync b on a.openid = b.openid
+		set
+			a.subscribe ='0'
+		where
+			b.openid is null
+			and a.openid is not null
+	</update>
+
+	<!--更新订阅标记为已订阅-->
+	<update id="updateSubscribeFlag3" parameterType="map">
+		update wx_member a
+		join log_wxopenid_sync b on a.openid = b.openid
+		set
+			a.subscribe ='1'
+		where
+			a.subscribe ='0'
+	</update>
+
+	<!--查询最新的会员同步数据-->
+	<select id="queryNewest" parameterType="map">
+		select
+			a.openid ,
+			a.unionid ,
+			a.subscribe_time
+		from
+			wx_member a
+		where
+			a.id = ( select max(aa.id) from wx_member aa)
+	</select>
+</sqlGroup>

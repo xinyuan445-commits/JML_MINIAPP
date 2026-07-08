@@ -1,0 +1,1 @@
+<view class="{{['uni-collapse', virtualHostClass]}}" style="{{virtualHostStyle}}"><slot/></view>

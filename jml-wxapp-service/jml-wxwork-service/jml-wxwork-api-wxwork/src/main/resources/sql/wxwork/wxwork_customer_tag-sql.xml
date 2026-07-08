@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- wxwork_customer_tag 的相关SQL -->
+<sqlGroup namespace="wxwork_customer_tag">
+    <!--批量插入标签-->
+   <update id="batchInsert" parameterType="map">
+       INSERT INTO wxwork_customer_tag (custId, group_name, tag_name, `type`, tag_id) VALUES(?, ?, ?, ?, ?)
+   </update>
+
+    <!--根据客户ID删除标签-->
+    <delete id="delByCustId" parameterType="map">
+        delete from wxwork_customer_tag where custId = #{custId}
+    </delete>
+</sqlGroup>

@@ -1,0 +1,13 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#89A2B0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- 购物车 -->
+    <path d="M12 18h6l4 18h20l4-12H24"/>
+    <circle cx="26" cy="42" r="3"/>
+    <circle cx="40" cy="42" r="3"/>
+
+    <!-- 清单文档（右上角） -->
+    <path d="M44 10h10v14H44z"/>
+    <path d="M46 14h6M46 18h5M46 22h4"/>
+    <path d="M54 10v4h-4"/>
+  </g>
+</svg>

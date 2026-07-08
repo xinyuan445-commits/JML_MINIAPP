@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 烤漆线-生产工艺单SQL -->
+<sqlGroup namespace="paintLineProductionProcess">
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id AS id,
+            a.name as name,
+            a.prod_order_no as prodOrderNo,
+            a.model as model,
+            a.material_temp as materialTemp,
+            a.line_speed as lineSpeed,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName
+        <pageTag/>
+        from
+            jml_paint_line_production_process a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+        <where>
+            <include refid="common-fact.auth"/>
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%'  or a.prod_order_no like '%${multiFiled}%')
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+        </where>
+        order by a.update_time desc
+    </select>
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            a.prod_order_no AS prodOrderNo,
+            a.model AS model,
+            a.material_temp AS materialTemp,
+            a.line_speed AS lineSpeed,
+            a.base_coat_curing AS baseCoatCuring,
+            a.base_coat_amount_8022_uv_special AS baseCoatAmount8022UvSpecial,
+            a.base_coat_uv_energy AS baseCoatUvEnergy,
+            a.sand_base_coat_amount_8123_uv AS sandBaseCoatAmount8123Uv,
+            a.sand_base_coat_uv_energy AS sandBaseCoatUvEnergy,
+            a.top_coat_amount_8215_uv_clear AS topCoatAmount8215UvClear,
+            a.top_coat_precure_energy AS topCoatPrecureEnergy,
+            a.air_pressure_content AS airPressureContent,
+            a.monomer_lamp_energy AS monomerLampEnergy,
+            a.top_coat_national_energy_dual_s AS topCoatNationalEnergyDualS,
+            a.remark AS remark,
+            a.update_staff_id AS updateStaffId,
+            a.created_staff_id AS createdStaffId,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName
+        FROM
+            jml_paint_line_production_process a
+        left join
+            jml_staff cs on a.created_staff_id = cs.id
+        left join
+            jml_staff us ON a.update_staff_id = us.id
+        WHERE
+            a.id = #{id};
+    </select>
+
+
+</sqlGroup>

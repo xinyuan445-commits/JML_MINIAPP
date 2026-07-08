@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 第三方维保 -->
+<sqlGroup namespace="peripheralDeviceMnt">
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id,
+            a.name AS name,
+            date_format( a.maintenance_date, '%Y-%m-%d' ) as maintenanceDate,
+            a.maintenance_eq AS maintenanceEq,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName
+        <pageTag/>
+        from
+            jml_peripheral_device_mnt a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+        <where>
+            <choose>
+                <when test="createdStaffId == null || createdStaffId == ''">
+                    <!--设备部员工和厂务只能看自己创建的数据-->
+                    <if test="staff.factRoleSE == true and (staff.factoryMRole =='SBE' or staff.factoryMRole =='CH')">
+                        and a.created_staff_id = #{staff.staffId}
+                    </if>
+                    <!--设备部主管/行政主管看自己部门的数据-->
+                    <if test="staff.factRoleGM == true and (staff.factoryMRole == 'SBZ' or staff.factoryMRole == 'CXZ')">
+                        and a.prod_line_or_dept = #{staff.prodLineOrDept}
+                    </if>
+                    <!--厂长/厂助/看模块下所有数据-->
+                    <if test="staff.factRoleGMS == true">
+
+                    </if>
+                </when>
+            </choose>
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%')
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+        </where>
+        order by a.update_time desc
+    </select>
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            a.item_type AS itemType,
+            tp.tp_service_full_name AS tpStaffName,
+            a.tp_staff_id AS tpStaffId,
+            a.job_type AS jobType,
+            a.prod_line_or_dept AS prodLineOrDept,
+            a.maintenance_opinion AS maintenanceOpinion,
+            CONCAT_WS( ";", a.maintenance_img_1, a.maintenance_img_2, a.maintenance_img_3) AS maintenanceImg,
+            a.maintenance_result AS maintenanceResult,
+            a.post_maintenance_status AS postMaintenanceStatus,
+            a.is_repair_order_created AS isRepairOrderCreated,
+            a.maintenance_eq AS maintenanceEq,
+            date_format( a.maintenance_date, '%Y-%m-%d' ) as maintenanceDate,
+            CONCAT_WS( ";", a.maintenance_record_img1, a.maintenance_record_img2, a.maintenance_record_img3,a.maintenance_record_img4,a.maintenance_record_img5 ) AS maintenanceRecordImg,
+            CONCAT_WS( ";", a.confirm_sign_img1, a.confirm_sign_img2, a.confirm_sign_img3,a.confirm_sign_img4,a.confirm_sign_img5 ) AS confirmSignImg,
+            a.remark AS remark,
+            a.update_staff_id AS updateStaffId,
+            a.created_staff_id AS createdStaffId,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName
+        FROM
+            jml_peripheral_device_mnt    a
+        left join
+            jml_staff cs on a.created_staff_id = cs.id
+        left join
+            jml_staff us ON a.update_staff_id = us.id
+        left join
+            jml_tp_service_provider tp ON a.tp_staff_id = tp.id
+        WHERE
+            a.id = #{id}
+    </select>
+
+
+</sqlGroup>

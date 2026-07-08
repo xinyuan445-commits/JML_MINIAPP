@@ -1,0 +1,1 @@
+<view wx:if="{{a}}" ref="u-transition" bindtap="{{b}}" class="{{['u-transition', 'data-v-bb806228', c, virtualHostClass]}}" style="{{d + ';' + virtualHostStyle}}" bindtouchmove="{{e}}"><slot/></view>

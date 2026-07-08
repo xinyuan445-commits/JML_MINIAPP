@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- wxwork_customer_follow 的相关SQL -->
+<sqlGroup namespace="wxwork_customer_follow">
+    <!--根据客户ID删除跟进记录-->
+    <delete id="delByCustId" parameterType="map">
+        delete from wxwork_customer_follow where userid =#{custId}
+    </delete>
+
+    <!--批量添加跟进记录-->
+    <update id="batchInsert" parameterType="map">
+        INSERT INTO wxwork_customer_follow (
+            userid,
+            remark,
+            description,
+            createtime,
+            oper_userid,
+            remark_corp_name,
+            add_way,
+            state
+        )
+        VALUES
+        (
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+    </update>
+</sqlGroup>

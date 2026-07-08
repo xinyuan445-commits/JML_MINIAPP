@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 地域管理的SQL -->
+<sqlGroup namespace="sys_region">
+	<!--查询全国所有省份-->
+	<select id="findProvinceList">
+		select
+			code,
+			rname
+		<pageTag/>
+		FROM sys_region where pcode is null
+	</select>
+
+	<!--根据code查询城市-->
+	<select id="findCityListBycode" parameterType="map">
+		select
+			code,
+			rname
+		<pageTag/>
+		from sys_region where 1 =1
+		<if test="code != null and code != ''">
+			and code = #{code}
+		</if>
+		<if test="pcode != null and pcode != ''">
+			and pcode = #{pcode}
+		</if>
+		<if test="pname != null and pname != ''">
+			and pcode = (select code from sys_region where rname = #{pname})
+		</if>
+		<if test="rname != null and rname != ''">
+			and rname  like #{rname}
+		</if>
+		<if test="cityName != null and cityName !=''">
+			and code = (select pcode from sys_region where rname = #{cityName})
+		</if>
+	</select>
+
+	<!--查询管理域自身及子级-->
+	<select id="querySubRegion" parameterType="map">
+		with recursive region_tree as
+		(
+			select aa.* from sys_region aa where aa.code = #{regionCode}
+			union all
+			select bb.* from sys_region bb join region_tree cc on bb.pcode = cc.code
+		)
+		select
+			a.code ,
+			a.rname ,
+			a.pcode
+		from
+			region_tree a
+	</select>
+
+	<!--查询全部管理域-->
+	<select id="queryAll" parameterType="map">
+		select
+			a.code ,
+			a.rname ,
+			a.pcode
+		from
+			sys_region a
+		where a.type != 3
+	</select>
+
+	<select id="queryAllX" parameterType="map">
+		select
+			LPAD(a.code,6,0) as codeX,
+			a.code,
+			a.rname ,
+			a.pcode
+		from
+			sys_region a
+		where a.type != 3
+	</select>
+</sqlGroup>

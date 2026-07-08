@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 费用报销管理SQL -->
+<sqlGroup namespace="reimbursement">
+	<!--分页查询费用报销-->
+	<select id="queryPage" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.amount,
+			date_format(a.start_date,'%Y-%m-%d') as start_date,
+			date_format(a.end_date,'%Y-%m-%d') as end_date,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			cs.`name` AS createdStaffName,
+			a.submit_status
+		<pageTag/>
+		from
+			jml_reimbursement a
+		left join
+			jml_staff cs ON a.created_staff_id = cs.id
+		<where>
+			<include refid="common.auth"/>
+			<if test="multiFiled != null and multiFiled != ''">
+				and a.name like '%${multiFiled}%'
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取费用报销明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.amount,
+			a.remark,
+			date_format(a.start_date,'%Y-%m-%d') as start_date,
+			date_format(a.end_date,'%Y-%m-%d') as end_date,
+			(SELECT GROUP_CONCAT(id SEPARATOR ',') from jml_sales_report WHERE reimbursement_id  = a.id) as salesReportIds,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time,
+			a.submit_status,
+			a.area_code,
+			ar.name as areaName,
+			a.district
+		from
+			jml_reimbursement a
+		left join
+			jml_staff cs on a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		left join
+			jml_area ar on a.area_code = ar.area_code
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+	<!--提交费用报销-->
+	<update id="submitReim" parameterType="map">
+		update
+			jml_reimbursement
+		set
+			submit_status = '1',
+			sync_status = '1'
+		where
+			id = #{id}
+	</update>
+
+	<!--删除报销-->
+	<delete id="deleteReim" parameterType="map">
+		delete from
+			jml_reimbursement
+		where
+			id = #{id}
+	</delete>
+</sqlGroup>

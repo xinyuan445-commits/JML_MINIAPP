@@ -1,0 +1,482 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 工作报告管理SQL -->
+<sqlGroup namespace="salesReport">
+	<!--分页查询工作报告-->
+	<select id="queryPageBy" parameterType="map">
+		select
+			a.id,
+			b.`name` as contactName,
+			b.mobile_phone,
+			c.`name` as accName,
+			d.`name` as oppName,
+			a.type,
+			a.manager_read,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			cs.`name` AS createdStaffName,
+			a.submit_status,
+			date_format(a.checkin_time,'%Y-%m-%d %H:%i:%s') as checkin_time,
+			a.checkin_address,
+			a.created_staff_id
+		<pageTag/>
+			from
+				jml_sales_report a
+			left join
+				jml_contact b on a.contact_id = b.id
+			left join
+				jml_account c on a.account_id = c.id
+			left join
+				jml_opportunity	d on a.opportunity_id = d.id
+			left join
+				jml_staff cs ON a.created_staff_id = cs.id
+		<where>
+			<!--tab 判断：销售人员 我的报告-->
+			<if test = 'tab== "我的报告"'>
+				and a.created_staff_id = #{staffId}
+			</if>
+			<!--tab 判断：总经理、销售总监、区域经理 区域报告-->
+			<if test = 'tab== "区域报告"'>
+				<choose>
+					<when test="createdStaffId == null">
+						<include refid="common.auth"/>
+					</when>
+					<otherwise>
+						and a.created_staff_id = #{createdStaffId}
+					</otherwise>
+				</choose>
+				and a.submit_status='1'
+			</if>
+			<!--tab 判断：区域经理，销售总监 未读报告-->
+			<if test = 'tab== "未读报告"'>
+				<choose>
+					<when test="createdStaffId == null">
+						<include refid="common.auth"/>
+					</when>
+					<otherwise>
+						and a.created_staff_id = #{createdStaffId}
+					</otherwise>
+				</choose>
+				and a.manager_read = '0' and a.submit_status='1'
+			</if>
+			<!--tab 判断：售后经理 全部报告-->
+			<if test = 'tab== "全部报告"'>
+				<include refid="common.auth"/>
+			</if>
+			<!--日期-->
+			<choose>
+				<!--签到报告跳转-->
+				<when test='type== "2"'>
+					<!--签到报告跳转，传值创建人-->
+					<if test="createdStaffId != null and createdStaffId != ''">
+						and a.created_staff_id = #{createdStaffId}
+					</if>
+					<if test="startDate != null and startDate != ''">
+						and a.checkin_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+					</if>
+					<if test="endDate != null and endDate != ''">
+						and a.checkin_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+					</if>
+				</when>
+				<otherwise>
+					<if test="startDate != null and startDate != ''">
+						and a.arrival_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+					</if>
+					<if test="endDate != null and endDate != ''">
+						and a.arrival_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+					</if>
+				</otherwise>
+			</choose>
+			<if test="multiFiled != null and multiFiled != ''">
+				and (b.name like '%${multiFiled}%' or c.name like '%${multiFiled}%' or cs.name like '%${multiFiled}%')
+			</if>
+			<if test="accountId != null and accountId != ''">
+				and a.account_id = #{accountId}
+			</if>
+			<if test="contactId != null and contactId != ''">
+				and a.contact_id = #{contactId}
+			</if>
+			<if test="oppId != null and oppId != ''">
+				and a.opportunity_id = #{oppId}
+			</if>
+			<if test="reimId != null and reimId != ''">
+				and a.reimbursement_id = #{reimId}
+			</if>
+			<!--获取经理未读报告-->
+			<if test="managerRead != null and managerRead != ''">
+				and a.manager_read = '0'
+			</if>
+		</where>
+		order by
+			a.submit_status asc,a.created_time desc,a.arrival_time desc
+	</select>
+
+	<!--获取工作报告明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			b.`name` as contactName,
+			b.mobile_phone,
+			a.contact_id,
+			c.`name` as accName,
+			a.account_id,
+			d.`name` as oppName,
+			a.opportunity_id,
+			a.type,
+			a.checkin_address,
+			date_format( a.checkin_time, '%Y-%m-%d %H:%i:%s' ) as checkin_time,
+			a.`status`,
+			a.visit_purpose,
+			a.visit_content,
+			date_format( a.departure_time, '%Y-%m-%d %H:%i:%s' ) as departure_time,
+			date_format( a.arrival_time, '%Y-%m-%d %H:%i:%s' ) as arrival_time,
+			a.follow_up,
+			a.reimbursement_id,
+			CONCAT_WS( ";", a.site_img1, a.site_img2, a.site_img3 ) AS site_img,
+			CONCAT_WS( ";", a.work_img1, a.work_img2, a.work_img3 ) AS work_img,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time,
+			a.checkin_longitude,
+			a.checkin_latitude,
+			a.submit_status,
+			a.work_of_the_day,
+			a.requirement,
+			a.summary,
+			a.schedule,
+			a.manager_read,
+			a.created_staff_id,
+			a.area_code,
+			ar.name as areaName,
+			a.district
+		from
+			jml_sales_report a
+		left join
+			jml_contact b on a.contact_id = b.id
+		left join
+			jml_account c on a.account_id = c.id
+		left join
+			jml_opportunity	d on a.opportunity_id = d.id
+		left join
+			jml_staff cs on a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		left join
+			jml_area ar on a.area_code = ar.area_code
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+	<!--根据员工信息获取工作报告列表信息,以及未绑定费用报销Id的工作报告记录-费用报销用-->
+	<select id="queryListBy" parameterType="map">
+		select
+			a.id,
+			a.name,
+			b.`name` as accName,
+			DATE_FORMAT(a.arrival_time,'%Y-%m-%d %H:%i:%s') as arrival_time
+		from
+			jml_sales_report a
+			left join
+			jml_account b on a.account_id = b.id
+		<where>
+			<include refid="common.auth"/>
+			<choose>
+				<when test="reimId != null and reimId != ''">
+					and (a.reimbursement_id is null or a.reimbursement_id = #{reimId})
+				</when>
+				<otherwise>
+					and (a.reimbursement_id is null or a.reimbursement_id ='')
+				</otherwise>
+			</choose>
+			and DATE_FORMAT(arrival_time,'%Y-%m-%d') between #{startDate} and #{endDate}
+			and  a.submit_status = '1'
+		</where>
+	</select>
+
+	<!--经理未阅读的报告列表-->
+	<select id="queryUnRedListByRM" parameterType="map">
+		select
+			id,
+			manager_read,
+			manager_read_time,
+			manager_staff_id
+		from
+			jml_sales_report a
+		<where>
+			<include refid="common.auth"/>
+			and a.manager_read = '0' and a.submit_status = '1'
+		</where>
+	</select>
+
+	<!--更新销售报告上的费用报销Id-->
+	<update id="updateReportReimId" parameterType="map">
+		update
+			jml_sales_report a
+		set
+			a.reimbursement_id = #{reimId},
+			a.update_staff_id =#{staffId}
+		<where>
+			<if test="reportIdList != null and reportIdList.size() > 0">
+				a.id in
+				<foreach collection="reportIdList" item="rid" open="(" close=")" separator=",">
+					#{rid}
+				</foreach>
+			</if>
+		</where>
+	</update>
+
+	<!--费用报销删除时，更新对应工作报报销Id-->
+	<update id="updateReportReimIdNull" parameterType="map">
+		update
+			jml_sales_report a
+		set
+			a.reimbursement_id = null,
+			a.reimbursement_sfid = null,
+			a.sync_status = '1'
+		<where>
+			a.reimbursement_id = #{reimId}
+		</where>
+	</update>
+
+	<!--查询上月本月下月有哪些符合条件的拜访提醒-->
+	<select id="queryDayListByDate" parameterType="map">
+		select
+			DATE_FORMAT(a.arrival_time,'%Y-%m-%d') as day,
+			<!--sum(case when `type` = '休假' then 1 else 0 end) holiday_cnt,-->
+			sum(case when `status`='后续跟进' then 1 else 0 end) follow_up_cnt
+		from
+			jml_sales_report a
+		<where>
+			a.created_staff_id = #{staffId}
+		and
+			DATE_FORMAT(arrival_time,'%Y-%m') between #{lastMonth} and #{preMonth}
+		and
+			(a.type is not null or a.type !='')
+		</where>
+		group by day
+	</select>
+
+	<!--查询当天报告的数据-->
+	<select id="queryReportNoticeByDay" parameterType="map">
+		select
+			DATE_FORMAT( arrival_time, '%H:%i' ) as time,
+			a.id,
+		IF
+			( a.`type` = '休假', '休假', b.name ) as content
+		from
+			jml_sales_report a
+			left join jml_account b on a.account_id = b.id
+		<where>
+			a.created_staff_id = #{staffId}
+			and
+				DATE_FORMAT( a.arrival_time, '%Y-%m-%d' ) = #{day}
+			and
+				(a.type is not null or a.type !='')
+		</where>
+	</select>
+
+
+	<!--经理报表：获取日期-->
+	<select id="queryGmReportDay" parameterType="map">
+		SELECT
+			DATE_ADD(
+				<choose>
+					<when test="startDate != null">
+						#{startDate}
+					</when>
+					<otherwise>
+						DATE_FORMAT(NOW() - INTERVAL WEEKDAY(NOW()) DAY, '%Y-%m-%d')
+					</otherwise>
+				</choose>
+				, INTERVAL n DAY) as field,
+			DATE_FORMAT(
+				DATE_ADD(
+				<choose>
+					<when test="startDate != null">
+						#{startDate}
+					</when>
+					<otherwise>
+						DATE_FORMAT(NOW() - INTERVAL WEEKDAY(NOW()) DAY, '%Y-%m-%d')
+					</otherwise>
+				</choose>
+		   , INTERVAL n DAY), '%m月%d日') as label
+		FROM
+		(
+		  SELECT a.N + b.N * 10 + c.N * 100 AS n
+		  FROM
+		  (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+		   UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) AS a
+		  CROSS JOIN
+		  (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+		   UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) AS b
+		  CROSS JOIN
+		  (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+		   UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) AS c
+		) numbers
+		<where>
+			DATE_ADD(
+				<choose>
+					<when test="startDate != null">
+						#{startDate}
+					</when>
+					<otherwise>
+						DATE_FORMAT(NOW() - INTERVAL WEEKDAY(NOW()) DAY, '%Y-%m-%d')
+					</otherwise>
+				</choose>
+			, INTERVAL n DAY)
+				<![CDATA[<=]]>
+			<choose>
+				<when test="startDate != null">
+					#{endDate}
+				</when>
+				<otherwise>
+					DATE_FORMAT(NOW() + INTERVAL (6 - WEEKDAY(NOW())) DAY, '%Y-%m-%d')
+				</otherwise>
+			</choose>
+		</where>
+		order by field asc
+
+		<!--select
+		DATE_FORMAT( a.arrival_time, '%Y-%m-%d' ) as field,
+		DATE_FORMAT( a.arrival_time, '%m月%d日' ) as label
+		FROM
+		jml_sales_report a
+		left join
+		jml_staff cs on a.created_staff_id = cs.id
+		<where>
+			<include refid="common.auth"/>
+			<if test="multiFiled != null and multiFiled != ''">
+				and cs.name = #{multiFiled}
+			</if>
+			<if test="isAccReport != null and isAccReport != ''">
+				and (a.account_id is not null or a.account_id !='')
+			</if>
+			<choose>
+				<when test="startDate != null and endDate != null">
+					and
+					DATE_FORMAT(a.arrival_time,'%Y-%m-%d')
+					between
+					#{startDate}
+					and
+					#{endDate}
+				</when>
+				<otherwise>
+					and
+					DATE_FORMAT(a.arrival_time,'%Y-%m-%d')
+					between
+					DATE_FORMAT(NOW() - INTERVAL WEEKDAY(NOW()) DAY, '%Y-%m-%d')
+					and
+					DATE_FORMAT(NOW() + INTERVAL (6 - WEEKDAY(NOW())) DAY, '%Y-%m-%d')
+				</otherwise>
+			</choose>
+		</where>
+		GROUP BY
+		a.arrival_time-->
+
+	</select>
+	<!--经理报表：获取数据-->
+	<select id="queryGmReportByDay" parameterType="map">
+		SELECT
+			cs.NAME AS staffName,
+			cs.id as staffId,
+		<if test = 'isAccReport== "1" or isAccReport== "2"'>
+			<foreach collection="dayList" separator="," item="i" index="index">
+				IFNULL(count( CASE WHEN DATE_FORMAT( a.arrival_time, '%Y-%m-%d' ) = #{i.arrival_time} THEN a.id END ), 0 ) AS #{i.arrival_time}
+			</foreach>
+		</if>
+		<if test = 'isAccReport== "3"'>
+			<foreach collection="dayList" separator="," item="i" index="index">
+				IFNULL(count( CASE WHEN DATE_FORMAT( a.checkin_time, '%Y-%m-%d' ) = #{i.arrival_time} THEN a.id END ), 0 ) AS #{i.arrival_time}
+			</foreach>
+		</if>
+		FROM
+			jml_sales_report a
+			LEFT JOIN jml_staff cs ON a.created_staff_id = cs.id
+		<where>
+			<include refid="common.auth"/>
+			<if test="multiFiled != null and multiFiled != ''">
+				and cs.name like '%${multiFiled}%'
+			</if>
+			<!--1：全部报告-->
+			<if test = 'isAccReport== "1"'>
+				and  a.submit_status = '1'
+				<choose>
+					<when test="startDate != null and endDate != null">
+						and
+						DATE_FORMAT(a.arrival_time,'%Y-%m-%d')
+						between
+						#{startDate}
+						and
+						#{endDate}
+					</when>
+					<otherwise>
+						and
+						DATE_FORMAT(a.arrival_time,'%Y-%m-%d')
+						between
+						DATE_FORMAT(NOW() - INTERVAL WEEKDAY(NOW()) DAY, '%Y-%m-%d')
+						and
+						DATE_FORMAT(NOW() + INTERVAL (6 - WEEKDAY(NOW())) DAY, '%Y-%m-%d')
+					</otherwise>
+				</choose>
+			</if>
+			<!--2：客户报告-->
+			<if test = 'isAccReport== "2"'>
+				and (a.account_id is not null or a.account_id !='') and  a.submit_status = '1'
+				<choose>
+					<when test="startDate != null and endDate != null">
+						and
+						DATE_FORMAT(a.arrival_time,'%Y-%m-%d')
+						between
+						#{startDate}
+						and
+						#{endDate}
+					</when>
+					<otherwise>
+						and
+						DATE_FORMAT(a.arrival_time,'%Y-%m-%d')
+						between
+						DATE_FORMAT(NOW() - INTERVAL WEEKDAY(NOW()) DAY, '%Y-%m-%d')
+						and
+						DATE_FORMAT(NOW() + INTERVAL (6 - WEEKDAY(NOW())) DAY, '%Y-%m-%d')
+					</otherwise>
+				</choose>
+			</if>
+			<!--3：签到报告-->
+			<if test = 'isAccReport== "3"'>
+				and a.checkin_time IS NOT NULL
+				<choose>
+					<when test="startDate != null and endDate != null">
+						and
+						DATE_FORMAT(a.checkin_time,'%Y-%m-%d')
+						between
+						#{startDate}
+						and
+						#{endDate}
+					</when>
+					<otherwise>
+						and
+						DATE_FORMAT(a.checkin_time,'%Y-%m-%d')
+						between
+						DATE_FORMAT(NOW() - INTERVAL WEEKDAY(NOW()) DAY, '%Y-%m-%d')
+						and
+						DATE_FORMAT(NOW() + INTERVAL (6 - WEEKDAY(NOW())) DAY, '%Y-%m-%d')
+					</otherwise>
+				</choose>
+			</if>
+
+		</where>
+		GROUP BY
+			a.created_staff_id
+	</select>
+	<!--提交报销时，在更新对应的同步状态-->
+	<update id="updateSyncByReimSbt" parameterType="map">
+		update
+			jml_sales_report
+		set
+			sync_status = '1'
+		where
+			reimbursement_id = #{reimId}
+	</update>
+
+
+</sqlGroup>

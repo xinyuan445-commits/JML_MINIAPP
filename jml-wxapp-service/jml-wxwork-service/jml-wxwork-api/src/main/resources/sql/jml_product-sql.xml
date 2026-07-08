@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 产品管理SQL -->
+<sqlGroup namespace="product">
+	<!--分页查询产品-->
+	<select id="queryPageBy" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.`code`,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time
+		<pageTag/>
+		from
+			jml_product a
+		<where>
+			<if test="projectId != null and projectId != ''">
+				 a.project_id = #{projectId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取市场活动明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.`code`,
+			a.stock_name,
+			a.category,
+			a.spec,
+			a.unit,
+			a.unit_price,
+			a.self_dev,
+			date_format(a.factory_delivery_date,'%Y-%m-%d') as factory_delivery_date,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			date_format(a.update_time,'%Y-%m-%d %H:%i:%s') as update_time
+		from
+			jml_product a
+		left join
+			jml_project b on a.project_id = b.id
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+	<!--根据员工信息获取活动列表信息-->
+	<select id="queryList" parameterType="map">
+		select
+			id,
+			name,
+			unit_price
+		from
+			jml_product
+		<where>
+			enable = '1'
+		</where>
+	</select>
+</sqlGroup>

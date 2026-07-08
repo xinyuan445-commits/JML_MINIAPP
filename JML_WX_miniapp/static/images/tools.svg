@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#89A2B0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- 扳手 -->
+    <path d="M26 14a8 8 0 0 0 9 9l-9 9-6-6 6-6a8 8 0 0 1 0-6z"/>
+    <circle cx="17" cy="35" r="3"/>
+    <path d="M18.8 36.8L12 43.6M15 46.5l-3.5 3.5"/>
+
+    <!-- 小齿轮 -->
+    <circle cx="44" cy="22" r="6"/>
+    <path d="M44 14v3M44 27v3M38 22h-3M53 22h-3M39.8 17.8l-2.1-2.1M50.3 28.3l-2.1-2.1M39.8 26.2l-2.1 2.1M50.3 15.7l-2.1 2.1"/>
+
+    <!-- 螺丝刀柄与杆 -->
+    <path d="M30 44l10-10 4 4-10 10"/>
+    <path d="M28 46l-4 4"/>
+  </g>
+</svg>

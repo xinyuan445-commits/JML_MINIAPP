@@ -1,0 +1,37 @@
+/* 背景与 Edit 一致 */
+.page{ background:#f6f7fb; min-height:100vh; }
+
+/* 顶部条 — 简洁胶囊、柔光阴影 */
+.toolbar{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:16rpx; background:#fff; box-shadow:0 8rpx 24rpx rgba(16,24,40,.06);
+}
+.dates{ display:flex; align-items:center; gap:12rpx; }
+.chip{
+  background:#eef2f7; padding:10rpx 18rpx; border-radius:999rpx;
+  min-width:240rpx; text-align:center; color:#111827; font-weight:600;
+}
+.dash{ color:#98a2b3; }
+.create{ border-radius:999rpx; padding:0 22rpx; }
+
+/* 列表卡片 — 与 Edit 卡片同风格 */
+.list{ padding:16rpx; height:calc(100vh - 100rpx); box-sizing:border-box; }
+.card{
+  background:#fff; border-radius:16rpx; padding:20rpx;
+  box-shadow:0 8rpx 24rpx rgba(16,24,40,.06);
+  margin-bottom:16rpx;
+}
+.top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10rpx; }
+.doc{ font-weight:800; color:#101828; font-size:30rpx; }
+
+.badge{ padding:4rpx 12rpx; border-radius:999rpx; font-size:22rpx; font-weight:600; }
+.badge.on{ background:#ecfdf3; color:#027a48; }   /* 开机 */
+.badge.off{ background:#fef3f2; color:#b42318; }  /* 关机 */
+
+.row{ display:flex; justify-content:space-between; align-items:center; margin-top:10rpx; }
+.label{ color:#667085; }
+.val{ color:#344054; max-width:70%; text-align:right; }
+.strong{ font-weight:600; }
+.remark{ color:#475467; }
+
+.empty{ text-align:center; color:#98a2b3; padding:40rpx 0; }

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 压贴线-生产工艺单SQL -->
+<sqlGroup namespace="pressLineProduction">
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id,
+            a.name AS name,
+            date_format( a.date, '%Y-%m-%d' ) as date,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            a.work_no AS workNo,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName
+        <pageTag/>
+        from
+            jml_press_line_production a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+        <where>
+            <include refid="common-fact.auth"/>
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%' or a.work_no like '%${multiFiled}%')
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+        </where>
+        order by a.update_time desc
+    </select>
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id,
+            a.name AS name,
+            date_format( a.date, '%Y-%m-%d' ) as date,
+            a.start_time AS startTime,
+            a.end_time AS endTime,
+            a.work_no AS workNo,
+            a.remark AS remark,
+            a.update_staff_id AS updateStaffId,
+            a.created_staff_id AS createdStaffId,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName
+        FROM
+            jml_press_line_production  a
+        left join
+            jml_staff cs on a.created_staff_id = cs.id
+        left join
+            jml_staff us ON a.update_staff_id = us.id
+        WHERE
+            a.id = #{id};
+    </select>
+
+
+</sqlGroup>

@@ -1,0 +1,42 @@
+<view class="tools-page">
+  <view class="head">小工具</view>
+  <view class="subhead">常用工具快捷入口</view>
+
+  <!-- <view class="tool-grid">
+    <block wx:for="{{tools}}" wx:key="name">
+      <view class="tool-card" bindtap="goTool" data-name="{{item.name}}">
+        <text class="emoji">{{item.emoji}}</text>
+        <view class="title">{{item.name}}</view>
+        <text class="arrow">›</text>
+      </view>
+    </block>
+  </view> -->
+
+  <view class="tool-grid">
+  <block wx:for="{{tools}}" wx:key="name">
+    <view class="tool-card" bindtap="goTool" data-name="{{item.name}}">
+      <image class="icon" src="{{item.emoji}}" mode="aspectFit" />
+      <view class="title">{{item.name}}</view>
+      <text class="arrow">›</text>
+    </view>
+  </block>
+</view>
+
+
+  <!-- 批次号转换弹层 -->
+  <view wx:if="{{showBatchDialog}}" class="overlay" catchtouchmove="preventTouchMove">
+    <view class="dialog">
+      <view class="dialog-title">批次号转换</view>
+      <input class="dialog-input" placeholder="请输入批次号" value="{{batchInput}}" bindinput="onBatchInput" />
+      <button class="btn primary" size="mini" bindtap="doConvert">转换</button>
+
+      <view class="result" wx:if="{{batchOutput}}">
+        <text class="result-label">转换结果</text>
+        <text class="result-text">{{batchOutput}}</text>
+        <button class="btn ghost" size="mini" bindtap="copyBatch">复制结果</button>
+      </view>
+
+      <button class="btn" size="mini" bindtap="closeBatch">关闭</button>
+    </view>
+  </view>
+</view>

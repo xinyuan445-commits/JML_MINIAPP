@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 设备维修SQL -->
+<sqlGroup namespace="deviceRepairByCore">
+    <!--查询创建大于15分钟内，且未接受的数据-->
+    <select id="queryCreate15Min" parameterType="map">
+        select
+            a.id
+        from
+            jml_device_repair a
+        where
+            a.repair_accepted = '0'
+        and
+            sbe_auto_accepted = '0'
+        and
+            created_time <![CDATA[ < ]]> DATE_SUB( NOW( ), INTERVAL 15 MINUTE )
+    </select>
+
+     <!-- 查询详情 -->
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            a.job_type AS jobType,
+            a.prod_line_or_dept AS prodLineOrDept,
+            a.device_id AS deviceId,
+            a.repair_status AS repairStatus,
+            a.location AS location,
+            a.fault_desc AS faultDesc,
+            CONCAT_WS( ";", a.damage_img1, a.damage_img2, a.damage_img3) AS damageImg,
+            a.impact_level AS impactLevel,
+            a.repairer_staff_id AS repairerStaffId,
+            a.repairer_status AS repairerStatus,
+            a.assign_remark AS assignRemark,
+            DATE_FORMAT(a.assign_time, '%Y-%m-%d %H:%i:%s') AS assignTime,
+            a.repair_content AS repairContent,
+            a.replace_part AS replacePart,
+            a.part_name AS partName,
+            a.part_model AS partModel,
+            a.part_qty AS partQty,
+            CONCAT_WS( ";", a.part_img_1, a.part_img_2) AS partImg,
+            a.solution AS solution,
+            a.fault_analysis AS faultAnalysis,
+            a.prevention_method AS preventionMethod,
+            CONCAT_WS( ";", a.completion_img1, a.completion_img2, a.completion_img3) AS completionImg,
+            a.completion_staff_id AS completionStaffId,
+            DATE_FORMAT(a.completion_time, '%Y-%m-%d %H:%i:%s') AS completionTime,
+            a.completion_remark AS completionRemark,
+            a.cancel_reason AS cancelReason,
+            a.cancel_staff_id AS cancelStaffId,
+            DATE_FORMAT(a.cancel_time, '%Y-%m-%d %H:%i:%s') AS cancelTime,
+            a.repair_confirmed AS repairConfirmed,
+            a.repair_feedback AS repairFeedback,
+            a.service_rating AS serviceRating,
+            a.remark AS remark,
+            a.update_staff_id AS updateStaffId,
+            a.created_staff_id AS createdStaffId,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.name AS createdStaffName,
+            us.name AS updateStaffName,
+            cans.name AS cancelStaffName,
+            coms.name AS completionStaffName,
+            reps.name AS repairerStaffName,
+            dv.name AS deviceName,
+            a.repair_accepted AS repairAccepted
+        FROM
+            jml_device_repair a
+        left join
+            jml_staff cs on a.created_staff_id = cs.id
+        left join
+            jml_staff us ON a.update_staff_id = us.id
+        left join
+            jml_staff cans ON a.cancel_staff_id = cans.id
+        left join
+            jml_staff coms ON a.completion_staff_id = coms.id
+        left join
+            jml_staff reps ON a.repairer_staff_id = reps.id
+        left join
+            jml_device dv ON a.device_id = dv.id
+        WHERE
+            a.id = #{id}
+    </select>
+
+</sqlGroup>

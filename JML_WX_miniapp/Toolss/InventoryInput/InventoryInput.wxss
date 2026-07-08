@@ -1,0 +1,251 @@
+.inv-page {
+  min-height: 100vh;
+  background: #f6f7fb;
+  padding: 28rpx 26rpx 40rpx;
+  box-sizing: border-box;
+}
+.head {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 22rpx;
+}
+.form-card {
+  background: #fff;
+  border-radius: 16rpx;
+  border: 1rpx solid #e9edf2;
+  box-shadow: 0 6rpx 18rpx rgba(9, 30, 66, 0.06);
+  padding: 18rpx 20rpx;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 6rpx;
+  border-bottom: 1rpx solid #f1f3f6;
+}
+
+.form-row:last-child {
+  border-bottom: none;
+}
+.label {
+  width: 180rpx;
+  color: #44546a;
+  font-size: 30rpx;
+}
+.ipt {
+  flex: 1;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 16rpx;
+  font-size: 30rpx;
+  background: #fafbfc;
+  border-radius: 10rpx;
+}
+.ipt-row {
+  display: flex;
+  gap: 12rpx;
+  flex: 1;
+}
+.mini-btn {
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0 20rpx;
+  border: none;
+  color: #000; 
+}
+.mini-btn::after { border: none; }
+
+.btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 26rpx;
+}
+.btn {
+  flex: 1;
+  height: 88rpx;
+  font-size: 32rpx;
+  border-radius: 12rpx;
+
+  display: flex;            /* 开启 flex */
+  align-items: center;      /* 垂直居中 */
+  justify-content: center;  /* 水平居中 */
+}
+
+.reset {
+  background: #e9eef5;
+  color: #223;
+  border: none;
+}
+.reset::after { border: none; }
+
+.submit {
+  background: #51bd70;
+  color: #fff;
+  border: none;
+}
+.submit::after { border: none; }
+
+
+/* ===== 选择器弹层 ===== */
+.picker-mask {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 9999;
+}
+.picker-panel {
+  width: 100%;
+  background: #fff;
+  border-radius: 16rpx 16rpx 0 0;
+  box-shadow: 0 -6rpx 18rpx rgba(0,0,0,.08);
+}
+.picker-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20rpx 28rpx;
+  border-bottom: 1rpx solid #f0f2f5;
+  font-size: 28rpx; color: #333;
+}
+.picker-close { color: #2962ff; }
+.picker-body {
+  max-height: 60vh;
+}
+.picker-item {
+  display: flex; gap: 12rpx;
+  padding: 18rpx 28rpx;
+  border-bottom: 1rpx solid #f6f6f6;
+}
+.picker-item:active { background: #f7f9fc; }
+.picker-item .code { width: 340rpx; font-weight: 600; color: #222; }
+.picker-item .name { flex: 1; color: #506176; }
+.picker-empty, .picker-loading {
+  text-align: center; padding: 24rpx; color: #76808f;
+}
+.picker-foot {
+  padding: 18rpx 28rpx 28rpx;
+  display: flex; justify-content: center;
+}
+.btn-ghost {
+  border: 1rpx solid #dde3ea; background: #fff; color: #203040;
+}
+.btn-ghost::after { border: none; }
+
+/* 禁止穿透滚动 */
+.picker-mask, .picker-panel { overscroll-behavior: contain; }
+
+
+/* 区块与空态 */
+.stock-box { margin-top: 24rpx; }
+.stock-title { font-size: 28rpx; font-weight: 600; color: #111; margin-bottom: 12rpx; }
+.stock-empty { padding: 28rpx; text-align: center; color: #888; font-size: 26rpx; }
+
+/* 表格容器 */
+.table { border: 1rpx solid #e5e5e5; border-radius: 16rpx; overflow: hidden; background: #fff; }
+
+/* 四列固定：仓库/货位/数量/公司 */
+.thead,
+.tr {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr; /* 四列等分 */
+  align-items: center;                     /* 垂直居中 */
+}
+
+.thead {
+  padding: 12rpx 20rpx;
+  background: #f6f7f9;
+  border-bottom: 1rpx solid #eee;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #555;
+}
+/* 可选的列对齐：数量右对齐，其它左/居中随你 */
+.th, .td { text-align: center; }  /* 如果想全部居中 */
+
+.td.company { padding-left: 0; }          /* 去掉之前给公司列的左内边距 */
+
+.tbody { height: 420rpx; display: block; }
+
+.tr {
+  padding: 12rpx 20rpx;
+  font-size: 26rpx;
+  color: #222;
+  border-bottom: 1rpx solid #f3f3f3;
+}
+.tr:last-child { border-bottom: none; }
+.zebra { background: #fafafa; }
+
+.td { align-self: center; }        /* 单元格垂直居中 */
+.td.qty { font-weight: 700; }
+.td.company {
+  text-align: left;
+  padding-left: 12rpx;             /* 数量和公司列间距 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 20rpx 0;
+}
+
+/* 卡片样式 */
+.card {
+  background: #fff;
+  padding: 28rpx;
+  border-radius: 16rpx;
+  margin-bottom: 26rpx;
+  box-shadow: 0 6rpx 20rpx rgba(0,0,0,0.06);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.invcode {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.qty-badge {
+  background: #007aff;
+  color: #fff;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.divider {
+  height: 1rpx;
+  background: #e9e9e9;
+  margin: 12rpx 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 28rpx;
+  margin-bottom: 8rpx;
+}
+
+.label2 {
+  color: #666;
+}
+
+.value {
+  color: #333;
+}
+
+/* 整个历史区域与输入区域分隔 */
+.history-container {
+  margin-top: 40rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 固定滚动区域高度（可根据页面高度调整） */
+.history-scroll {
+  height: 50vh;     /* 屏幕的一半高度，可自行调整 */
+  overflow: hidden;
+}
+

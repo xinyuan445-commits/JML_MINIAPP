@@ -1,0 +1,10 @@
+{
+  "component": true,
+  "usingComponents": {
+    "zxz-uni-data-select": "../uni_modules/zxz-uni-data-select/components/zxz-uni-data-select/zxz-uni-data-select",
+    "u-form-item": "../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u-upload": "../node-modules/uview-plus/components/u-upload/u-upload",
+    "u--form": "../node-modules/uview-plus/components/u-form/u-form",
+    "u-modal": "../node-modules/uview-plus/components/u-modal/u-modal"
+  }
+}

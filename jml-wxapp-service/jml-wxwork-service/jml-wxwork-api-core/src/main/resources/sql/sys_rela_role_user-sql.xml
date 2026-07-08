@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 权限管理的SQL -->
+<sqlGroup namespace="sysAuth">
+	<!--根据角色ID删除授权信息-->
+	<delete id="delByRoleId" parameterType="string">
+		delete from sys_rela_role_auth where roleId = #{value}
+	</delete>
+
+	<!--批量新增的SQL-->
+	<update id="batchAddSQL">
+		insert into sys_rela_role_auth(id,roleId,authType,authId)values(?,?,?,?)
+	</update>
+
+	<!--根据角色查询已赋于权限-->
+	<select id="getAuthByRoleId" parameterType="string">
+		select * from sys_rela_role_auth where roleId = #{value}
+	</select>
+
+	<!--根据角色查询已赋于权限-->
+	<select id="query4RoleAuth" parameterType="string">
+		select
+			a.id,
+			a.roleId,
+			a.authType,
+			(case authType when '1' then concat('m_',a.authId) when '2' then concat('f_',a.authId) else a.authId end) authId
+		from sys_rela_role_auth a
+		where a.roleId = #{value}
+	</select>
+</sqlGroup>

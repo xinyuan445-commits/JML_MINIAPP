@@ -1,0 +1,142 @@
+.container {
+  padding: 22rpx;
+  padding-bottom: 100rpx;
+  background: #f6f7fb;
+  min-height: 100vh;
+}
+
+.tabs {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 18rpx;
+}
+.tab {
+  padding: 14rpx 22rpx;
+  border-radius: 999rpx;
+  background: #ffffff;
+  border: 1rpx solid #e9edf2;
+  color: #42526e;
+  font-size: 28rpx;
+}
+.tab.active {
+  background: #2251ff;
+  border-color: #2251ff;
+  color: #fff;
+  font-weight: 700;
+}
+.item {
+  background: #fff;
+  padding: 22rpx 22rpx 16rpx;
+  margin-bottom: 22rpx;
+  border-radius: 16rpx;
+  border: 1rpx solid #e9edf2;
+  box-shadow: 0 8rpx 24rpx rgba(9, 30, 66, 0.06);
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 18rpx;
+}
+.head-left {
+  flex: 1;
+  min-width: 0;
+}
+.order-no {
+  display: block;
+  font-weight: 800;
+  font-size: 32rpx;
+  color: #111;
+  line-height: 40rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: #6b778c;
+  line-height: 34rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status {
+  display: inline-block;
+  margin-top: 10rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  background: #f1f5ff;
+  color: #2251ff;
+  font-size: 24rpx;
+  font-weight: 700;
+  max-width: 420rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qty-pill {
+  padding: 10rpx 18rpx;
+  background: #1aa251;
+  border-radius: 999rpx;
+  box-shadow: 0 8rpx 18rpx rgba(26, 162, 81, 0.22);
+  margin-left: 16rpx;
+}
+.qty-num {
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #fff;
+  line-height: 36rpx;
+}
+
+.kv {
+  display: flex;
+  align-items: baseline;
+  gap: 14rpx;
+  padding: 12rpx 0;
+  border-top: 1rpx dashed #eef2f6;
+}
+.k {
+  width: 150rpx;
+  font-size: 26rpx;
+  color: #6b778c;
+  flex: 0 0 auto;
+}
+.v {
+  flex: 1;
+  min-width: 0;
+  font-size: 28rpx;
+  color: #172b4d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v-reason {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 60rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: #007aff;
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 100rpx;
+  font-size: 60rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0,122,255,0.4);
+}
+.empty {
+  text-align: center;
+  color: #999;
+  margin-top: 100rpx;
+}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- wxwork_dept 的相关SQL -->
+<sqlGroup namespace="wxwork_dept">
+    <!--查询全部-->
+    <select id="queryAll" parameterType="map">
+        SELECT
+            id,
+            name,
+            parentid,
+            `order`
+        FROM
+            wxwork_dept
+    </select>
+
+    <!--批量插入-->
+    <update id="batchInsert" parameterType="map">
+        INSERT INTO wxwork_dept (
+            id,
+            name,
+            parentid,
+            `order`
+        )
+        VALUES(
+            ?,
+            ?,
+            ?,
+            ?
+        )
+    </update>
+
+    <!--批量更新-->
+    <update id="batchUpdate" parameterType="map">
+        UPDATE
+            wxwork_dept
+        SET
+            name = #{name},
+            parentid = #{parentid},
+            `order` = #{order}
+        WHERE
+            id = #{id}
+    </update>
+</sqlGroup>

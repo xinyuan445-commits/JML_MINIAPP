@@ -1,0 +1,15 @@
+{
+  "navigationBarTitleText": "用电量登记表",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "uni-data-picker": "../../../uni_modules/uni-data-picker/components/uni-data-picker/uni-data-picker",
+    "u-form-item": "../../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u--input": "../../../node-modules/uview-plus/components/u-input/u-input",
+    "u-upload": "../../../node-modules/uview-plus/components/u-upload/u-upload",
+    "u--textarea": "../../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u--form": "../../../node-modules/uview-plus/components/u-form/u-form",
+    "u-datetime-picker": "../../../node-modules/uview-plus/components/u-datetime-picker/u-datetime-picker",
+    "floating-window": "../../../components/FloatingWindow",
+    "footer-btn": "../../../components/FooterBtn"
+  }
+}

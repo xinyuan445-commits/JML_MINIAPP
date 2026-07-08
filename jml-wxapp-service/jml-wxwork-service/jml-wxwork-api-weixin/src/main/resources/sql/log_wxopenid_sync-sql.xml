@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- log_wxopenid_sync 的SQL -->
+<sqlGroup namespace="log_wxopenid_sync">
+    <!--根据微信ID删除同步信息-->
+    <delete id="delByWechatId" parameterType="map">
+        delete from log_wxopenid_sync where wxappid = #{wxappid}
+    </delete>
+
+    <!--更新状态-->
+    <update id="updateStatus" parameterType="map">
+      update
+            log_wxopenid_sync a
+        join wx_member b on a.openid = b.openid
+        set
+            a.status = '1'
+        where
+            a.status ='0'
+    </update>
+
+    <!--查询未同步明细的数据-->
+    <select id="queryNoSyncDetailData" parameterType="map">
+        select
+            a.id,
+            a.wxappid ,
+            a.openid
+        from
+            log_wxopenid_sync a
+        where
+            a.status = '0'
+        limit 0,100
+    </select>
+
+    <!--查询最新的openId-->
+    <select id="queryLastest" parameterType="map">
+        select
+            a.id ,
+            a.wxappid ,
+            a.openid
+        from
+            log_wxopenid_sync a
+        where
+            a.id =(
+                select
+                    max(aa.id)
+                from
+                    log_wxopenid_sync aa
+            )
+    </select>
+</sqlGroup>

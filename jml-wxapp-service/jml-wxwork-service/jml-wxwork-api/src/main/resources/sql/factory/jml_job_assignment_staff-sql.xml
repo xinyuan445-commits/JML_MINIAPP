@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 岗位分工员工SQL -->
+<sqlGroup namespace="jobAssignmentStaff">
+    <!--获取分配员工列表-->
+    <select id="queryAssignStaffList" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.job_assignment_id AS jobAssignmentId,
+            a.assigned_engineer_staff_id AS assignedStaffId,
+            b.`name` AS staffName,
+            a.completion_status AS completionStatus,
+            a.completion_location AS completionLocation,
+            a.completion_longitude AS completionLongitude,
+            a.completion_latitude AS completionLatitude,
+            a.work_content AS workContent,
+            a.work_hours AS workHours,
+            a.work_qty AS workQty,
+            a.completion_remark AS completionRemark,
+            CONCAT_WS(";", a.completion_img1, a.completion_img2, a.completion_img3,a.completion_img4,a.completion_img5) AS completionImg,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as updateTime,
+            date_format( a.completion_time, '%Y-%m-%d %H:%i:%s' ) as completionTime,
+            date_format( a.confirmation_time, '%Y-%m-%d %H:%i:%s' ) as confirmationTime,
+            a.actual_completed_qty AS actualCompletedQty,
+            a.overtime_hours AS overtimeHours,
+            a.actual_work_hours AS actualWorkHours,
+            a.confirmation_remark AS confirmationRemark,
+            co.`name` AS confirmationStaffName,
+            a.start_time AS startTime,
+            a.end_time AS endTime
+        FROM
+            jml_job_assignment_staff a
+        LEFT JOIN
+            jml_staff b ON a.assigned_engineer_staff_id = b.id
+        LEFT JOIN
+            jml_staff co ON a.confirmation_staff_id = co.id
+        WHERE
+            a.job_assignment_id = #{jobAssignmentId}
+    </select>
+    <!--完成状态统计-->
+    <select id="cntUnCompletion" parameterType="map">
+        select
+          count( a.id ) as cnt
+        from
+          jml_job_assignment_staff a
+        where
+          a.job_assignment_id = #{jobAssignmentId}
+          and completion_status = '未完成'
+    </select>
+
+    <!--确认状态统计-->
+    <select id="cntUnConfirmation" parameterType="map">
+       SELECT
+            GREATEST(
+                (SELECT COUNT(*) FROM jml_job_assignment_staff
+                 WHERE job_assignment_id = #{jobAssignmentId}) -
+                (SELECT COUNT(*) FROM jml_job_assignment_staff
+                 WHERE job_assignment_id = #{jobAssignmentId}
+                 AND completion_status = '已确认'),
+                0
+            ) AS cnt
+    </select>
+
+
+    <!--汇总已完成工作数量-->
+    <select id="sumCompletedWorkQty" parameterType="map">
+        select
+          COALESCE(SUM(a.work_qty), 0) AS sumQty
+        from
+          jml_job_assignment_staff a
+        where
+          a.job_assignment_id = #{jobAssignmentId}
+          and (a.completion_status = '已完成' or a.completion_status = '已确认')
+    </select>
+
+    <!--汇总已完成工作时长-->
+    <select id="sumCompletedWorkHours" parameterType="map">
+        select
+            COALESCE(SUM(a.work_hours), 0) AS sumHours
+        from
+          jml_job_assignment_staff a
+        where
+          a.job_assignment_id = #{jobAssignmentId}
+        and (a.completion_status = '已完成' or a.completion_status = '已确认')
+    </select>
+</sqlGroup>

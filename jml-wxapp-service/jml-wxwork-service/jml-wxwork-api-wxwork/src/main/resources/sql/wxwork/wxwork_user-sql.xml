@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- wxwork_user 的相关SQL -->
+<sqlGroup namespace="wxwork_user">
+    <!--查询所有用户信息-->
+    <select id="queryAll" parameterType="map">
+        SELECT
+            a.userid,
+            a.name
+        FROM
+            wxwork_user a
+    </select>
+
+    <!--根据部门ID查询用户列表-->
+    <select id="queryByDeptId" parameterType="map">
+        SELECT
+            a.userid,
+            a.name,
+            a.create_time,
+            a.update_time
+        FROM
+            wxwork_user a
+        left join wxwrk_rela_user_dept b on a.userid = b.userid
+        where
+            b.deptid =#{deptId}
+    </select>
+
+    <!--批量插入-->
+    <update id="batchInsert" parameterType="map">
+        INSERT INTO wxwork_user (
+            userid,
+            name,
+            mobile,
+            `position`,
+            gender,
+            email,
+            avatar,
+            thumb_avatar,
+            telephone,
+            alias,
+            address,
+            open_userid,
+            main_department
+        )
+        VALUES(
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+    </update>
+
+    <!--批量更新-->
+    <update id="batchUpdate" parameterType="map">
+        UPDATE
+            wxwork_user
+        SET
+            name = #{name}
+        WHERE
+            userid = #{userid}
+    </update>
+
+    <!--根据部门ID删除用户信息-->
+    <delete id="delByDeptId" parameterType="map">
+        delete from wxwork_user
+        where
+            EXISTS (select * from wxwork_rela_user_dept where wxwork_rela_user_dept.userid=wxwork_user.userid and deptid=#{deptId})
+    </delete>
+</sqlGroup>

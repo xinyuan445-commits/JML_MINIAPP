@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- wxwork_customer 的相关SQL -->
+<sqlGroup namespace="wxwork_customer">
+
+    <!--根据客户ID-->
+    <select id="queryByCustId" parameterType="map">
+        SELECT
+            id,
+            external_userid,
+            name,
+            `type`,
+            gender,
+            unionid,
+            `position`,
+            update_time,
+            avatar
+        FROM
+            wxwork_customer a
+        WHERE
+            a.external_userid = #{custId}
+    </select>
+
+
+</sqlGroup>

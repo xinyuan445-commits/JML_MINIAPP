@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 机构管理的SQL -->
+<sqlGroup namespace="sys_org">
+	<!--查询机构信息，支持分页查询和不分页查询-->
+	<select id="query" parameterType="map">
+		select
+			a.*,
+			b.dname as ctypeName,
+			c.rname as provinceName,
+			d.rname as cityName,
+			e.rname as areaName,
+			concat(c.rname,d.rname,e.rname) as locals,
+			f.cname as parentName
+		<pageTag/>
+		from
+			sys_org a
+		left join sys_dict b on b.dval=a.ctype and b.tcode='ORG_TYPE'
+		left join sys_region c on c.code=a.province
+		left join sys_region d on d.code=a.city
+		left join sys_region e on e.code=a.area
+		left join sys_org f on f.id=a.pid
+		<where>
+			<if test="pid != null">
+				find_in_set(a.pid,getOrgChildLst(#{pid}))
+			</if>
+			<if test="id != null and id > 0">
+				and a.id = #{id}
+			</if>
+			<if test="cname != null and cname != ''">
+				and a.cname like '%${cname}%'
+			</if>
+			<if test="ccode != null and ccode != ''">
+				and a.ccode like '%${ccode}%'
+			</if>
+			<if test="ctype != null and ctype != ''">
+				and a.ctype = #{ctype}
+			</if>
+			<if test="province != null and province != ''">
+				and a.province = #{province}
+			</if>
+			<if test="city != null and city != ''">
+				and a.city = #{city}
+			</if>
+			<if test="area != null and area != ''">
+				and a.area = #{area}
+			</if>
+		</where>
+		order by a.createTime desc,a.updateTime desc
+	</select>
+
+	<!--查询机构下是否存在子级机构-->
+	<select id="queryHasChildOrg" parameterType="map">
+		select count(1) as cnt from sys_org a where find_in_set(a.pid,getOrgChildLst(#{id}))
+	</select>
+</sqlGroup>

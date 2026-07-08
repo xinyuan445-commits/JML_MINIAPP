@@ -1,0 +1,1 @@
+<view class="{{['footer', virtualHostClass]}}" style="{{virtualHostStyle}}"><view class="footer_btn" style="{{g}}"><view wx:if="{{a}}" bindtap="{{c}}" class="cancel_btn btn">{{b}}</view><view wx:if="{{d}}" bindtap="{{f}}" class="confirm_btn btn">{{e}}</view><slot></slot></view><view wx:if="{{h}}" class="footer_tip">{{i}}</view></view>

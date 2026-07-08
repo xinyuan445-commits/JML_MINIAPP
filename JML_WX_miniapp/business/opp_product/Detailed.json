@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "业务机会产品详情",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-divider": "../../node-modules/uview-plus/components/u-divider/u-divider",
+    "floating-window": "../../components/FloatingWindow",
+    "footer-btn": "../../components/FooterBtn",
+    "related-list": "../../components/RelatedList"
+  }
+}

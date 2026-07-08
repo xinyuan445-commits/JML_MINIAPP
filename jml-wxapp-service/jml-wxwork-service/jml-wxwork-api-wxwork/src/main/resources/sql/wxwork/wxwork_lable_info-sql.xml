@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- wxwork_lable_info 的相关SQL -->
+<sqlGroup namespace="wxwork_lable_info">
+    <!--查询全部标签-->
+    <select id="queryAllTag" parameterType="map">
+        SELECT
+            id,
+            tag_id,
+            tag_name,
+            group_id,
+            group_name,
+            group_order,
+            group_create_time,
+            create_time,
+            tag_order
+        FROM
+            wxwork_lable_info
+    </select>
+
+    <!--批量插入标签数据-->
+    <update id="batchInsert" parameterType="map">
+        INSERT INTO wxwork_lable_info (
+            tag_id,
+            tag_name,
+            group_id,
+            group_name,
+            group_order,
+            tag_order
+        )
+        VALUES(
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+    </update>
+
+    <!--批量更新标签数据-->
+    <update id="batchUpdate" parameterType="map">
+        SET
+            tag_id = #{tag_id},
+            tag_name = #{tag_name},
+            group_id = #{group_id},
+            group_name = #{group_name},
+            group_order = #{group_order},
+            tag_order = #{tag_order}
+        WHERE
+            id = #{id}
+    </update>
+</sqlGroup>

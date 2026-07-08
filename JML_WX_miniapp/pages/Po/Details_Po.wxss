@@ -1,0 +1,242 @@
+.po-detail {
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 头部卡片 */
+.header-section {
+  background: #fff;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  border-radius: 0 0 24rpx 24rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.03);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.code {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 28rpx;
+}
+
+.label {
+  color: #999;
+}
+
+.value {
+  color: #333;
+}
+
+.value.supplier {
+  font-weight: 500;
+  max-width: 70%;
+  text-align: right;
+}
+
+/* 分割线 */
+.divider {
+  height: 1rpx;
+  background: #f0f0f0;
+  margin: 24rpx 0;
+}
+
+/* 扩展信息网格 */
+.extra-info-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+}
+
+.extra-item {
+  width: calc(50% - 12rpx); /* 两列布局 */
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.extra-item.full-width {
+  width: 100%;
+}
+
+.extra-item .label {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.extra-item .value {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.value.remark {
+  line-height: 1.5;
+  color: #666;
+}
+
+/* 明细列表 */
+.detail-section {
+  background: #fff;
+  padding: 24rpx 0;
+  margin: 0 24rpx 24rpx; /* 左右留白 */
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.02);
+}
+
+.section-title {
+  padding: 0 24rpx 20rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+  border-bottom: 1rpx solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+/* 人员信息 */
+.meta-section {
+  background: #fff;
+  padding: 24rpx 32rpx;
+  margin: 0 24rpx 160rpx; /* 底部留出按钮空间 */
+  border-radius: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: row; /* 改为横向排列 */
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0; /* 使用宽度控制间距 */
+}
+
+.meta-item {
+  width: 50%; /* 各占一半 */
+  display: flex;
+  flex-direction: column; /* 标签在数值上方，或者保持 row 看用户喜好，这里用 column 更整齐 */
+  gap: 8rpx;
+}
+
+.meta-item .label {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.meta-item .value {
+  font-size: 28rpx;
+  color: #333;
+}
+
+/* ... 其他表格样式保持不变 ... */
+
+/* 表格样式 */
+.table-scroll {
+  width: 100%;
+}
+
+.table {
+  min-width: 100%;
+  /* 动态计算宽度: 各列宽之和 */
+  width: max-content;
+}
+
+.thead {
+  display: flex;
+  background: #f9f9f9;
+  padding: 16rpx 0;
+}
+
+.tr {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+  background: #fff;
+}
+
+.tr.zebra {
+  background: #fafafa;
+}
+
+.th, .td {
+  padding: 0 16rpx;
+  font-size: 26rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.th {
+  color: #666;
+  font-weight: bold;
+}
+
+.td {
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+/* 列宽定义 */
+.col-code { width: 220rpx; }
+.col-name { width: 280rpx; }
+.col-spec { width: 200rpx; }
+.col-unit { width: 100rpx; text-align: center; justify-content: center; }
+.col-qty  { width: 140rpx; text-align: right; justify-content: flex-end; }
+.col-price{ width: 180rpx; text-align: right; justify-content: flex-end; }
+.col-sum  { width: 180rpx; text-align: right; justify-content: flex-end; }
+
+.strong {
+  font-weight: bold;
+  color: #d54941;
+}
+
+/* 合计行 */
+.total-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #f0f0f0;
+  gap: 16rpx;
+}
+
+.total-price {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #d54941;
+}
+
+/* 底部操作栏 */
+.footer-action {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: 24rpx;
+  z-index: 100;
+}
+
+.btn-action {
+  flex: 1;
+}

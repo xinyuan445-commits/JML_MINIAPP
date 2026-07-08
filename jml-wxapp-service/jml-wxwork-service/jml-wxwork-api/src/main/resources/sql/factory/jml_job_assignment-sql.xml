@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 岗位分工SQL -->
+<sqlGroup namespace="jobAssignment">
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id as id,
+            a.name as name,
+            a.job_type as jobType,
+            a.job_assign_status as jobAssignStatus,
+            a.completion_status as completionStatus,
+            a.prod_line_or_dept as prodLineOrDept,
+            a.actual_completed_qty as actualCompletedQty,
+            a.assign_type AS assignType,
+            a.work_qty as workQty,
+            a.work_no as workNo,
+            a.work_content as workContent,
+            a.overtime_hours as overtimeHours,
+            date_format( a.task_date, '%Y-%m-%d' ) as taskDate,
+            a.gm_confirm as gmConfirm,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName,
+            a.expected_qty AS expectedQty,
+            a.expected_work_hours AS expectedWorkHours
+        <pageTag/>
+        from
+            jml_job_assignment a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+            left join jml_job_assignment_staff b on a.id = b.job_assignment_id
+        <where>
+            <!--普通员工返回分配给自己的岗位分工-->
+            <if test="staff.factRoleSE == true">
+                and b.assigned_engineer_staff_id = #{staff.staffId}
+            </if>
+            <!--主管/线长看自己的数据-->
+            <if test="staff.factRoleGM == true">
+                and a.created_staff_id = #{staff.staffId}
+            </if>
+            <!--厂长/厂助看模块下所有数据-->
+            <if test="staff.factRoleGMS == true">
+
+            </if>
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%'  or a.work_no like '%${multiFiled}%')
+            </if>
+            <!--创建任务时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.task_date <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.task_date <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建任务时间筛选-->
+            <!--<if test="jobType != null and jobType != ''">
+                and a.job_type = #{jobType}
+            </if>-->
+            <if test="prodLineOrDept != null and prodLineOrDept != ''">
+                and a.prodLineOrDept = #{prodLineOrDept}
+            </if>
+        </where>
+            group by a.id
+            order by a.update_time desc
+    </select>
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            a.work_no AS workNo,
+            a.job_type AS jobType,
+            a.job_assign_status AS jobAssignStatus,
+            a.completion_status AS completionStatus,
+            a.prod_line_or_dept AS prodLineOrDept,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName,
+            c.`name` AS completionStaffName,
+            co.`name` AS confirmationStaffName,
+            DATE_FORMAT(a.task_date, '%Y-%m-%d') AS taskDate,
+            a.work_content AS workContent,
+            a.work_hours AS workHours,
+            a.assigned_remark AS assignedRemark,
+            a.work_qty AS workQty,
+            a.actual_completed_qty AS actualCompletedQty,
+            a.overtime_hours AS overtimeHours,
+            a.expected_qty AS expectedQty,
+            a.expected_work_hours AS expectedWorkHours,
+            a.weekday AS weekday,
+            DATE_FORMAT(a.completion_time, '%Y-%m-%d %H:%i:%s') AS completionTime,
+            a.confirmation_remark AS confirmationRemark,
+            a.assign_type AS assignType,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            a.created_staff_id AS createdStaffId
+        FROM
+            jml_job_assignment a
+        LEFT JOIN
+            jml_staff cs ON a.created_staff_id = cs.id
+        LEFT JOIN
+            jml_staff us ON a.update_staff_id = us.id
+        LEFT JOIN
+            jml_staff c ON a.completion_staff_id = c.id
+        LEFT JOIN
+            jml_staff co ON a.confirmation_staff_id = co.id
+        WHERE
+            a.id = #{id}
+    </select>
+</sqlGroup>

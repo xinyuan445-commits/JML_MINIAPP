@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="internalTicket">
+    <!--获取列表-->
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id,
+            a.name,
+            a.`subject`,
+            a.ticket_type,
+            date_format( a.ticket_date, '%Y-%m-%d' ) AS ticket_date,
+            a.ticket_solution,
+            a.ticket_stage,
+            a.stage_code,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) AS created_time,
+            cs.`name` AS createdStaffName
+        <pageTag/>
+        from
+            jml_internal_ticket a
+            left join jml_staff cs on a.created_staff_id = cs.id
+        <where>
+            <include refid="common.auth"/>
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%' or a.desc like '%${multiFiled}%')
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <!--类型-->
+            <if test="ticketType != null and ticketType != ''">
+                and a.ticket_type = #{ticketType}
+            </if>
+            <!--类型-->
+            <!--创建人-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+            <!--创建人-->
+        </where>
+        order by
+            a.update_time desc
+    </select>
+
+    <!--查询明细-->
+    <select id="queryDetails" parameterType="map">
+      select
+            a.id,
+            a.name,
+            a.`subject`,
+            a.ticket_type,
+            date_format( a.ticket_date, '%Y-%m-%d' ) AS ticket_date,
+            date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time,
+            a.ticket_date,
+            a.ticket_solution,
+            a.ticket_stage,
+            a.stage_code,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) AS created_time,
+            cs.`name` AS createdStaffName,
+            us.`name` AS updateStaffName,
+            a.current_acceptance_staff_id,
+            a.close_remark,
+            date_format( a.close_time, '%Y-%m-%d %H:%i:%s' ) as close_time,
+            a.close_staff_id,
+            c.name as closeStaffName,
+            a.solution_desc,
+            a.desc
+        from
+            jml_internal_ticket a
+            left join jml_staff cs on a.created_staff_id = cs.id
+            left join jml_staff us ON a.update_staff_id = us.id
+            left join jml_staff c ON a.close_staff_id = c.id
+        <where>
+            a.id=#{id}
+        </where>
+    </select>
+
+
+
+
+
+
+</sqlGroup>

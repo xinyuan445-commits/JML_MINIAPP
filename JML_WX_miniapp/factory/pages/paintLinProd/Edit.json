@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "烤漆线-生产工艺单",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-form-item": "../../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u--input": "../../../node-modules/uview-plus/components/u-input/u-input",
+    "u--textarea": "../../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u--form": "../../../node-modules/uview-plus/components/u-form/u-form",
+    "floating-window": "../../../components/FloatingWindow",
+    "footer-btn": "../../../components/FooterBtn",
+    "scan-code-input": "../../components/scanCodeInput"
+  }
+}

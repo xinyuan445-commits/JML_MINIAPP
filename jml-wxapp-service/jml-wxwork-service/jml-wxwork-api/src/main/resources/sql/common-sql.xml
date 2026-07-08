@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="common">
+    <!--
+        数据授权的公共逻辑
+        要求：
+        1、必须使用Base4JmlAuthController.initQueryMap初始化查询参数
+        2、主表的别名必须是a
+        3、创建员工字段必须为created_staff_id
+        4、地域字段必须为region_code
+    -->
+    <sql id="auth">
+        1 = 1
+        <!--总经理：业务属性，查看和操作所有人和所有的业务数据-->
+        <if test="staff.roleGM == true || staff.roleHRD == true">
+            and exists(
+                select aa.* from jml_staff aa where aa.status = '1' and aa.id = a.created_staff_id
+            )
+        </if>
+        <!--销售总监：层级属性，查看和操作区域经理下所有业务数据-->
+      <!--  <if test="staff.roleSD == true">
+           and exists(
+                with recursive staff_tree as
+                (
+                    select aa.* from jml_staff aa where aa.id = #{staff.staffId} and aa.status = '1'
+                    union all
+                    select bb.* from jml_staff bb join staff_tree cc on bb.parent_id = cc.id and bb.status = '1'
+                )
+                select
+                    st.id,
+                    st.name,
+                    st.area_code,
+                    st.region_code,
+                    st.parent_id,
+                    st.employ_id
+                from
+                    staff_tree st
+                where
+                    st.id = a.created_staff_id
+            )
+        </if>-->
+        <!--区域经理：层级属性，按区域划分负责人，该区域下所有的数据均可操作-->
+        <!--销售助理：层级属性，按区域划分负责人，该区域下所有的数据均可操作-->
+        <!--售后经理：仅能查看该区域下的所有数据-->
+       <!-- <if test="staff.roleRM == true || staff.roleSA == true || staff.roleAfterSalesM == true">
+           and exists(
+                with recursive staff_tree as
+                (
+                    select aa.* from jml_staff aa where aa.id = #{staff.staffId}
+                    union all
+                    select bb.* from jml_staff bb join staff_tree cc on bb.parent_id = cc.id
+                )
+                select
+                    st.id,
+                    st.name,
+                    st.area_code,
+                    st.region_code,
+                    st.parent_id,
+                    st.employ_id
+                from
+                    staff_tree st
+                where
+                    st.id = a.created_staff_id
+            )
+        </if>-->
+        <!--区域经理：按区域划分负责人，该区域下所有的数据均可操作-->
+        <!--销售助理：按区域划分负责人，该区域下所有的数据均可操作-->
+        <!--售后经理：仅能查看该区域下的所有数据-->
+        <!--销售人员：私有属性，具有新建和编辑的权限，仅能查看个人数据和该区域下的数据-->
+        <if test="staff.roleSR == true || staff.roleRM == true || staff.roleSA == true || staff.roleAfterSalesM == true ||staff.roleSD == true" >
+           and exists(
+                select
+                    rt.id,
+                    b.name,
+                    rt.area_id,
+                    rt.area_code
+                from jml_staff_area rt
+                left join jml_area b on rt.area_id = b.id
+                where
+                    rt.staff_id = #{staff.staffId}
+                    and rt.area_code = a.area_code
+                    and rt.enable = '1'
+            )
+        </if>
+    </sql>
+
+    <!--
+        数据授权的公共逻辑
+        要求：
+        1、必须使用Base4JmlAuthController.initQueryMap初始化查询参数
+        2、主表的别名必须是a
+        3、创建员工字段必须为created_staff_id
+        4、地域字段必须为region_code
+    -->
+    <sql id="authv1">
+        1 = 1
+        <!--总经理：业务属性，查看和操作所有人和所有的业务数据-->
+        <if test="staff.roleGM == true">
+        </if>
+        <!--销售总监：层级属性，查看和操作区域经理下所有业务数据-->
+        <if test="staff.roleSD == true">
+           and exists(
+                with recursive staff_tree as
+                (
+                    select aa.* from jml_staff aa where aa.id = #{staff.staffId}
+                    union all
+                    select bb.* from jml_staff bb join staff_tree cc on bb.parent_id = cc.id
+                )
+                select
+                    st.id,
+                    st.name,
+                    st.area_code,
+                    st.region_code,
+                    st.parent_id,
+                    st.employ_id
+                from
+                    staff_tree st
+                where
+                    st.id = a.created_staff_id
+            )
+        </if>
+        <!--区域经理：层级属性，按区域划分负责人，该区域下所有的数据均可操作-->
+        <!--售后经理：仅能查看该区域下的所有数据-->
+        <if test="staff.roleRM == true || staff.roleAfterSalesM == true">
+           and exists(
+                select
+                    rt.id,
+                    b.name,
+                    rt.area_id,
+                    rt.area_code
+                from jml_staff_area rt
+                left join jml_area b on rt.area_id = b.id
+                where
+                    rt.staff_id = #{staff.staffId}
+                    and rt.staff_id = a.created_staff_id
+            )
+        </if>
+        <!--销售人员：私有属性，具有新建和编辑的权限，仅能查看个人数据-->
+        <if test="staff.roleSR == true">
+           and a.created_staff_id = #{staff.staffId}
+        </if>
+    </sql>
+</sqlGroup>

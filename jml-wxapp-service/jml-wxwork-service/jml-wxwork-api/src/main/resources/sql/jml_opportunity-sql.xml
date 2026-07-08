@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 机会管理SQL -->
+<sqlGroup namespace="opportunity">
+	<!--分页查询机会-->
+	<select id="queryPageBy" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.type,
+			a.source,
+			a.stage,
+			a.is_new,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			cs.`name` AS createdStaffName
+		<pageTag/>
+		from
+			jml_opportunity a
+		left join
+			jml_staff cs ON a.created_staff_id = cs.id
+		<where>
+			<include refid="common.auth"/>
+			<if test="multiFiled != null and multiFiled != ''">
+				and a.name like '%${multiFiled}%'
+			</if>
+			<if test="accountId != null and accountId != ''">
+				and a.account_id = #{accountId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取机会明细-->
+	<select id="queryDetails" parameterType="map">
+			select
+				a.id,
+				a.`name`,
+				a.stage,
+				date_format( a.close_date, '%Y-%m-%d' ) as close_date,
+				a.source,
+				a.amount,
+				a.remark,
+				a.type,
+				a.account_id,
+				b.`name` accName,
+				a.account_id,
+				a.sample,
+				a.sample_remark,
+				a.sent_quotation,
+				a.quote_remark,
+				a.contract_amount,
+				a.loss_cause,
+				a.loss_desc,
+				a.sales_lead_id,
+				c.name as salesLeadName,
+				d.name as marketingName,
+				a.marketing_id,
+				cs.`name` AS createdStaffName,
+				us.`name` AS updateStaffName,
+				date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+				date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time,
+				a.area_code,
+				ar.name as areaName,
+				a.district
+			from
+				jml_opportunity a
+			left join
+				jml_account b on a.account_id = b.id
+			left join
+				jml_staff cs on a.created_staff_id = cs.id
+			left join
+				jml_staff us ON a.update_staff_id = us.id
+			left join
+				jml_sales_lead c on a.sales_lead_id = c.id
+			left join
+				jml_marketing d on a.marketing_id = d.id
+			left join
+				jml_area ar on a.area_code = ar.area_code
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+	<!--根据员工信息获取机会列表信息-->
+	<select id="queryListByStaff" parameterType="map">
+		select
+			id,
+			name
+		from
+			jml_opportunity a
+		<where>
+			<include refid="common.auth"/>
+			<if test="accountId != null and accountId != ''">
+				and a.account_id = #{accountId}
+			</if>
+		</where>
+	</select>
+</sqlGroup>

@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "客服服务列表",
+  "usingComponents": {
+    "list": "./components/List"
+  }
+}

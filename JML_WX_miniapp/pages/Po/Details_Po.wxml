@@ -1,0 +1,91 @@
+<view class="po-detail">
+  <!-- 头部卡片 -->
+  <view class="header-section">
+    <view class="header-top">
+      <text class="code">{{header.code}}</text>
+      <t-tag theme="{{statusTheme}}" variant="light" size="medium">{{header.state}}</t-tag>
+    </view>
+    <view class="header-main">
+      <view class="info-row">
+        <text class="label">供应商</text>
+        <text class="value supplier">{{header.vendorname}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">下单日期</text>
+        <text class="value">{{header.date}}</text>
+      </view>
+    </view>
+    
+    <view class="divider"></view>
+
+    <!-- 扩展信息（直接展开） -->
+    <view class="extra-info-grid">
+      <view class="extra-item">
+        <text class="label">付款方式</text>
+        <text class="value">{{header.define1 || '--'}}</text>
+      </view>
+      <view class="extra-item">
+        <text class="label">交付条件</text>
+        <text class="value">{{header.define14 || '--'}}</text>
+      </view>
+      <view class="extra-item full-width">
+        <text class="label">备注</text>
+        <text class="value remark">{{header.remark || '--'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 明细列表 -->
+  <view class="detail-section">
+    <view class="section-title">
+      <text>订单明细</text>
+      <t-tag size="small" variant="light" theme="default">{{lineCount}}</t-tag>
+    </view>
+    <scroll-view class="table-scroll" scroll-x enable-flex>
+      <view class="table">
+        <view class="thead">
+          <view class="th col-code">存货编码</view>
+          <view class="th col-name">存货名称</view>
+          <view class="th col-spec">规格型号</view>
+          <view class="th col-unit">单位</view>
+          <view class="th col-qty">数量</view>
+          <view class="th col-price">含税单价</view>
+          <view class="th col-sum">价税合计</view>
+        </view>
+        <block wx:for="{{items}}" wx:key="key">
+          <view class="tr {{index % 2 === 1 ? 'zebra' : ''}}">
+            <view class="td col-code">{{item.inventorycode}}</view>
+            <view class="td col-name">{{item.inventoryname}}</view>
+            <view class="td col-spec">{{item.inventorystd}}</view>
+            <view class="td col-unit">{{item.unitname}}</view>
+            <view class="td col-qty">{{item.quantity}}</view>
+            <view class="td col-price">¥{{item.taxprice}}</view>
+            <view class="td col-sum strong">¥{{item.sum}}</view>
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+    <view class="total-row">
+      <text class="label">合计金额</text>
+      <text class="total-price">¥ {{totalAmount}}</text>
+    </view>
+  </view>
+
+  <!-- 人员信息 -->
+  <view class="meta-section">
+    <view class="meta-item">
+      <text class="label">制单人</text>
+      <text class="value">{{header.maker || '--'}}</text>
+    </view>
+    <view class="meta-item">
+      <text class="label">审核人</text>
+      <text class="value">{{header.verifier || '--'}}</text>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="footer-action safe-area-bottom">
+    <t-button theme="primary" size="large" block bind:tap="onApprove" class="btn-action">审核</t-button>
+    <t-button theme="default" size="large" block bind:tap="onUnverify" class="btn-action">弃审</t-button>
+  </view>
+</view>

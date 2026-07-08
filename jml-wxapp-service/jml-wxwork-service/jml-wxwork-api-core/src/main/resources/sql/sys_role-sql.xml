@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 角色管理的SQL -->
+<sqlGroup namespace="sysRole">
+	<!--分页查询系统公共角色列表-->
+	<select id="findSysRoleByPage" parameterType="map">
+		select a.* from sys_role a
+		where a.flag = #{flag}
+		<if test="roleName != null and roleName != ''">
+			and a.rolename like '%${roleName}%'
+		</if>
+		<if test="status != null and status != ''">
+			and a.status = #{status}
+		</if>
+		<choose>
+			<when test="orgId != null and orgId != 0">
+				and a.orgId = #{orgId}
+			</when>
+			<otherwise>
+				and a.orgId is null
+			</otherwise>
+		</choose>
+		order by a.create_time desc
+	</select>
+
+	<!--根据机构ID查询可赋权限-->
+	<select id="findSysRoleByOrgId" parameterType="map">
+		select * from sys_role c where
+		c.orgId = #{orgId}
+		and c.status = #{status}
+		and c.flag = #{flag}
+		group by c.id
+	</select>
+
+	<!--变更状态前的校验-->
+	<select id="checkRoleIsUsing" parameterType="long">
+		select id from sys_rela_role_user where 1=1 and roleId = #{value}
+	</select>
+
+	<!--校验公共角色名称是否已存在-->
+	<select id="validateRoleName" parameterType="map">
+		select * from sys_role where rolename = #{rolename}
+		and id != #{roleId}
+		and flag = #{flag}
+		<if test="orgId != null and orgId != 0">
+			and orgId = #{orgId}
+		</if>
+	</select>
+
+	<!--查询用户角色角色-->
+	<select id="queryUserAuth" parameterType="map">
+		SELECT
+			a.roleId,
+			a.userId,
+			b.*
+		FROM
+		sys_rela_role_user a
+		LEFT JOIN sys_role b ON a.roleId = b.id
+		WHERE
+		a.userId = #{userId} and b.`status` = #{status}
+	</select>
+</sqlGroup>

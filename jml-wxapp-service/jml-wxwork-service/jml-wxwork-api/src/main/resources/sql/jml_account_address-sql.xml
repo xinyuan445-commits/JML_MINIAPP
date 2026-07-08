@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 公司地址管理SQL -->
+<sqlGroup namespace="accountAddress">
+	<!--分页查询公司地址-->
+	<select id="queryPageBy" parameterType="map">
+		select
+			a.id,
+			a.address,
+			a.type,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time
+		<pageTag/>
+		from
+			jml_account_address a
+		<where>
+			<include refid="common.auth"/>
+			<if test="accountId != null and accountId != ''">
+				and a.account_id =#{accountId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取公司地址明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.address,
+			a.type,
+			a.longitude,
+			a.latitude,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time,
+			a.created_staff_id
+		from
+			jml_account_address a
+		left join
+			jml_staff cs on a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+</sqlGroup>

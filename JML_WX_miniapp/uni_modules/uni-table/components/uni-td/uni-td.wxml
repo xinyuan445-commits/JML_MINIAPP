@@ -1,0 +1,1 @@
+<view class="{{['uni-table-td', a && 'table--border', b && 'table--fixed', c && 'operate', virtualHostClass]}}" style="{{'width:' + d + ';' + ('text-align:' + e) + ';' + virtualHostStyle}}"><slot></slot></view>

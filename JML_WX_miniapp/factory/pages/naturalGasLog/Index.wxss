@@ -1,0 +1,207 @@
+/* 旧版样式完整保留在 Index.legacy.wxss。 */
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 20rpx 20rpx 140rpx;
+  background: #f5f7fa;
+}
+
+.filter-card,
+.record-card {
+  border-radius: 18rpx;
+  background: #fff;
+  box-shadow: 0 6rpx 22rpx rgba(16, 24, 40, 0.05);
+}
+
+.filter-card {
+  margin-bottom: 20rpx;
+  padding: 22rpx;
+}
+
+.query-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 16rpx;
+}
+
+.query-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16rpx;
+  min-width: 0;
+}
+
+.search-input {
+  height: 70rpx;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 22rpx;
+  border-radius: 12rpx;
+  background: #f2f4f7;
+  font-size: 27rpx;
+}
+
+.search-btn {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 68rpx;
+  height: 156rpx;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-radius: 12rpx;
+  background: #849eb2;
+  color: #fff;
+  font-size: 26rpx;
+  line-height: 1;
+}
+
+.query-char {
+  display: block;
+  line-height: 1.6;
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.filter-picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-chip {
+  overflow: hidden;
+  padding: 12rpx 8rpx;
+  border: 2rpx solid #d0d5dd;
+  border-radius: 10rpx;
+  color: #475467;
+  font-size: 22rpx;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reset-row {
+  margin-top: 14rpx;
+  color: #849eb2;
+  font-size: 23rpx;
+  text-align: right;
+}
+
+.record-card {
+  margin-bottom: 18rpx;
+  padding: 26rpx;
+  border: 2rpx solid #dbeafe;
+}
+
+.record-card:active {
+  background: #f9fafb;
+}
+
+.doc-no {
+  color: #101828;
+  font-size: 34rpx;
+  font-weight: 750;
+}
+
+.detail-rows {
+  margin-top: 44rpx;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  min-height: 44rpx;
+  font-size: 27rpx;
+  line-height: 1.55;
+}
+
+.row-label {
+  flex-shrink: 0;
+  width: 170rpx;
+  color: #98a2b3;
+}
+
+.row-value {
+  flex: 1;
+  color: #5d6673;
+  word-break: break-all;
+}
+
+.record-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18rpx;
+  margin-top: 28rpx;
+}
+
+.footer-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.view-link {
+  flex-shrink: 0;
+  padding-bottom: 5rpx;
+  color: #849eb2;
+  font-size: 27rpx;
+}
+
+.view-arrow {
+  margin-left: 5rpx;
+  color: #98a2b3;
+  font-size: 34rpx;
+  vertical-align: -2rpx;
+}
+
+.empty,
+.status {
+  padding: 90rpx 0;
+  color: #98a2b3;
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.status {
+  padding: 24rpx 0;
+}
+
+/* FAB：滚动时收进右边缘，停止后展开。 */
+.fab-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  min-width: 116rpx;
+  height: 72rpx;
+  box-sizing: border-box;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  box-shadow: 0 8rpx 28rpx rgba(16, 24, 40, 0.16);
+  color: #607d94;
+}
+
+.fab-text {
+  font-size: 26rpx;
+  font-weight: 650;
+}
+
+.fab-symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58rpx;
+  height: 72rpx;
+  border-radius: 36rpx 0 0 36rpx;
+  background: #fff;
+  box-shadow: 0 8rpx 28rpx rgba(16, 24, 40, 0.16);
+  color: #607d94;
+}

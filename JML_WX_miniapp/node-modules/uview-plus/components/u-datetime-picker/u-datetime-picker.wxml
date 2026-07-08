@@ -1,0 +1,1 @@
+<u-picker wx:if="{{f}}" u-r="picker" bindclose="{{b}}" bindcancel="{{c}}" bindconfirm="{{d}}" bindchange="{{e}}" u-i="45a66566-0" bind:__l="__l" u-p="{{f}}" class="{{['r', 'data-v-45a66566', virtualHostClass]}}" virtualHostClass="{{['r', 'data-v-45a66566', virtualHostClass]}}" style="{{virtualHostStyle}}" virtualHostStyle="{{virtualHostStyle}}"></u-picker>

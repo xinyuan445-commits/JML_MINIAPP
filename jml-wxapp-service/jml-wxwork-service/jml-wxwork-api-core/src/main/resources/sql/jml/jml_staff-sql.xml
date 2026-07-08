@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="jml_staff">
+    <!--根据ID查询员工信息-->
+    <select id="queryById" parameterType="map">
+        select
+            a.id,
+            a.name,
+            a.parent_id,
+            a.employ_id,
+            a.status,
+            a.userid,
+            a.email,
+            a.mobile,
+            a.gender,
+            a.department,
+            a.`position`,
+            a.entry_date,
+            a.leaving_date,
+            a.region_code,
+            a.area_code,
+            a.factory_code,
+            a.is_admin,
+            a.is_reset,
+            a.status,
+            a.parent_id,
+            a.factory_m_role
+        from
+            jml_staff a
+        where a.id = #{staffId}
+    </select>
+
+    <!--根据Code查询员工信息-->
+    <select id="queryByCode" parameterType="map">
+        select
+            a.id,
+            a.name,
+            a.parent_id,
+            a.employ_id,
+            a.status,
+            a.userid,
+            a.email,
+            a.mobile,
+            a.gender,
+            a.department,
+            a.`position`,
+            a.entry_date,
+            a.leaving_date,
+            a.region_code,
+            a.area_code
+        from
+            jml_staff a
+        where a.employ_id = #{staffCode}
+    </select>
+
+    <!--查询子级员工-->
+    <sql id="querySubStaff">
+        with recursive staff_tree as
+        (
+            select aa.* from jml_staff aa where aa.id = #{staffId} and aa.status = '1'
+            union all
+            select bb.* from jml_staff bb join staff_tree cc on bb.parent_id = cc.id where bb.status = '1'
+        )
+        select
+            a.id,
+            a.name,
+            a.area_code,
+            a.region_code,
+            a.parent_id
+        from
+            staff_tree a
+    </sql>
+
+    <!--递归查询当前员工及子级员工-->
+    <select id="queryRecursiveByStaffId" parameterType="map">
+        <choose>
+            <!--总经理：业务属性，查看和操作所有人和所有的业务数据-->
+            <when test="staff.roleGM == true">
+                select
+                    a.id,
+                    a.name,
+                    a.area_code,
+                    a.region_code,
+                    a.parent_id
+                from
+                    jml_staff a
+                where a.status = '1'
+            </when>
+            <!--销售助理/区域经理/销售总监-查看区域下的员工-->
+            <when test="staff.roleRM == true || staff.roleSA == true || staff.roleSD == true">
+                select
+                    a.id,
+                    a.name,
+                    a.area_code,
+                    a.region_code,
+                    a.parent_id
+                from
+                    jml_staff a
+                where
+                    a.status = '1'
+                    and exists(
+                        select
+                            rt.id,
+                            rt.staff_id,
+                            rt.area_id,
+                            rt.area_code
+                        from jml_staff_area rt
+                        left join jml_staff_area rt1 on rt1.area_code = rt.area_code
+                        where
+                            rt1.staff_id = #{staffId}
+                            and rt.staff_id = a.id
+                            and rt.enable = '1'
+                    )
+            </when>
+            <otherwise>
+                <include refid="jml_staff.querySubStaff"/>
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--递归查询当前员工及子级员工(不包含子级)-->
+    <select id="queryRecursiveWithoutSelf" parameterType="map">
+        <choose>
+            <!--总经理：业务属性，查看和操作所有人和所有的业务数据-->
+            <when test="staff.roleGM == true">
+                select
+                    a.id,
+                    a.name,
+                    a.area_code,
+                    a.region_code,
+                    a.parent_id
+                from
+                    jml_staff a
+                where
+                    a.status = '1'
+            </when>
+            <otherwise>
+                <include refid="jml_staff.querySubStaff"/>
+            </otherwise>
+        </choose>
+        where
+	        a.id != #{staffId}
+    </select>
+
+    <!--根据微信用户ID查询员工信息-->
+    <select id="queryByWxworkUserId" parameterType="map">
+        select
+            id,
+            name,
+            area_code,
+            region_code,
+            parent_id,
+            employ_id,
+            status,
+            userid,
+            email,
+            mobile,
+            gender,
+            department,
+            `position`,
+            avatar
+        from
+            jml_staff a
+        where
+            a.userid = #{userid}
+    </select>
+
+    <!--评论查询用户列表-->
+    <select id="queryByMentionedUser" parameterType="map">
+        SELECT
+            a.name,
+            a.id,
+            a.userid,
+            a.avatar,
+            b.role_name
+        FROM
+            jml_staff AS a
+        LEFT JOIN
+            jml_staff_role AS b ON a.id = b.staff_id and b.enable = '1'
+        LEFT JOIN
+            jml_role AS c ON c.id = b.role_id
+        <where>
+            a.status = '1'
+                and
+            (c.role_code IN ('GM', 'SD', 'RM','SA') OR a.id = #{ownerStaffId})
+            <if test="staffName != null and staffName != ''">
+                and a.name LIKE '${staffName}%'
+            </if>
+        </where>
+        ORDER BY
+            CONVERT(a.name USING gbk) COLLATE gbk_chinese_ci;
+    </select>
+
+    <!--根据微信用户ID查询员工信息-->
+    <select id="queryByOpenIdOrUnionId" parameterType="map">
+        select
+            id,
+            name,
+            area_code,
+            region_code,
+            parent_id,
+            employ_id,
+            status,
+            userid,
+            email,
+            mobile,
+            gender,
+            department,
+            `position`,
+            avatar,
+            openid,
+            unionid,
+            a.is_admin,
+            a.is_reset,
+            a.factory_m_role
+        from
+            jml_staff a
+        <where>
+            <choose>
+                <when test="openid != null and openid != ''">
+                    and a.openid = #{openid}
+                </when>
+                <when test="unionid != null and unionid != ''">
+                    and a.unionid = #{unionid}
+                </when>
+                <otherwise>
+                    and 1 != 1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <!--小程序用户登录：手机号码+密码-->
+    <select id="login" parameterType="map">
+        select
+            id,
+            name,
+            area_code,
+            region_code,
+            parent_id,
+            employ_id,
+            status,
+            userid,
+            email,
+            mobile,
+            gender,
+            department,
+            `position`,
+            avatar,
+            openid,
+            unionid,
+            is_admin,
+            factory_m_role
+        from
+            jml_staff
+        where
+            mobile = #{mobile}
+        and
+            pwd = #{pwd}
+        and
+            status = '1'
+    </select>
+    <!--查询工厂角色的用户-->
+    <select id="queryFactoryStaff" parameterType="map">
+        select
+            a.id,
+            a.name,
+            a.mobile
+        from
+            jml_staff a
+            left join jml_staff_role b on b.staff_id = a.id
+            left join jml_role c on c.id = b.role_id
+        where
+            a.`status` = '1'
+            and b.`enable` = '1'
+            and c.role_code = 'FAC'
+    </select>
+    <!--查询上级角色的用户-->
+    <select id ="queryParentStaff" parameterType="map">
+        SELECT
+            b.id,
+            b.name,
+            b.mobile
+        from
+            jml_staff a
+            left join jml_staff b on a.parent_id = b.id
+        WHERE
+             a.id = #{staff.staffId}
+    </select>
+
+
+
+
+
+</sqlGroup>

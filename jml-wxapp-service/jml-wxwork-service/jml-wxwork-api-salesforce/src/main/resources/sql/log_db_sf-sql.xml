@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="jmlDb2SfLog">
+    <!--根据员工ID查询-->
+    <select id="cntFailByDate" parameterType="map">
+       select
+            count( id ) as cnt
+        from
+            log_db_sf
+        where
+            code = #{code}
+            and val = #{val}
+            and send_status = '0'
+            and TO_DAYS( createtime ) = TO_DAYS(NOW())
+    </select>
+</sqlGroup>

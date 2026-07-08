@@ -1,0 +1,1 @@
+"use strict";const e=require("../common/vendor.js");exports.useDataList=function(){const t=e.reactive({pageNo:1,pageSize:5,totalRow:0,list:[],loading:!1,finished:!1,query:{},initEmpty:()=>{t.pageNo=1,t.pageSize=5,t.totalRow=0,t.list=[],t.loading=!1,t.finished=!1,t.query={}}}),i=e.computed((()=>t.list.length>0?"没有更多了":""));return{data:t,finishedText:i}};

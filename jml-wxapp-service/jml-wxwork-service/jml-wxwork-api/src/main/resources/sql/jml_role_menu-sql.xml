@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="jml_role_menu">
+    <!--根据员工ID查询-->
+    <select id="queryByStaffId" parameterType="map">
+        select
+            b.id as menu_id,
+            b.name,
+            b.menu_code ,
+            b.menu_icon,
+            REPLACE(b.menu_url, '/', '') as menu_url,
+            b.parent_id
+        from
+            jml_menu b
+        where
+            b.show_front = '1'
+            and b.enable = '1'
+            and b.show_wxapp = '1'
+            and exists(
+                select
+                    a.id
+                from
+                    jml_role_menu a
+                inner join jml_staff_role c on a.role_id = c.role_id
+                where
+                    b.id = a.menu_id
+                    and a.enable = '1'
+                    and c.enable = '1'
+                    and c.staff_id = #{staffId}
+            )
+        order by b.sort desc
+    </select>
+</sqlGroup>

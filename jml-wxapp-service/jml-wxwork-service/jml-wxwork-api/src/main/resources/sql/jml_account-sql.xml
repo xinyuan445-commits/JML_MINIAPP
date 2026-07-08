@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 公司管理SQL -->
+<sqlGroup namespace="account">
+	<!--判断公司名称是否存在-->
+	<select id="queryExistByName" parameterType="map">
+		select
+			id,
+			`name`
+		from
+			jml_account
+		<where>
+			`name` = #{name}
+		</where>
+	</select>
+
+
+	<!--分页查询销售线索-->
+	<select id="queryPage" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.address,
+			a.phone,
+			a.scale,
+			a.is_new,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			cs.`name` AS createdStaffName,
+			a.verify_status
+		<pageTag/>
+		from
+			jml_account a
+		left join
+			jml_staff cs ON a.created_staff_id = cs.id
+		<where>
+			<include refid="common.auth"/>
+			<if test="multiFiled != null and multiFiled != ''">
+				and a.name like '%${multiFiled}%'
+			</if>
+			<if test="province != null and province != ''">
+			 	and a.province = #{province}
+			</if>
+			<if test="city != null and city != ''">
+				and a.city = #{city}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取市场活动明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.address,
+			a.province,
+			a.city,
+			a.phone,
+			a.scale,
+			a.website,
+			a.company_business,
+			a.parent_id,
+			a.sales_revenue,
+			a.sales_revenue_year,
+			a.tax_number,
+			a.legal_entity,
+			a.staff_qty,
+			a.land,
+			a.customer_product,
+			a.warehouse_qty,
+			a.store_qty,
+			a.stock_code,
+			a.remark,
+			a.erp_code,
+			a.type,
+			a.longitude,
+			a.latitude,
+			a.sales_lead_id,
+			a.agent_account_id,
+			d.name as agentAccName,
+			c.name as salesLeadName,
+			b.`name` as parentAccName,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time,
+			a.if_validated_dealer,
+			date_format( a.dealer_date_dl, '%Y-%m-%d' ) as dealer_date_dl,
+			a.verify_status,
+			a.validation_note,
+			a.area_code,
+			ar.name as areaName,
+			a.district,
+			a.created_staff_id
+		from
+			jml_account a
+		left join
+			jml_account b on a.parent_id = b.id
+		left join
+			jml_staff cs on a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		left join
+			jml_sales_lead c on a.sales_lead_id = c.id
+		left join
+			jml_account d on a.agent_account_id = d.id
+		left join
+			jml_area ar on a.area_code = ar.area_code
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+	<!--根据员工信息获取活动列表信息-->
+	<select id="queryListByStaff" parameterType="map">
+		select
+			id,
+			name
+		from
+			jml_account a
+		<where>
+			<include refid="common.auth"/>
+			<if test="type == 1">
+				and type = "代理商"
+			</if>
+		</where>
+	</select>
+</sqlGroup>

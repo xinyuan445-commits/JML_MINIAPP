@@ -1,0 +1,108 @@
+<view class="po-page">
+  <t-pull-down-refresh
+    value="{{isRefreshing}}"
+    loadingProps="{{ {size: '40rpx'} }}"
+    loadingTexts="{{ ['下拉刷新', '松手刷新', '正在刷新', '刷新完成'] }}"
+    bind:refresh="onPullDownRefresh"
+  >
+    <!-- 顶部搜索与筛选 -->
+    <view class="sticky-header">
+      <!-- 第一行：搜索 + 状态筛选 -->
+      <view class="row-1">
+        <view class="search-container">
+          <t-search
+            placeholder="搜索单号/供应商"
+            value="{{keyword}}"
+            shape="round"
+            bind:change="onKeywordInput"
+            bind:submit="onKeywordConfirm"
+            bind:clear="onKeywordClear"
+          />
+        </view>
+        <view class="status-dropdown">
+          <t-dropdown-menu>
+            <t-dropdown-item 
+              label="{{statusLabel}}" 
+              options="{{statusDropdownOptions}}" 
+              value="{{statusValue}}" 
+              bind:change="onStatusDropdownChange" 
+            />
+          </t-dropdown-menu>
+        </view>
+      </view>
+      
+      <!-- 第二行：公司 + 日期 -->
+      <view class="row-2">
+        <view class="company-dropdown">
+          <t-dropdown-menu>
+            <t-dropdown-item 
+              label="{{companyLabel}}" 
+              options="{{companyDropdownOptions}}" 
+              value="{{companyValue}}" 
+              bind:change="onCompanyDropdownChange" 
+            />
+          </t-dropdown-menu>
+        </view>
+        <view class="date-filter">
+          <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+            <view class="date-item {{startDate ? '' : 'placeholder'}}">{{startDate || '开始'}}</view>
+          </picker>
+          <text class="date-separator">-</text>
+          <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
+            <view class="date-item {{endDate ? '' : 'placeholder'}}">{{endDate || '结束'}}</view>
+          </picker>
+        </view>
+      </view>
+    </view>
+
+    <!-- 列表区域 -->
+    <scroll-view 
+      class="list-wrap" 
+      scroll-y 
+      enable-flex 
+      bindscrolltolower="onScrollToLower"
+      lower-threshold="100"
+    >
+      <view class="list-content">
+        <block wx:for="{{orders}}" wx:key="code">
+          <view class="order-card" bindtap="toDetail" data-code="{{item.code}}" data-company="{{item.company}}">
+            <view class="card-header">
+              <view class="header-left">
+                <t-tag variant="light" theme="{{item.companyTheme}}" size="small" class="company-tag">{{item.company}}</t-tag>
+                <text class="order-no">{{item.code}}</text>
+              </view>
+              <t-tag variant="light" theme="{{item.statusTheme}}" size="small">{{item.state}}</t-tag>
+            </view>
+            
+            <view class="card-body">
+              <view class="info-row">
+                <text class="label">供应商</text>
+                <text class="value">{{item.vendorname}}</text>
+              </view>
+              <view class="info-row">
+                <text class="label">金额</text>
+                <text class="value price">¥ {{item.amount}}</text>
+              </view>
+              <view class="info-row">
+                <text class="label">日期</text>
+                <text class="value">{{item.date}}</text>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 空状态 -->
+        <t-empty wx:if="{{!orders.length && !loading}}" icon="info-circle-filled" description="暂无符合条件的订单" />
+        
+        <!-- 加载更多 -->
+        <view class="loading-footer" wx:if="{{orders.length > 0}}">
+          <t-loading wx:if="{{loading}}" theme="circular" size="40rpx" text="加载中..." />
+          <text wx:elif="{{!hasMore}}" class="no-more">没有更多了</text>
+        </view>
+      </view>
+    </scroll-view>
+  </t-pull-down-refresh>
+
+  <!-- 悬浮按钮 -->
+  <t-fab icon="add" bind:click="onAddOrder" aria-label="新增订单" wx:if="{{false}}" />
+</view>

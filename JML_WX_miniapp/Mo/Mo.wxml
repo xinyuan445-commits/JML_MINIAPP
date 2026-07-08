@@ -1,0 +1,16 @@
+<view class="mo-page">
+  <view class="head">现场管理</view>
+  <view class="subhead">现场工程快捷入口</view>
+
+  <view class="menu-grid">
+    <block wx:for="{{menus}}" wx:key="id">
+      <view class="menu-card" bindtap="goPage" data-path="{{item.path}}">
+        <image class="menu-icon" src="{{item.emoji}}" mode="aspectFit" />
+        <view class="menu-name">{{item.menu_name}}</view>
+        <text class="arrow">›</text>
+      </view>
+    </block>
+  </view>
+
+  <view wx:if="{{menus.length === 0}}" class="empty-tip">暂无功能，敬请期待</view>
+</view>

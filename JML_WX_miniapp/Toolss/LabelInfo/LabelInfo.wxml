@@ -1,0 +1,77 @@
+<view class="container">
+
+<!-- 扫码按钮 -->
+<view class="scan-area" bindtap="scanCode">
+  <image
+    src="https://wxapp-crm.chameleon-artec.com/jml/assets/scan.png"
+    class="scan-icon"
+    mode="aspectFit"
+  />
+  <text class="scan-text">扫码获取标签信息</text>
+</view>
+
+<!-- 解析结果 -->
+<view class="result" wx:if="{{hasData}}">
+  <view class="row">
+  <text class="label">仓库：</text>
+  <text class="value">{{lastWarehouse || ''}}</text>
+</view>
+
+<!-- 货位 -->
+<view class="row">
+  <text class="label">货位：</text>
+  <text class="value">{{lastPos || ''}}</text>
+</view>
+  <view class="row">
+    <text class="label">料号：</text>
+    <text class="value">{{materialCode}}</text>
+  </view>
+
+  <view class="row">
+    <text class="label">名称：</text>
+    <text class="value">{{cinvname}}</text>
+  </view>
+
+  <view class="row">
+    <text class="label">批号：</text>
+    <text class="value">{{batchNo}}</text>
+  </view>
+
+  <view class="row">
+    <text class="label">标签数量：</text>
+    <text class="value">{{labelQty}}</text>
+  </view>
+
+  <view class="row">
+    <text class="label">流水号：</text>
+    <text class="value">{{serialNo}}</text>
+  </view>
+</view>
+
+<!-- 货位库存汇总 -->
+<!-- 库存明细（按货位升序，显示批号） -->
+<view class="stock" wx:if="{{stockList.length > 0}}">
+  <view class="stock-title">库存</view>
+
+  <!-- 表头 -->
+  <view class="stock-row header">
+    <text>货位</text>
+    <text>批号</text>
+    <text>数量</text>
+  </view>
+
+  <!-- 明细 -->
+  <view
+    class="stock-row {{item.cBatch === batchNo ? 'row-highlight' : ''}}"
+    wx:for="{{stockList}}"
+    wx:key="index"
+  >
+    <text>{{item.cposname || '-'}}</text>
+    <text>{{item.cBatch || '-'}}</text>
+    <text>{{item.iQuantity || '-'}}</text>
+  </view>
+</view>
+
+
+
+</view>

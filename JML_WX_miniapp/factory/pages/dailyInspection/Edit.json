@@ -1,0 +1,23 @@
+{
+  "navigationBarTitleText": "每日巡检报告",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-tabs": "../../../node-modules/uview-plus/components/u-tabs/u-tabs",
+    "u-sticky": "../../../node-modules/uview-plus/components/u-sticky/u-sticky",
+    "u--input": "../../../node-modules/uview-plus/components/u-input/u-input",
+    "u-icon": "../../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-form-item": "../../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "zxz-uni-data-select": "../../../uni_modules/zxz-uni-data-select/components/zxz-uni-data-select/zxz-uni-data-select",
+    "u-radio": "../../../node-modules/uview-plus/components/u-radio/u-radio",
+    "u-radio-group": "../../../node-modules/uview-plus/components/u-radio-group/u-radio-group",
+    "u-upload": "../../../node-modules/uview-plus/components/u-upload/u-upload",
+    "u--textarea": "../../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u--form": "../../../node-modules/uview-plus/components/u-form/u-form",
+    "u-datetime-picker": "../../../node-modules/uview-plus/components/u-datetime-picker/u-datetime-picker",
+    "hbxw-time-range-picker": "../../../uni_modules/hbxw-time-range-picker/components/hbxw-time-range-picker/hbxw-time-range-picker",
+    "u-tag": "../../../node-modules/uview-plus/components/u-tag/u-tag",
+    "u-modal": "../../../node-modules/uview-plus/components/u-modal/u-modal",
+    "floating-window": "../../../components/FloatingWindow",
+    "footer-btn": "../../../components/FooterBtn"
+  }
+}

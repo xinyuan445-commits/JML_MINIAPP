@@ -1,0 +1,59 @@
+<view class="page">
+  <!-- 筛选 -->
+  <view class="filter">
+    <view class="search">
+      <view class="search-icon"></view>
+      <input class="search-input" placeholder="搜索客户或报价单号" placeholder-class="ph"
+             value="{{keyword}}" bindinput="onKeyword" confirm-type="search" bindconfirm="onSearch" />
+    </view>
+
+    <scroll-view class="chips" scroll-x>
+      <picker class="chip-pick" mode="selector" range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryFilter">
+        <view class="chip {{categoryIndex ? 'on' : ''}}">
+          <text>{{categoryNames[categoryIndex]}}</text>
+          <view class="chip-arrow"></view>
+        </view>
+      </picker>
+      <picker class="chip-pick" mode="date" value="{{startDate}}" bindchange="onStartDate">
+        <view class="chip {{startDate ? 'on' : ''}}">{{startDate || '起始日期'}}</view>
+      </picker>
+      <picker class="chip-pick" mode="date" value="{{endDate}}" bindchange="onEndDate">
+        <view class="chip {{endDate ? 'on' : ''}}">{{endDate || '结束日期'}}</view>
+      </picker>
+      <view wx:if="{{keyword || categoryIndex || startDate || endDate}}" class="chip reset" hover-class="chip-hover" bindtap="onReset">清除 ✕</view>
+    </scroll-view>
+  </view>
+
+  <!-- 列表 -->
+  <view wx:if="{{list.length}}" class="list">
+    <view wx:for="{{list}}" wx:key="id" class="card" hover-class="card-hover" data-id="{{item.id}}" bindtap="onTap">
+      <view class="card-head">
+        <text class="quote-no">{{item.quote_no}}</text>
+      </view>
+      <view class="customer">{{item.customer || '—'}}</view>
+      <view class="category">{{item.category_name || '—'}}</view>
+      <view class="price-panel">
+        <view class="price-cell" wx:if="{{item.direct_price_text}}">
+          <text class="price-label">直营含税</text>
+          <text class="price">¥{{item.direct_price_text}}</text>
+        </view>
+        <view class="price-divider" wx:if="{{item.direct_price_text && item.dealer_price_text}}"></view>
+        <view class="price-cell" wx:if="{{item.dealer_price_text}}">
+          <text class="price-label">经销商含税</text>
+          <text class="price">¥{{item.dealer_price_text}}</text>
+        </view>
+      </view>
+      <view class="card-foot">
+        <text class="staff">{{item.created_staff_name || '—'}}</text>
+        <text class="date">{{item.created_at}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">
+    <text class="empty-text">暂无报价记录</text>
+  </view>
+
+  <!-- 新增悬浮按钮 -->
+  <view class="fab" hover-class="fab-hover" bindtap="goAdd">+</view>
+</view>

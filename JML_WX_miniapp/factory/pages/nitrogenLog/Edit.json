@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "氮气登记表",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u--input": "../../../node-modules/uview-plus/components/u-input/u-input",
+    "u-form-item": "../../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u-upload": "../../../node-modules/uview-plus/components/u-upload/u-upload",
+    "u--textarea": "../../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u--form": "../../../node-modules/uview-plus/components/u-form/u-form",
+    "u-datetime-picker": "../../../node-modules/uview-plus/components/u-datetime-picker/u-datetime-picker",
+    "floating-window": "../../../components/FloatingWindow",
+    "footer-btn": "../../../components/FooterBtn"
+  }
+}

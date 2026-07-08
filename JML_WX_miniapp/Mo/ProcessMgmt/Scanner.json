@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "工单查询",
+  "usingComponents": {
+    "t-loading":        "../../miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-empty":          "../../miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-tag":            "../../miniprogram_npm/tdesign-miniprogram/tag/tag",
+    "t-collapse":       "../../miniprogram_npm/tdesign-miniprogram/collapse/collapse",
+    "t-collapse-panel": "../../miniprogram_npm/tdesign-miniprogram/collapse-panel/collapse-panel"
+  }
+}

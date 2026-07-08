@@ -1,0 +1,103 @@
+<view class="container">
+
+<!-- 查询条件：一行排列 -->
+<view class="search-row">
+
+  <!-- 日期选择器 -->
+  <picker mode="date" value="{{date}}" bindchange="onDateChange">
+    <view class="picker-box">{{date}}</view>
+  </picker>
+
+  <!-- 货位输入 -->
+  <input class="pos-input"
+         placeholder="货位"
+         value="{{pos}}"
+         bindinput="onPosInput" />
+
+  <!-- 查询按钮 -->
+  <button class="search-btn" bindtap="onSearch">查询</button>
+
+</view>
+
+<!-- 加载中 -->
+<view wx:if="{{loading}}" class="loading">加载中…</view>
+
+<!-- 空状态 -->
+<view wx:if="{{records.length === 0 && !loading}}" class="empty">
+  暂无数据
+</view>
+
+
+<!-- 查询结果卡片 -->
+<view wx:for="{{records}}" wx:key="id" class="card">
+
+  <view class="card-header">
+  <view class="invcode">{{item.cinvcode}}</view>
+
+  <view class="right-actions">
+    <view class="qty-badge">{{item.qty_fmt}}</view>
+
+    <view class="delete-btn"
+          data-id="{{item.id}}"
+          bindtap="onDelete">
+      🗑
+    </view>
+  </view>
+</view>
+
+
+<view class="card-body">
+  <view class="row">
+    <text class="label">批号：</text>{{item.cbatch}}
+  </view>
+  <view class="row">
+    <text class="label">货位：</text>{{item.cposname}}
+  </view>
+  <view class="row">
+    <text class="label">时间：</text>{{item.createtime_fmt}}
+  </view>
+</view>
+
+</view>
+
+
+
+<view wx:if="{{noMore}}" class="nomore">没有更多了</view>
+
+</view>
+
+
+<!-- ===================== 新增：今日输入记录 ===================== -->
+
+<view style="margin-top:40rpx;">
+  <view style="font-size:32rpx;font-weight:bold;color:#333;margin-bottom:20rpx;">
+    今日输入记录
+  </view>
+
+  <!-- 无数据时 -->
+  <view wx:if="{{inputHistory.length == 0}}" class="empty">
+    暂无输入记录
+  </view>
+
+  <!-- 有数据时显示卡片 -->
+  <view wx:for="{{inputHistory}}" wx:key="id" class="card">
+
+    <view class="card-header">
+      <view class="invcode">{{item.cinvcode}}</view>
+      <view class="qty-badge">{{item.qty_fmt}}</view>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="info-row">
+      <text class="label2">批号：</text>
+      <text class="value">{{item.cbatch}}</text>
+    </view>
+
+    <view class="info-row">
+      <text class="label2">时间：</text>
+      <text class="value">{{item.time_fmt}}</text>
+    </view>
+
+  </view>
+</view>

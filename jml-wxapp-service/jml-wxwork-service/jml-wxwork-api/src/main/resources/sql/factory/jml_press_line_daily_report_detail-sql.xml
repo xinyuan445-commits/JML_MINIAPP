@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 压贴线-日报表明细 -->
+<sqlGroup namespace="pressLineDailyReportDetail">
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id AS id,
+            a.model AS model,
+            a.good_qty AS goodQty,
+            a.defective_qty AS defectiveQty,
+            a.paper_consumption AS paperConsumption,
+            a.remark as remark,
+            a.substrate_consumption AS substrateConsumption,
+            a.capacity AS capacity,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime
+          from
+            jml_press_line_daily_report_detail a
+          where
+              a.press_line_daily_report_id = #{pressLineDailyReportId}
+          order by
+                a.update_time desc
+    </select>
+
+    <select id="sumQtyBy" parameterType="map">
+        select
+          sum( capacity ) as capacity,
+          sum( good_qty ) as goodQty,
+          sum( defective_qty ) as defectiveQty,
+          sum( paper_consumption ) as paperConsumption,
+          sum( substrate_consumption ) as substrateConsumption
+        from
+            jml_press_line_daily_report_detail
+        where
+            press_line_daily_report_id = #{pressLineDailyReportId}
+    </select>
+
+</sqlGroup>

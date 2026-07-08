@@ -1,0 +1,53 @@
+<view class="page">
+  <!-- 单号（加粗靠左） -->
+  <view class="docno">{{docNo}}</view>
+
+  <!-- 设备 + 状态 -->
+  <view class="card row">
+    <view class="flex1 cell">
+      <text class="label">设备</text>
+      <text class="val">{{ detail.device_name || '-' }}</text>
+    </view>
+    <view class="badge" wx:if="{{detail.op_type==1}}">开机</view>
+    <view class="badge badge-off" wx:elif="{{detail.op_type==2}}">关机</view>
+    <view class="badge" wx:elif="{{detail.op_type==3}}">重启</view>
+    <view class="badge badge-warn" wx:elif="{{detail.op_type==4}}">异常停机</view>
+    <view class="badge badge-off" wx:else>未知</view>
+  </view>
+
+  <!-- 图片展示（不可上传） -->
+  <view class="card">
+    <view class="photo-box">
+      <block wx:if="{{detail.photo_url}}">
+        <image class="photo" src="{{detail.photo_url}}" mode="aspectFill" />
+      </block>
+      <block wx:else>
+        <view class="placeholder">
+          <view class="plus">+</view>
+          <text class="tip">无照片</text>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 备注 -->
+  <view class="card">
+    <view class="kv">
+      <text class="k">备注</text>
+      <text class="v">{{ detail.remark || '-' }}</text>
+    </view>
+    <view class="kv">
+      <text class="k">位置</text>
+      <text class="v">{{ detail.location || '-' }}</text>
+    </view>
+    <view class="kv">
+  <text class="k">创建时间</text>
+  <text class="v">{{ detail.created_time_txt || detail.created_time || detail.create_time || '-' }}</text>
+</view>
+
+    <view class="kv">
+      <text class="k">操作人</text>
+      <text class="v">{{ detail.staff_name  || '-' }}</text>
+    </view>
+  </view>
+</view>

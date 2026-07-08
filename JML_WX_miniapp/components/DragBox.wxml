@@ -1,0 +1,1 @@
+<movable-area class="{{['movable-area', virtualHostClass]}}" style="{{virtualHostStyle}}"><movable-view class="movable-view" x="{{a}}" y="{{b}}" direction="all" out-of-bounds><slot></slot></movable-view></movable-area>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 工厂通知用户配置 -->
+<sqlGroup namespace="factoryTmpMsgUserCfg">
+    <!--查询模块下配置的用户-->
+    <select id="queryTmpUserOpenId" parameterType="map">
+       SELECT
+           c.openid,
+           a.staff_name AS staffName,
+           a.staff_id AS staffId
+       FROM
+           jml_factory_tmp_msg_user_cfg a
+           LEFT JOIN jml_staff b ON a.staff_id = b.id
+           LEFT JOIN wx_member c ON b.unionid = c.unionid
+       WHERE
+           a.enable = '1'
+           AND (
+               a.obj_code = 'GM'
+               <if test="objCode != null and objCode != ''">
+                   OR a.obj_code = #{objCode}
+               </if>
+           )
+           AND a.staff_id != #{staffId}
+    </select>
+
+    <select id="queryStaffOpenId" parameterType="map">
+          SELECT
+             c.openid,
+             a.name AS staffName,
+             a.id AS staffId
+         FROM
+             jml_staff a
+             LEFT JOIN wx_member c ON a.unionid = c.unionid
+        <where>
+            <!--分配人-岗位分工-->
+            <if test="assignIds !=null and assignIds !=''">
+                and a.id in
+                <foreach collection="assignIds" item="assignId" open="(" separator="," close=")">
+                    #{assignId}
+                </foreach>
+            </if>
+            <!--确认人 - 每日巡检报表-设备部-->
+            <if test="confirmIds !=null and confirmIds !=''">
+                and a.id in
+                <foreach collection="confirmIds" item="confirmId" open="(" separator="," close=")">
+                    #{confirmId}
+                </foreach>
+            </if>
+            <!--
+            每日巡检报表-设备部 ： 巡检人
+            设备报修 ：被分配设备部员工
+            设备报修 ：创建人
+            零配件采购：审批人
+            零配件采购 ：提交人
+            -->
+            <if test="sendStaffId !=null and sendStaffId !=''">
+                and a.id = #{sendStaffId}
+            </if>
+
+        </where>
+    </select>
+
+</sqlGroup>

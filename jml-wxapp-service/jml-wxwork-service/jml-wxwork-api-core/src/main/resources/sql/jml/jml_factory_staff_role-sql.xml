@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- jml_staff_area  -->
+<sqlGroup namespace="jml_factory_staff_role">
+
+	<!--根据staffId查询员工关联的工厂角色-->
+	<select id="queryByStaffId" parameterType="map">
+		select
+			factory_role_name as factoryRoleName,
+			prod_line_or_dept as prodLineOrDept,
+			job_type as jobType,
+			role_code as roleCode,
+		    role_type as roleType
+		from
+			jml_factory_staff_role
+		where
+			staff_id = #{staffId}
+		and
+			`enable` = '1'
+	</select>
+
+	<!--根据staffId查询员工关联的菜单功能-->
+	<select id="queryFactoryStaffFuncByStaffId" parameterType="map">
+			select
+				a.factory_role_name as factoryRoleName,
+				a.role_code roleCode,
+				a.job_type jobType,
+				a.prod_line_or_dept as prodLineOrDept,
+				c.func,
+				c.factory_menu_name as factoryMenuName,
+				d.`code` as menuCode,
+				d. menu_url as menuUrl
+			from
+				jml_factory_staff_role a
+				left join jml_factory_role b on a.factory_role_id = b.id
+				and b.`enable` = '1'
+				left join jml_factory_role_menu c on c.factory_role_id = b.id
+				and c.`enable` = '1'
+				left join jml_factory_menu d on c.factory_menu_id = d.id
+				and d.`enable` = '1'
+			where
+				a.staff_id = #{staffId}
+				and a.`enable` = '1'
+			group by
+				menuCode
+			order by
+				d.sort asc
+	</select>
+
+	<!--查询工厂角色下属，不包含自己-->
+	<select id="queryFactorySubStaffWithOutSelf" parameterType="map">
+		select
+			a.staff_id as staffId,
+			a.staff_name as staffName
+		from
+			jml_factory_staff_role a
+		<where>
+			a.`enable` ='1'
+			<if test="staff.factRoleGM">
+				and a.prod_line_or_dept = #{staff.prodLineOrDept} and a.role_type ='FACTSE'
+			</if>
+			<if test="staff.factRoleGMS == true">
+
+			</if>
+			and a.staff_id !=#{staffId}
+		</where>
+		group by a.staff_id
+	</select>
+
+	<!--根据staffId查询员工关联的菜单功能-->
+	<select id="queryFactoryMenuFunction" parameterType="map">
+		select
+			a.role_code roleCode,
+			c.func,
+			c.factory_menu_name as factoryMenuName,
+			d.`code` as menuCode
+		from
+			jml_factory_staff_role a
+			left join jml_factory_role b on a.factory_role_id = b.id
+			and b.`enable` = '1'
+			left join jml_factory_role_menu c on c.factory_role_id = b.id
+			and c.`enable` = '1'
+			left join jml_factory_menu d on c.factory_menu_id = d.id
+			and d.`enable` = '1'
+		where
+			a.staff_id = #{staffId}
+			and a.`enable` = '1'
+		group by
+			menuCode
+		order by
+			d.sort asc
+	</select>
+
+	<!--根据工厂角色类型返回对应的岗位类型和产线或部门-->
+	<select id="queryProdLineOrDeptAndJobType" parameterType="map">
+		select
+			job_type as jobType,
+			prod_line_or_dept as prodLineOrDept
+		from
+			jml_factory_staff_role
+		where
+			role_code = #{roleCode}
+		and
+			`enable` = '1' and staff_id = #{staffId}
+	</select>
+	<!--获取设备维修员-->
+	<select id="queryRepairStaffList" parameterType="map">
+		select
+			a.staff_id as staffId,
+			b.name as name
+		from
+			jml_factory_staff_role a
+			left join jml_staff b on a.staff_id = b.id
+		where
+			role_code = 'SBE'
+			and `enable` = '1'
+	</select>
+</sqlGroup>

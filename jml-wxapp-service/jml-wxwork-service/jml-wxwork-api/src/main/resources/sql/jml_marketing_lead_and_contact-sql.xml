@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 市场活动销售线索联系人关联 -->
+<sqlGroup namespace="marketingLeadAndContact">
+	<!--根据销售线索Id查询列表-->
+	<select id="queryListBy" parameterType="map">
+		select
+			a.marketing_id,
+			a.id
+		from
+			jml_marketing_lead_and_contact a
+		<where>
+			<if test="leadId != null and leadId != ''">
+				a.sales_lead_id = #{leadId}
+			</if>
+			<if test="contactId != null and contactId != ''">
+				a.contact_id = #{contactId}
+			</if>
+		</where>
+	</select>
+
+	<!--销售线索市场活动修改时去掉关联-->
+	<update id="updateMarketingLeadBy" parameterType="map">
+		update
+			jml_marketing_lead_and_contact a
+		set
+			a.marketing_id ='',
+			a.sync_status = '1'
+		<where>
+			<if test="needUpdateList != null and needUpdateList.size() > 0">
+				a.marketing_id in
+				<foreach collection="needUpdateList" item="mid" open="(" close=")" separator=",">
+					#{mid}
+				</foreach>
+			</if>
+			<if test="leadId != null and leadId != ''">
+				and a.sales_lead_id = #{leadId}
+			</if>
+			<if test="contactId != null and contactId != ''">
+				and a.contact_id = #{contactId}
+			</if>
+		</where>
+	</update>
+
+	<!--销售线索转换时根据销售线索更新联系人的Id-->
+	<update id="updateMarketingContactId" parameterType="map">
+		update
+			jml_marketing_lead_and_contact a
+		set
+			a.contact_id =#{contactId},
+			a.sync_status = '1'
+		<where>
+			a.sales_lead_id = #{leadId}
+		and
+			a.marketing_id is not null
+		and
+			a.marketing_id !=''
+		</where>
+	</update>
+
+	<!--销售销售转换时获取一条活动Id记录-->
+	<select id="queryMarketIdByLeadId"  parameterType="map">
+		select
+			a.marketing_id
+		from
+			jml_marketing_lead_and_contact a
+		<where>
+				a.sales_lead_id = #{leadId}
+			and
+				a.marketing_id is not null
+			and
+				a.marketing_id !=''
+		</where>
+			order by a.created_time desc
+		limit 1
+	</select>
+
+
+
+</sqlGroup>

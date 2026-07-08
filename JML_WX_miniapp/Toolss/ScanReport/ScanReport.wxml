@@ -1,0 +1,45 @@
+<view class="page">
+<!-- 工单号（扫码 + 行选择都在这一行） -->
+<view class="row">
+  <text class="label">工单号</text>
+  <input class="ipt" placeholder="请扫码" value="{{work_order_no}}" disabled="{{lockInputs}}"/>
+  <button size="mini" type="primary" bindtap="onScanWO">扫码</button>
+  <!-- 扫码成功并拿到行清单后出现“选择”按钮 -->
+  <button wx:if="{{moChoices && moChoices.length}}" size="mini" bindtap="onChooseMoLine">选择</button>
+</view>
+
+
+  <!-- 行号（仅扫码） -->
+  <view class="row">
+    <text class="label">行号</text>
+    <input class="ipt" placeholder="请扫码" value="{{line_no}}" disabled="{{lockInputs}}"/>
+  </view>
+
+  <!-- 产线（仅扫码字符串） -->
+  <view class="row">
+    <text class="label">产线</text>
+    <input class="ipt" placeholder="请扫码" value="{{line_name}}" disabled="{{lockInputs}}"/>
+    <button size="mini" type="primary" bindtap="onScanLine">扫码</button>
+  </view>
+
+  <!-- 扫码时间（开始时间） -->
+  <view class="row">
+    <text class="label">扫码时间</text>
+    <input class="ipt" placeholder="检查/提交后自动生成" value="{{scan_time}}" disabled="true"/>
+  </view>
+
+  <!-- ✅ 只有在需要时才显示结束栏 -->
+  <view wx:if="{{show_end_fields}}" class="row">
+    <text class="label">结束时间</text>
+    <input class="ipt" value="{{end_time}}" disabled="true"/>
+  </view>
+
+  <view wx:if="{{show_end_fields}}" class="row">
+    <text class="label">结束数量</text>
+    <input class="ipt" type="digit" placeholder="请输入结束数量" value="{{end_qty}}" bindinput="onInputEndQty"/>
+  </view>
+
+  <view class="btns">
+    <button type="primary" bindtap="onSubmit">提交</button>
+  </view>
+</view>

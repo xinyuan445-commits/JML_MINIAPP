@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 零配件采购清单 -->
+<sqlGroup namespace="factoryApprovalUserCfg">
+    <select id="queryApprovalStaffId" parameterType="map">
+        select
+            a.approval_staff_id as approvalStaffId
+        from
+            jml_factory_approval_user_cfg a
+        where
+            a.approval_f_role_code = #{approvalFRoleCode} and enable = '1'
+    </select>
+</sqlGroup>

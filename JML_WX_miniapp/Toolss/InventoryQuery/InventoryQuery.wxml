@@ -1,0 +1,65 @@
+<view class="page">
+
+<!-- 固定筛选区 -->
+<view class="search card search-fixed">
+  <!-- 行1：料号 + CKB -->
+  <view class="row row-2">
+    <input class="ipt" placeholder="料号（空=查全部）" bindinput="onInputCode" />
+    <input class="ipt" placeholder="CKB（可选）" bindinput="onInputCkb" />
+  </view>
+
+  <!-- 行2：产品类型 + 公司 -->
+  <view class="row row-2">
+    <picker class="picker" mode="selector" range="{{ptypeOptions}}" value="{{ptypeIndex}}" bindchange="onChangePtype">
+      <view class="picker-view">产品类型：{{ptypeOptions[ptypeIndex]}}</view>
+    </picker>
+    <picker class="picker" mode="selector" range="{{companyOptions}}" value="{{companyIndex}}" bindchange="onChangeCompany">
+      <view class="picker-view">公司：{{companyOptions[companyIndex]}}</view>
+    </picker>
+  </view>
+
+  <!-- 行3：统计 -->
+  <view class="row stat">
+    <text>已加载：{{loadedCount}} 条</text>
+    <text>数量合计：{{loadedQtySum}}</text>
+  </view>
+</view>
+
+<!-- 占位，避免 fixed 遮挡内容（与筛选区高度一致可微调） -->
+<view class="search-placeholder"></view>
+
+<!-- 列表 -->
+<view class="list" wx:if="{{list.length}}">
+  <block wx:for="{{list}}" wx:key="id">
+    <view class="item card">
+      <view class="line">
+        <text class="code" selectable="true">{{item.cInvCode}}</text>
+        <text class="qty">{{item.qtyDisplay}}</text>
+      </view>
+
+      <view class="line sub">
+        <text class="name" selectable="true">{{item.cInvName}}</text>
+      </view>
+
+      <view class="line sub">
+        <text class="meta">CKB：<text class="mono">{{item.CKB || '-'}}</text></text>
+        <text class="meta">批次：<text class="mono">{{item.cBatch || '-'}}</text></text>
+      </view>
+
+      <view class="line sub">
+        <text class="meta">仓库：{{item.cWhName || '-'}}</text>
+        <text class="meta">公司：{{item.company || '-'}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="footer">
+    <text wx:if="{{loading}}">加载中…</text>
+    <text wx:elif="{{finished}}">已到底</text>
+  </view>
+</view>
+
+<view class="empty" wx:if="{{!list.length}}">
+  <text>请输入条件（或留空=查全部）</text>
+</view>
+</view>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="caseStageCfg">
+    <!--服务类型获取阶段List-->
+    <select id="queryListByServiceType" parameterType="map">
+      SELECT
+        b.`name` as stage_name,
+        b.stage_code,
+        COALESCE(c.acceptance_staff_name, '') AS acceptance_staff_name,
+        COALESCE(c.acceptance_staff_id, '') AS acceptance_staff_id,
+        COALESCE(c.acceptance_role_name, b.acceptance_role_name) AS acceptance_role_name,
+        COALESCE(c.acceptance_status, b.acceptance_status) AS acceptance_status,
+        b.sort,
+        b.show_list
+    FROM
+        jml_staff_case_type_flow_cfg a
+    LEFT JOIN
+        jml_case_stage_cfg b ON a.flow_id = b.flow_id
+    LEFT JOIN
+        jml_case_user_cfg c ON b.stage_code = c.case_stage_code
+            AND (
+                (c.acceptance_role_code  ='SA' AND c.area_code = #{areaCode})
+                OR (c.acceptance_role_code = 'SD')
+                OR (c.acceptance_role_code = 'QA' and c.factory_code = 'KML')
+                OR (c.acceptance_role_code = 'GM')
+            ) AND c.`enable` = '1'  AND b.`enable` = '1'
+    WHERE
+        a.service_type = #{serviceType}
+        AND a.`enable` = '1'
+    ORDER BY
+        b.sort ASC;
+    </select>
+
+    <!--更加服务类型获取阶段List-->
+
+    <!--内部工单阶段List-->
+    <select id="queryListByFlowCode" parameterType="map">
+      SELECT
+        b.`name` as stage_name,
+        b.stage_code,
+        COALESCE(c.acceptance_staff_name, '') AS acceptance_staff_name,
+        COALESCE(c.acceptance_staff_id, '') AS acceptance_staff_id,
+        COALESCE(c.acceptance_role_name, b.acceptance_role_name) AS acceptance_role_name,
+        COALESCE(c.acceptance_status, b.acceptance_status) AS acceptance_status,
+        b.sort
+    FROM
+        jml_staff_case_type_flow_cfg a
+    LEFT JOIN
+        jml_case_stage_cfg b ON a.flow_id = b.flow_id
+    LEFT JOIN
+        jml_case_user_cfg c ON b.stage_code = c.case_stage_code
+    WHERE
+        a.flow_code = #{flowCode}
+        AND a.`enable` = '1'
+    ORDER BY
+        b.sort ASC;
+    </select>
+
+    <!--获取工厂受理人员，在销售助理受理时更加工厂code来查询-->
+    <select id="queryFactoryAcceptance" parameterType="map">
+        select
+            a.acceptance_staff_name,
+            a.acceptance_staff_id,
+            a.acceptance_role_name,
+            a.acceptance_status
+        from
+            jml_case_user_cfg a
+            LEFT JOIN jml_case_stage_cfg b ON a.case_stage_code = b.stage_code
+        where
+            a.acceptance_role_code = 'QA'
+            and a.factory_code = #{factoryCode}
+            and a.`enable` = '1'
+            and b.`enable` = '1'
+    </select>
+    <!--特殊条件判断处理-->
+    <select id="queryCheckStage" parameterType="map">
+       SELECT
+            CASE
+                WHEN condition_filed = #{checkFiled} AND <![CDATA[ #{checkValue} <= max_value]]> AND <![CDATA[ #{checkValue} >= min_value]]> THEN out_stage_code
+                WHEN condition_filed = #{checkFiled} AND <![CDATA[#{checkValue} > max_value]]> THEN in_stage_code
+                ELSE NULL
+            END AS stage_code
+        FROM
+            jml_case_stage_conditions_cfg
+        WHERE
+            condition_filed =  #{checkFiled}
+            and `enable` = '1'
+    </select>
+
+    <!--获取配置的判断的字段-->
+    <select id="queryCheckFiled">
+        select
+            condition_filed
+        from
+            jml_case_stage_conditions_cfg a
+            left join jml_case_stage_cfg b on a.check_stage_code = b.stage_code
+        where
+            a.`enable` = '1'
+            and b.`enable` = '1'
+    </select>
+
+</sqlGroup>

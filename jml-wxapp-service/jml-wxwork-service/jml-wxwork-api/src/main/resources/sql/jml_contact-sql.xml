@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 联系人管理SQL -->
+<sqlGroup namespace="contact">
+	<!--分页查询联系人-->
+	<select id="queryPageBy" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.mobile_phone,
+			a.email,
+			a.working,
+			a.is_new,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			cs.`name` AS createdStaffName
+		<pageTag/>
+		from
+			jml_contact a
+		left join
+			jml_staff cs ON a.created_staff_id = cs.id
+		<where>
+			<include refid="common.auth"/>
+			<if test="multiFiled != null and multiFiled != ''">
+				and a.name like '%${multiFiled}%'
+			</if>
+			<if test="accountId != null and accountId != ''">
+				and a.account_id = #{accountId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--获取联系人明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			a.`name`,
+			a.mobile_phone,
+			a.email,
+			a.wechat,
+			a.department,
+			a.`function`,
+			a.working,
+			a.title,
+			a.decision_maker,
+			a.account_id,
+			a.sales_lead_id,
+			c.name as salesLeadName,
+			b.`name` accName,
+			cs.`name` AS createdStaffName,
+			us.`name` AS updateStaffName,
+			date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as created_time,
+			date_format( a.update_time, '%Y-%m-%d %H:%i:%s' ) as update_time,
+			a.marketing_id_list,
+			a.area_code,
+			ar.name as areaName,
+			a.district,
+			a.created_staff_id
+		from
+			jml_contact a
+		left join
+			jml_account b on a.account_id = b.id
+		left join
+			jml_staff cs on a.created_staff_id = cs.id
+		left join
+			jml_staff us ON a.update_staff_id = us.id
+		left join
+			jml_sales_lead c on a.sales_lead_id = c.id
+		left join
+			jml_area ar on a.area_code = ar.area_code
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+	<!--根据员工信息获取联系人列表信息-->
+	<select id="queryListByStaff" parameterType="map">
+		select
+			a.id,
+			a.name,
+			a.mobile_phone as mobilePhone
+		from
+			jml_contact a
+		<where>
+			<!--<include refid="common.auth"/>-->
+			<if test="accountId != null and accountId != ''">
+				and a.account_id = #{accountId}
+			</if>
+		</where>
+	</select>
+</sqlGroup>

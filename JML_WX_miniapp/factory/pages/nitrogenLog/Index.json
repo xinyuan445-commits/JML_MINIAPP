@@ -1,0 +1,15 @@
+{
+  "navigationBarTitleText": "氮气登记表",
+  "usingComponents": {
+    "u-search": "../../../node-modules/uview-plus/components/u-search/u-search",
+    "u-icon": "../../../node-modules/uview-plus/components/u-icon/u-icon",
+    "uni-datetime-picker": "../../../uni_modules/uni-datetime-picker/components/uni-datetime-picker/uni-datetime-picker",
+    "u-divider": "../../../node-modules/uview-plus/components/u-divider/u-divider",
+    "uni-swipe-action-item": "../../../uni_modules/uni-swipe-action/components/uni-swipe-action-item/uni-swipe-action-item",
+    "uni-swipe-action": "../../../uni_modules/uni-swipe-action/components/uni-swipe-action/uni-swipe-action",
+    "u-empty": "../../../node-modules/uview-plus/components/u-empty/u-empty",
+    "floating-window": "../../../components/FloatingWindow",
+    "tools-picker": "../../components/toolsPicker",
+    "t-tag": "/miniprogram_npm/tdesign-miniprogram/tag/tag"
+  }
+}

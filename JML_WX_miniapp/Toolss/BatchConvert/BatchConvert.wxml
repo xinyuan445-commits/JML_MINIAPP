@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="head">批次号互转</view>
+  <view class="subhead"></view>
+
+  <view class="mode-tabs">
+    <view class="tab {{mode==='letterToNum'?'active':''}}" data-mode="letterToNum" bindtap="changeMode">字母→数字</view>
+    <view class="tab {{mode==='numToLetter'?'active':''}}" data-mode="numToLetter" bindtap="changeMode">数字→字母</view>
+  </view>
+
+  <input class="input" placeholder="请输入批次号" value="{{input}}" bindinput="onInput" />
+  
+  <button class="btn primary" bindtap="convert">转换</button>
+
+  <view class="result" wx:if="{{output !== ''}}">
+    <text class="result-label">转换结果</text>
+    <text class="result-text">{{output}}</text>
+    <button class="btn ghost" bindtap="copy">复制结果</button>
+  </view>
+
+  <view class="tips">
+
+  </view>
+</view>

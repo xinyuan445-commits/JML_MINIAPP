@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 维修进展SQL -->
+<sqlGroup namespace="deviceRepairProgress">
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id as id,
+            a.name as name,
+            a.repair_content as repairContent,
+            CONCAT_WS( ";", a.repair_img1, a.repair_img2, a.repair_img3) AS repairImg,
+            a.remark,
+            a.created_time as repairTime,
+            cs.name as repairStaffName,
+            DATE_FORMAT(a.repair_start_time, '%Y-%m-%d %H:%i:%s') AS repairStartTime,
+            DATE_FORMAT(a.repair_end_time, '%Y-%m-%d %H:%i:%s') AS repairEndTime
+        from
+            jml_device_repair_progress a
+        left join jml_staff cs ON a.created_staff_id = cs.id
+        where
+            a.device_repair_id = #{deviceRepairId}
+        order by a.update_time desc
+    </select>
+</sqlGroup>

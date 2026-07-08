@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 字典管理的SQL -->
+<sqlGroup namespace="sys_dict">
+	<!--根据字典类型编码查询字典列表-->
+	<select id="queryDictByTCode" parameterType="string">
+		select
+			a.id,
+			a.tcode ,
+			a.dname ,
+			a.dcode ,
+			a.dval ,
+			a.defaultval
+		from
+			sys_dict a
+		left join sys_dict_type b on a.tcode = b.dcode
+		where
+			b.dcode = #{value}
+			and a.status = '1'
+			and a.hidden = '0'
+		order by
+			a.defaultval desc,
+			a.sort desc
+	</select>
+
+
+	<!--根据条件查询字典-->
+	<select id="queryBy" parameterType="map">
+		select a.*
+		from sys_dict a
+		left join sys_dict_type b on a.tcode=b.dcode
+		<where>
+			a.status ='1'
+			<if test="dcode != null and dcode != ''">
+				and b.dcode=#{dcode}
+			</if>
+			<if test="dcodeList != null and dcodeList.size() > 0">
+				and b.dcode in
+				<foreach collection="dcodeList" item="dcode" open="(" close=")" separator=",">
+					#{dcode}
+				</foreach>
+			</if>
+			<!--排除不需要的值-->
+			<if test="notInDval != null">
+				and a.dval != #{notInDval}
+			</if>
+		</where>
+		order by a.sort desc
+	</select>
+
+
+	<!-- 根据编码和类型编码查字典值 -->
+	<select id="queryValByCode" parameterType="map">
+		select d.dval 
+		from sys_dict d 
+		left join sys_dict_type t on d.tcode = t.dcode
+		where d.dcode = #{dicCode} and t.dcode = #{dicTypeCode}
+	</select>
+	
+	<!-- 根据值和类型编码查字典值 -->
+	<select id="queryNameByVal" parameterType="map">
+		select d.dname 
+		from sys_dict d 
+		left join sys_dict_type t on d.tcode = t.dcode
+		where d.dval = '${dicVal}' and t.dcode = #{dicTypeCode}
+	</select>
+
+	<!-- 条件查询 -->
+	<select id="queryByParam" parameterType="map">
+		select id, dname, dcode, sort, remark <pageTag/>from sys_dict
+		<where>
+			<if test="tcode != null and tcode != ''">
+				and tcode = #{tcode}
+			</if>
+			<if test="dname != null and dname != ''">
+				and dname like concat('%', #{dname} , '%')
+			</if>
+		</where>
+		order by sort desc
+	</select>
+
+	<!--查询全部的字典项-->
+	<select id="queryAll" parameterType="map">
+		select
+			a.*
+		from
+			sys_dict a
+		order by
+			a.sort desc
+	</select>
+
+
+	<!--查询子集字典项-->
+	<select id="querySubDictByPid" parameterType="map">
+		select
+			a.*
+		from
+			sys_dict a
+		where
+			a.pid =#{value}
+		order by
+			a.sort desc
+	</select>
+
+	<!--获取父级tcode-->
+	<select id="queryParentTcode" parameterType="string">
+		select
+			a.*
+		from
+			sys_dict a
+		where
+			a.pid ='-1' and  a.tcode =  #{tcode}
+		order by
+			a.sort desc
+	</select>
+
+	<!-- 导出查询全部的字典项-->
+	<select id="exportQueryAll" parameterType="map">
+		select
+		a.tcode as tCode,
+		b.dname as dictTypeName,
+		a.dname as dictName,
+		a.dcode as dCode,
+		a.dval,
+		if(a.`status`=1,"启用","禁用")  as `status`,
+		a.remark
+		from
+		sys_dict a left join sys_dict_type b on a.tcode = b.dcode
+		order by
+		a.sort desc
+	</select>
+
+
+
+
+
+
+	<!--根据tcode取消所有默认值-->
+	<update id="cancelAllDefault" parameterType="map">
+		update sys_dict set defaultval=false where tcode=#{tcode}
+	</update>
+
+	<!-- 根据tcode查询 -->
+	<select id="queryBytCode" parameterType="string">
+		select * from sys_dict where tcode = #{value}
+	</select>
+</sqlGroup>

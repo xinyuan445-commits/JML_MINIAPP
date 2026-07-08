@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 系统参数管理的SQL -->
+<sqlGroup namespace="sys_config">
+	<update id="upWebSet" parameterType="map">
+		update sys_config s set s.value = #{v} where s.key = #{k}
+	</update>
+
+	<!--根据条件查询-->
+	<select id="query" parameterType="map">
+		select * from sys_config a where 1=1
+		<if test="key != null and key != ''">
+			and a.key = #{key}
+		</if>
+		order by id asc
+	</select>
+	
+	<!-- 根据columName查询 -->
+	<select id="queryByColumsName" parameterType="map">
+	   select * from sys_config where ${columsName} = #{value}
+	</select>
+
+	<!--批量删除配置-->
+	<delete id="delBatch" parameterType="map">
+		delete from sys_config where id in
+		<foreach collection="list" separator="," item="item" open="(" close=")">
+			#{item.attrs.id}
+		</foreach>
+	</delete>
+</sqlGroup>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 设备维修SQL -->
+<sqlGroup namespace="deviceRepair">
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id,
+            a.name AS name,
+            a.job_type AS jobType,
+            a.prod_line_or_dept AS prodLineOrDept,
+            a.impact_level AS impactLevel,
+            a.repair_status AS repairStatus,
+            a.repair_accepted AS repairAccepted,
+            rp.name AS repairerStaffName,
+            dv.name AS deviceName,
+            date_format( a.created_time, '%Y-%m-%d %H:%i:%s' ) as createdTime,
+            cs.`name` AS createdStaffName,
+            a.repairer_staff_id AS repairerStaffId,
+            a.repair_accepted AS repairAccepted,
+            DATE_FORMAT(a.repair_accepted_time, '%Y-%m-%d %H:%i:%s') AS repairAcceptedTime
+        <pageTag/>
+        from
+            jml_device_repair a
+            left join jml_staff cs ON a.created_staff_id = cs.id
+            left join jml_staff rp ON a.repairer_staff_id = rp.id
+            left join jml_device dv ON a.device_id = dv.id
+        <where>
+            <if test="staff.factRoleSE == true">
+                <!--如果是设备部员工：自己创建+分配给自己的记录-->
+                <choose>
+                    <when test="staff.factoryMRole =='SBE'">
+                        and (a.repairer_staff_id = #{staff.staffId} or a.created_staff_id = #{staff.staffId})
+                    </when>
+                    <!--其他则是自己创建的-->
+                    <otherwise>
+                        and a.created_staff_id = #{staff.staffId}
+                    </otherwise>
+                </choose>
+            </if>
+            <!--主管/线长看自己所在线体或部门的数据-->
+            <if test="staff.factRoleGM == true and staff.factoryMRole != 'SBZ'">
+                and a.prod_line_or_dept = #{staff.prodLineOrDept}
+            </if>
+            <!--厂长/厂助/设备部主管看模块下所有数据-->
+            <if test="staff.factRoleGMS == true and staff.factoryMRole == 'SBZ'">
+
+            </if>
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%')
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <!--创建人信息-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+            <!--维修人-->
+            <if test="repairerStaffId != null and repairerStaffId != ''">
+                and a.repairer_staff_id = #{repairerStaffId}
+            </if>
+            <!--岗位信息-->
+            <if test="prodLineOrDept != null and prodLineOrDept != ''">
+                and a.prod_line_or_dept = #{prodLineOrDept}
+            </if>
+        </where>
+        group by a.id
+        order by a.update_time desc
+    </select>
+
+    <!-- 查询详情 -->
+    <select id="queryDetails" parameterType="map">
+        SELECT
+            a.id AS id,
+            a.name AS name,
+            a.job_type AS jobType,
+            a.prod_line_or_dept AS prodLineOrDept,
+            a.device_id AS deviceId,
+            a.repair_status AS repairStatus,
+            a.location AS location,
+            a.fault_desc AS faultDesc,
+            CONCAT_WS( ";", a.damage_img1, a.damage_img2, a.damage_img3) AS damageImg,
+            a.impact_level AS impactLevel,
+            a.repairer_staff_id AS repairerStaffId,
+            a.repairer_status AS repairerStatus,
+            a.assign_remark AS assignRemark,
+            DATE_FORMAT(a.assign_time, '%Y-%m-%d %H:%i:%s') AS assignTime,
+            a.repair_content AS repairContent,
+            a.replace_part AS replacePart,
+            a.part_name AS partName,
+            a.part_model AS partModel,
+            a.part_qty AS partQty,
+            CONCAT_WS( ";", a.part_img_1, a.part_img_2) AS partImg,
+            a.solution AS solution,
+            a.fault_analysis AS faultAnalysis,
+            a.prevention_method AS preventionMethod,
+            CONCAT_WS( ";", a.completion_img1, a.completion_img2, a.completion_img3) AS completionImg,
+            a.completion_staff_id AS completionStaffId,
+            DATE_FORMAT(a.completion_time, '%Y-%m-%d %H:%i:%s') AS completionTime,
+            a.completion_remark AS completionRemark,
+            a.cancel_reason AS cancelReason,
+            a.cancel_staff_id AS cancelStaffId,
+            DATE_FORMAT(a.cancel_time, '%Y-%m-%d %H:%i:%s') AS cancelTime,
+            a.repair_confirmed AS repairConfirmed,
+            a.repair_feedback AS repairFeedback,
+            a.service_rating AS serviceRating,
+            a.remark AS remark,
+            a.update_staff_id AS updateStaffId,
+            a.created_staff_id AS createdStaffId,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+            cs.name AS createdStaffName,
+            us.name AS updateStaffName,
+            cans.name AS cancelStaffName,
+            coms.name AS completionStaffName,
+            reps.name AS repairerStaffName,
+            dv.name AS deviceName,
+            a.repair_accepted AS repairAccepted,
+            a.sbe_auto_accepted AS sbeAutoAccepted,
+            DATE_FORMAT(a.repair_accepted_time, '%Y-%m-%d %H:%i:%s') AS repairAcceptedTime
+        FROM
+            jml_device_repair a
+        left join
+            jml_staff cs on a.created_staff_id = cs.id
+        left join
+            jml_staff us ON a.update_staff_id = us.id
+        left join
+            jml_staff cans ON a.cancel_staff_id = cans.id
+        left join
+            jml_staff coms ON a.completion_staff_id = coms.id
+        left join
+            jml_staff reps ON a.repairer_staff_id = reps.id
+        left join
+            jml_device dv ON a.device_id = dv.id
+        WHERE
+            a.id = #{id}
+    </select>
+</sqlGroup>

@@ -1,0 +1,42 @@
+<!-- 旧版页面及编辑按钮完整保留在 Detailed.legacy.wxml。 -->
+<view class="page">
+  <view wx:if="{{loading}}" class="status">加载中...</view>
+
+  <block wx:if="{{detail}}">
+    <view class="hero">
+      <view class="doc-no">{{detail.name}}</view>
+      <view class="factory">{{detail.factory_name}}（{{detail.factory_code}}）</view>
+      <view class="device">{{detail.device_name}}</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">抄表数据</view>
+      <view class="reading-grid">
+        <view>
+          <text class="metric-label">上次示数</text>
+          <text class="metric-value">{{detail.before_reading}} m³</text>
+        </view>
+        <view>
+          <text class="metric-label">本次示数</text>
+          <text class="metric-value">{{detail.daily_reading}} m³</text>
+        </view>
+      </view>
+      <view class="usage-row">
+        <text>本次用量</text>
+        <text class="usage-value">{{detail.before_usage}} m³</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">示数照片</view>
+      <image wx:if="{{imageUrl}}" class="photo" src="{{imageUrl}}" mode="aspectFill" bindtap="previewImage" />
+      <view wx:else class="no-photo">暂无照片</view>
+    </view>
+
+    <view class="card info-card">
+      <view class="info-row"><text class="label">备注</text><text>{{detail.remark || '无'}}</text></view>
+      <view class="info-row"><text class="label">登记时间</text><text>{{detail.createdTimeText}}</text></view>
+      <view class="info-row"><text class="label">登记员工</text><text>{{detail.created_staff_name || detail.created_staff_id}}</text></view>
+    </view>
+  </block>
+</view>

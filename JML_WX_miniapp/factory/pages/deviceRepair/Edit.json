@@ -1,0 +1,14 @@
+{
+  "navigationBarTitleText": "设备维修",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-form-item": "../../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "zxz-uni-data-select": "../../../uni_modules/zxz-uni-data-select/components/zxz-uni-data-select/zxz-uni-data-select",
+    "u--textarea": "../../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u-upload": "../../../node-modules/uview-plus/components/u-upload/u-upload",
+    "u--form": "../../../node-modules/uview-plus/components/u-form/u-form",
+    "floating-window": "../../../components/FloatingWindow",
+    "footer-btn": "../../../components/FooterBtn",
+    "load-selector": "../../../components/LoadSelector"
+  }
+}

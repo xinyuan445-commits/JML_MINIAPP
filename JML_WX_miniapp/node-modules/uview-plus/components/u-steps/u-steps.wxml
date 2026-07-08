@@ -1,0 +1,1 @@
+<view class="{{['u-steps', 'data-v-0cfcdbda', a, virtualHostClass]}}" style="{{virtualHostStyle}}"><slot></slot></view>

@@ -1,0 +1,16 @@
+{
+  "navigationBarTitleText": "里程认证列表",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-tabs": "../../node-modules/uview-plus/components/u-tabs/u-tabs",
+    "u-sticky": "../../node-modules/uview-plus/components/u-sticky/u-sticky",
+    "u-divider": "../../node-modules/uview-plus/components/u-divider/u-divider",
+    "u-button": "../../node-modules/uview-plus/components/u-button/u-button",
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "uni-swipe-action-item": "../../uni_modules/uni-swipe-action/components/uni-swipe-action-item/uni-swipe-action-item",
+    "uni-swipe-action": "../../uni_modules/uni-swipe-action/components/uni-swipe-action/uni-swipe-action",
+    "u-empty": "../../node-modules/uview-plus/components/u-empty/u-empty",
+    "floating-window": "../../components/FloatingWindow",
+    "mileage-map": "../../components/MileageMap"
+  }
+}

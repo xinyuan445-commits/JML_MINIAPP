@@ -1,0 +1,69 @@
+/* 页面基础 */
+.page { min-height: 100vh; background: #f7f8fa; }
+
+/* 卡片与阴影 */
+.card {
+  background:#fff;
+  border-radius: 16rpx;
+  box-shadow: 0 6rpx 16rpx rgba(0,0,0,0.06);
+}
+
+/* —— 固定筛选区 —— */
+.search-fixed {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 99;
+  padding: 20rpx 24rpx;
+}
+.search-placeholder { height: 260rpx; } /* 依据筛选区实际高度微调 */
+
+/* 搜索内布局 */
+.row { display:flex; gap: 16rpx; margin-bottom: 14rpx; }
+.row-2 > .ipt, .row-2 > .picker { flex: 1; }
+.ipt { background:#f5f6f8; border-radius: 12rpx; padding: 20rpx 24rpx; }
+.picker { background:#f5f6f8; border-radius: 12rpx; }
+.picker-view { padding: 20rpx 24rpx; color:#333; }
+
+/* 统计行 */
+.row.stat {
+  justify-content: space-between;
+  color: #666;
+  font-size: 26rpx;
+  padding-top: 8rpx;
+  border-top: 1rpx solid #eee;
+  margin-top: 6rpx;
+}
+
+/* 列表与条目 */
+.list { padding: 5rpx; }
+.item { padding: 20rpx; margin-bottom: 16rpx; }
+
+/* 条目内行 */
+.line { display:flex; justify-content: space-between; align-items:center; margin-bottom: 8rpx; }
+.line.sub { color:#666; font-size: 26rpx; }
+.name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 料号 */
+.code { font-size: 30rpx; font-weight: 700; color:#1f2329; word-break: break-all; }
+
+/* 数量胶囊（仅强调数量） */
+.qty {
+  color: #2563ff;
+  font-weight: 700;
+  font-size: 26rpx;
+  background: #ecf1ff;
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  min-width: 100rpx;
+  text-align: right;
+}
+
+/* 元信息 */
+.meta { display:flex; align-items:center; gap: 8rpx; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+/* 列表尾部提示 */
+.footer { text-align:center; color:#8a92a6; padding: 16rpx 0 8rpx; }
+
+/* 空态 */
+.empty { text-align:center; color:#9aa0a6; padding: 40rpx 0; }

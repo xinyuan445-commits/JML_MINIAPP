@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "业务机会产品列表",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-search": "../../node-modules/uview-plus/components/u-search/u-search",
+    "uni-swipe-action-item": "../../uni_modules/uni-swipe-action/components/uni-swipe-action-item/uni-swipe-action-item",
+    "uni-swipe-action": "../../uni_modules/uni-swipe-action/components/uni-swipe-action/uni-swipe-action",
+    "u-empty": "../../node-modules/uview-plus/components/u-empty/u-empty",
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "floating-window": "../../components/FloatingWindow",
+    "progress-status": "../../components/ProgressStatus"
+  }
+}

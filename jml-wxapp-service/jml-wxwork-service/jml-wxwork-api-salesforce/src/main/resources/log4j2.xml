@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="off">
+    <Properties>
+        <Property name="LOG_HOME">/logs/jml</Property>
+        <Property name="APP_LOG_HOME">${LOG_HOME}/jml-wxwork-salesforce</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <!-- 输出日志的格式 -->
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %class{36} %L %M - %msg%xEx%n"/>
+        </Console>
+        <!-- 这个会打印出所有的info及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+        <RollingRandomAccessFile name="RollingFileInfo" immediateFlush="true"  fileName="${APP_LOG_HOME}/jml-wxwork-salesforce.log" filePattern="${APP_LOG_HOME}/jml-wxwork-salesforce-%d{yyyy-MM-dd}-%i.log.gz">
+            <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="RollingFileWarn" immediateFlush="true"  fileName="${APP_LOG_HOME}/jml-wxwork-salesforce-warn.log" filePattern="${APP_LOG_HOME}/jml-wxwork-salesforce-warn-%d{yyyy-MM-dd}-%i.log.gz">
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <!-- DefaultRolloverStrategy属性如不设置，则默认为最多同一文件夹下7个文件，这里设置了20 -->
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="RollingFileError" immediateFlush="true"  fileName="${APP_LOG_HOME}/jml-wxwork-salesforce-error.log" filePattern="${APP_LOG_HOME}/jml-wxwork-salesforce-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="[%d{HH:mm:ss:SSS}] [%p] - %l - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+        </RollingRandomAccessFile>
+    </Appenders>
+
+    <Loggers>
+        <logger name="com.glenls" level="DEBUG"></logger>
+        <logger name="org.springframework" level="INFO"></logger>
+        <logger name="org.xnio" level="INFO"></logger>
+        <logger name="org.mybatis" level="INFO"></logger>
+        <logger name="io.lettuce.core.protocol" level="INFO"></logger>
+        <logger name="org.hibernate.validator" level="INFO"></logger>
+        <logger name="com.netflix.discovery" level="INFO"></logger>
+        <logger name="com.alibaba.nacos" level="WARN"></logger>
+
+        <root level="all">
+            <appender-ref ref="Console" />
+            <appender-ref ref="RollingFileInfo"/>
+            <appender-ref ref="RollingFileWarn"/>
+            <appender-ref ref="RollingFileError"/>
+        </root>
+    </Loggers>
+
+</configuration>

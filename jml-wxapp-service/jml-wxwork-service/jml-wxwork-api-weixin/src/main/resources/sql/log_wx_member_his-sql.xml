@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- log_wx_member_his 的SQL -->
+<sqlGroup namespace="log_wx_member_his">
+
+    <!--保存数据到历史表-->
+	<select id="save2His" parameterType="map">
+        insert into log_wx_member_his (
+            wxappid,
+            subscribe,
+            openid,
+            nickname,
+            sex,
+            city,
+            country,
+            province,
+            headimgurl,
+            subscribe_time,
+            unionid,
+            remark,
+            groupid,
+            batchNo,
+            sync_time
+        )
+        select
+            wxappid,
+            subscribe,
+            openid,
+            nickname,
+            sex,
+            city,
+            country,
+            province,
+            headimgurl,
+            subscribe_time,
+            unionid,
+            remark,
+            groupid,
+            batchNo,
+            sync_time
+        from
+            log_wx_member a
+        where
+            a.wxappid = #{wxappid}
+    </select>
+</sqlGroup>

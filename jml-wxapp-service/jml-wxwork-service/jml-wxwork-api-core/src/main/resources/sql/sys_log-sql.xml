@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- sys_log的SQL -->
+<sqlGroup namespace="sys_log">
+	<!--分页查询日志记录-->
+	<select id="queryBy" parameterType="map">
+		select
+			a.id,
+			a.module,
+			a.`recordType`,
+			b.dname as recordTypeName,
+			a.`userId`,
+			d.`nickName` as userName,
+			a.`action`,
+			a.`busiTable`,
+			a.`busiId`,
+			a.ip,
+			a.status,
+			c.dname as statusName,
+			e.dname as recordPointName,
+			a.`execTime`,
+			a.`recordTime`
+		<pageTag/>
+		from
+			sys_log a
+		left join sys_dict b on a.`recordType`=b.dval and b.tcode='LOG_RECORD_TYPE'
+		left join sys_dict c on a.status=c.dval and c.tcode='LOG_RECORD_STATUS'
+		left join sys_user d on d.id=a.`userId`
+		left join sys_dict e on a.`recordPoint`=e.dval and e.tcode='LOG_RECORD_POINT'
+		<where>
+			<if test="busiTable != null and busiTable != ''">
+				and a.busiTable like '%${busiTable}%'
+			</if>
+			<if test="userName != null and userName != ''">
+				and d.nickName like '%${userName}%'
+			</if>
+			<if test="userId != null and userId != ''">
+				and a.userId = #{userId}
+			</if>
+			<if test="action != null and action != ''">
+				and a.action = #{action}
+			</if>
+			<if test="status != null and status != ''">
+				and a.status = #{status}
+			</if>
+			<if test="startDate != null and startDate != ''">
+				and a.recordTime <![CDATA[>=]]> #{startDate}
+			</if>
+			<if test="endDate != null and endDate != ''">
+				and a.recordTime <![CDATA[<=]]> #{endDate}
+			</if>
+		</where>
+		order by a.recordTime desc
+	</select>
+
+	<!--清空日志-->
+	<delete id="clearLog" parameterType="map">
+		delete from sys_log
+	</delete>
+</sqlGroup>

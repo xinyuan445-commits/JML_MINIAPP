@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 相关列表配置管理SQL -->
+<sqlGroup namespace="relatedCfg">
+	<!--根据parent code 获取列表信息-->
+	<select id="queryListByParentObjCode" parameterType="map">
+		select
+			related_obj_code,
+			related_field_code,
+			related_label,
+			icon_img,
+			list_route_url,
+			list_api_url,
+			list_param,
+			add_route_url,
+			add_api_url,
+			add_param,
+			details_route_url,
+			details_api_url,
+			related_record_title,
+			related_record_field,
+			related_record_head
+		from
+			jml_related_cfg
+		<where>
+			parent_obj_code = #{parentObjCode} and enable='1'
+		</where>
+			order by sort desc
+	</select>
+
+	<!--统计子记录信息-->
+	<select id="cntByRelatedCode" parameterType="map">
+		select
+			COUNT(*) as cnt
+		from
+			${relatedObjCode} a
+		<where>
+			<include refid="common.auth"/>
+			<if test="id != null and id != ''">
+			 	and a.${relatedFieldCode} = #{id}
+			</if>
+		</where>
+
+	</select>
+
+</sqlGroup>

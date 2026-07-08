@@ -1,0 +1,213 @@
+<view class="page-container">
+  
+  <view class="step-card">
+    <t-steps theme="dot" current="{{currentStep}}" bind:change="onStepChange">
+      <t-step-item wx:for="{{stepsList}}" wx:key="index">
+        <view slot="title" class="step-title {{index === currentStep ? 'active' : ''}}">
+          {{item.statusText}}
+        </view>
+        <view slot="content" class="step-content">
+          <view class="step-row">{{item.role}}:{{item.user}}</view>
+          <view wx:if="{{item.date}}" class="step-row time">{{item.date}}</view>
+          <view wx:if="{{item.time}}" class="step-row time">{{item.time}}</view>
+          <view wx:if="{{!item.date}}" class="step-row time">等待处理</view>
+        </view>
+      </t-step-item>
+    </t-steps>
+  </view>
+
+  <view class="form-card">
+    <!-- 单号 (新增) -->
+    <view class="form-row">
+      <text class="label">单号</text>
+      <view class="picker-display disabled">{{form.orderNo || '自动生成...'}}</view>
+    </view>
+
+    <view class="form-row">
+      <text class="label">状态</text>
+      <view class="status-row">
+        <text class="status-tag">{{statusName || '-'}}</text>
+        <text wx:if="{{rejectReason}}" class="reject-reason">驳回：{{rejectReason}}</text>
+      </view>
+    </view>
+
+    <view class="form-row">
+      <text class="label">所属人</text>
+      <view class="picker-display disabled">{{currentOwnerLabel}}：{{currentOwnerName || '-'}}</view>
+    </view>
+
+    <!-- 仓库填写的形态转换单号 -->
+    <view class="form-row" wx:if="{{warehouseConversionNo}}">
+      <text class="label">形态转换单号</text>
+      <view class="picker-display disabled" style="color: #d54941; font-weight: bold;">{{warehouseConversionNo}}</view>
+    </view>
+
+    <!-- 关联工单号 -->
+    <view class="form-row">
+      <text class="label">关联工单号</text>
+      <input class="ipt {{!canEdit ? 'disabled' : ''}}" placeholder="请输入关联工单号" value="{{form.relatedOrderNo}}" bindinput="onRelatedOrderNoInput" disabled="{{!canEdit}}" />
+    </view>
+
+    <!-- 日期 -->
+    <view class="form-row">
+      <text class="label">日期</text>
+      <picker mode="date" value="{{form.date}}" bindchange="onDateChange" disabled="{{!canEdit}}">
+        <view class="picker-display {{form.date ? '' : 'placeholder'}} {{!canEdit ? 'disabled' : ''}}">
+          {{form.date || '请选择日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 转换类型 -->
+    <view class="form-row">
+      <text class="label">转换类型</text>
+      <picker mode="selector" range="{{conversionTypes}}" value="{{conversionTypeIndex}}" bindchange="onConversionTypeChange" disabled="{{!canEdit}}">
+        <view class="picker-display {{conversionTypeIndex >= 0 ? '' : 'placeholder'}} {{!canEdit ? 'disabled' : ''}}">
+          {{conversionTypeIndex >= 0 ? conversionTypes[conversionTypeIndex] : '请选择转换类型'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 物料编码 -->
+    <view class="form-row">
+      <text class="label" bindtap="onScanMaterialCode" style="{{canEdit ? 'color:#0052d9;text-decoration:underline;' : ''}}">物料编码</text>
+      <view class="ipt-row" style="flex:1; display:flex; align-items:center;">
+        <input class="ipt {{!canEdit ? 'disabled' : ''}}" placeholder="空格或逗号分词，回车或点查询" value="{{form.materialCode}}" bindinput="onMaterialCodeInput" disabled="{{!canEdit}}" confirm-type="search" bindconfirm="onSearchItemCode" />
+        <button wx:if="{{canEdit}}" class="mini-btn" size="mini" loading="{{searching}}" bindtap="onSearchItemCode" style="margin-left:10rpx;">查询</button>
+      </view>
+    </view>
+
+    <!-- 规格型号 -->
+    <view class="form-row">
+      <text class="label">规格型号</text>
+      <input class="ipt {{!canEdit ? 'disabled' : ''}}" placeholder="请输入规格型号" value="{{form.specModel}}" bindinput="onSpecModelInput" disabled="{{!canEdit}}" />
+    </view>
+
+    <!-- 批号 -->
+    <view class="form-row">
+      <text class="label">批号</text>
+      <input class="ipt {{!canEdit ? 'disabled' : ''}}" placeholder="请输入批号" value="{{form.batchNo}}" bindinput="onBatchNoInput" disabled="{{!canEdit}}" />
+    </view>
+
+    <!-- 数量 -->
+    <view class="form-row">
+      <text class="label">数量</text>
+      <input class="ipt {{!canEdit ? 'disabled' : ''}}" type="digit" placeholder="请输入数量" value="{{form.quantity}}" bindinput="onQuantityInput" disabled="{{!canEdit}}" />
+    </view>
+
+    <!-- 转换后质量等级 -->
+    <view class="form-row">
+      <text class="label">质量等级</text>
+      <picker mode="selector" range="{{qualityLevels}}" value="{{qualityLevelIndex}}" bindchange="onQualityLevelChange" disabled="{{!canEdit}}">
+        <view class="picker-display {{qualityLevelIndex >= 0 ? '' : 'placeholder'}} {{!canEdit ? 'disabled' : ''}}">
+          {{qualityLevelIndex >= 0 ? qualityLevels[qualityLevelIndex] : '请选择质量等级'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 责任归属 -->
+    <view class="form-row">
+      <text class="label">责任归属</text>
+      <picker mode="selector" range="{{dutyOptions}}" value="{{dutyIndex}}" bindchange="onDutyChange" disabled="{{!canEdit}}">
+        <view class="picker-display {{dutyIndex >= 0 ? '' : 'placeholder'}} {{!canEdit ? 'disabled' : ''}}">
+          {{dutyIndex >= 0 ? dutyOptions[dutyIndex] : '请选择责任归属'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 转换原因 -->
+    <view class="form-row">
+      <text class="label">转换原因</text>
+      <input class="ipt {{!canEdit ? 'disabled' : ''}}" placeholder="请输入转换原因" value="{{form.conversionReason}}" bindinput="onConversionReasonInput" disabled="{{!canEdit}}" />
+    </view>
+
+    <!-- 详细描述 -->
+    <view class="form-column">
+      <text class="label-column">详细描述</text>
+      <textarea class="textarea {{!canEdit ? 'disabled' : ''}}" placeholder="请输入详细描述" value="{{form.description}}" bindinput="onDescriptionInput" disabled="{{!canEdit}}" maxlength="500" />
+    </view>
+
+    <view class="form-column">
+      <text class="label-column">图片（{{attachments.length}}/5）</text>
+      <view class="attach-grid">
+        <view wx:if="{{canEdit && attachments.length < 5}}" class="attach-item attach-add" bindtap="onPickImages">
+          <text class="attach-plus">+</text>
+        </view>
+        <view wx:for="{{attachments}}" wx:key="*this" class="attach-item">
+          <image class="attach-img" mode="aspectFill" src="{{item}}" data-url="{{item}}" bindtap="onPreviewImage" />
+          <view wx:if="{{canEdit}}" class="attach-del" data-idx="{{index}}" bindtap="onDeleteImage">×</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="btns" wx:if="{{canEdit}}">
+    <button class="btn reset" bindtap="onSaveDraft">保存草稿</button>
+    <button class="btn submit" bindtap="onSubmit">提交审批</button>
+  </view>
+
+  <view class="btns" wx:if="{{canApprove || canReject || canRecall}}">
+    <button wx:if="{{canRecall}}" class="btn reset" bindtap="onRecall">撤回</button>
+    <button wx:if="{{canReject}}" class="btn reset" bindtap="onReject">驳回</button>
+    <button wx:if="{{canApprove}}" class="btn submit" bindtap="onApprove">通过</button>
+  </view>
+
+  <!-- 自定义可滚动选择器 -->
+  <view wx:if="{{selectorVisible}}" class="picker-mask" catchtouchmove="noop">
+    <view class="picker-panel">
+      <view class="picker-head">
+        <text>匹配到 {{totalCount}} 条（已加载 {{selectorList.length}} 条）</text>
+        <text class="picker-close" bindtap="closeSelector">关闭</text>
+      </view>
+
+      <scroll-view class="picker-body" scroll-y>
+        <block wx:for="{{selectorList}}" wx:key="code">
+          <view class="picker-item" bindtap="pickItem" data-code="{{item.code}}" data-name="{{item.name}}">
+            <text class="code">{{item.code}}</text>
+            <text class="name">{{item.name}}</text>
+          </view>
+        </block>
+        <view class="picker-empty" wx:if="{{!selectorList.length && !loadingMore}}">暂无数据</view>
+        <view class="picker-loading" wx:if="{{loadingMore}}">加载中...</view>
+      </scroll-view>
+
+      <view class="picker-foot">
+        <button size="mini" class="btn-ghost" bindtap="loadMore" disabled="{{noMore}}">
+          {{ noMore ? '没有更多了' : '加载更多' }}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{remarkModalVisible}}" class="remark-mask" catchtouchmove="noop">
+    <view class="remark-panel">
+      <view class="remark-head">
+        <text class="remark-title">驳回原因</text>
+        <text class="remark-close" bindtap="closeRemarkModal">关闭</text>
+      </view>
+      <textarea class="remark-textarea" placeholder="请输入驳回原因" value="{{remarkText}}" bindinput="onRemarkInput" maxlength="200" />
+      <view class="remark-actions">
+        <button class="btn reset" bindtap="closeRemarkModal">取消</button>
+        <button class="btn submit" bindtap="confirmReject">确认驳回</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 仓库审批通过弹窗 -->
+  <view wx:if="{{warehouseModalVisible}}" class="remark-mask" catchtouchmove="noop">
+    <view class="remark-panel">
+      <view class="remark-head">
+        <text class="remark-title">确认通过</text>
+        <text class="remark-close" bindtap="closeWarehouseModal">关闭</text>
+      </view>
+      <view style="padding: 20rpx 0;">
+        <text style="font-size: 28rpx; color: #666; margin-bottom: 10rpx; display: block;">请输入形态转换单号：</text>
+        <input class="ipt" placeholder="请输入以 XTZH 开头的单号" value="{{warehouseConversionNo}}" bindinput="onWarehouseConversionNoInput" style="width: 100%; box-sizing: border-box;" />
+      </view>
+      <view class="remark-actions" style="margin-top: 20rpx;">
+        <button class="btn reset" bindtap="closeWarehouseModal">取消</button>
+        <button class="btn submit" bindtap="confirmWarehouseApprove">确认通过</button>
+      </view>
+    </view>
+  </view>
+</view>

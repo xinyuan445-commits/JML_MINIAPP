@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 压贴线-生产工艺单明细 -->
+<sqlGroup namespace="pressLineProductionDetail">
+    <select id="queryListBy" parameterType="map">
+        select
+            a.id AS id,
+            a.model AS model,
+            a.time AS time,
+            a.temp AS temp,
+            a.remark as remark,
+            a.pressure as pressure,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime
+          from
+            jml_press_line_production_detail a
+          where
+              a.press_line_production_id = #{pressLineProductionId}
+          order by
+                a.update_time desc
+    </select>
+</sqlGroup>

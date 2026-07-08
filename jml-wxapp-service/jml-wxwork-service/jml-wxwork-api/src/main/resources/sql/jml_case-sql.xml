@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="case">
+    <!--获取列表-->
+    <select id="queryPageBy" parameterType="map">
+        select
+            a.id AS id,
+            a.name AS name,
+            a.factory AS factory,
+            a.case_stage AS caseStage,
+            a.contact_name as contactName,
+            a.contact_phone as contactPhone,
+            a.case_stage_code AS caseStageCode,
+            DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+            cs.name AS createdStaffName,
+            b.name AS accName,
+            a.service_type AS serviceType,
+            a.qa_status AS qaStatus,
+            a.approval_status AS approvalStatus,
+            a.is_closed as isClosed,
+            a.sales_staff_id AS salesStaffId,
+            a.current_acceptance_staff_id AS currentAcceptanceStaffId
+        <pageTag/>
+        from
+            jml_case a
+            left join jml_staff cs on a.created_staff_id = cs.id
+            left join jml_account b on a.account_id = b.id
+        <where>
+            <choose>
+                <when test="staff.roleQA == true">
+                    and a.factory_code = #{staff.factoryCode}
+                </when>
+                <otherwise>
+                    <include refid="common.auth"/>
+                </otherwise>
+            </choose>
+
+            <if test="multiFiled != null and multiFiled != ''">
+                and (a.name like '%${multiFiled}%' or b.phone like '%${multiFiled}%' or b.name like '%${multiFiled}%')
+            </if>
+            <if test = 'flag== "1"'>
+                and a.case_stage_code ='ECSP'
+            </if>
+            <!--创建跨度时间筛选-->
+            <if test="startDate != null and startDate != ''">
+                and a.created_time <![CDATA[>=]]> str_to_date(#{startDate},'%Y-%m-%d')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                and a.created_time <![CDATA[<=]]> date_add(str_to_date(#{endDate},'%Y-%m-%d'),interval 1 day)
+            </if>
+            <!--创建跨度时间筛选-->
+            <!--创建人-->
+            <if test="createdStaffId != null and createdStaffId != ''">
+                and a.created_staff_id = #{createdStaffId}
+            </if>
+            <!--创建人-->
+            <!--服务阶段-->
+            <choose>
+                <when test="caseStageCode == 'CLOSE'">
+                    and a.case_stage_code = 'CLOSE' and a.is_closed = '0'
+                </when>
+                <when test="caseStageCode == 'CLOSED'">
+                    and a.case_stage_code = 'CLOSE' and a.is_closed = '1'
+                </when>
+                <otherwise>
+                    <if test="caseStageCode != null and caseStageCode != ''">
+                        and a.case_stage_code = #{caseStageCode}
+                    </if>
+                </otherwise>
+            </choose>
+            <!--服务阶段-->
+        </where>
+        order by
+            a.update_time desc
+    </select>
+
+    <!--查询明细-->
+    <select id="queryDetails" parameterType="map">
+     select
+        a.id AS id,
+        a.name AS name,
+        a.factory AS factory,
+        a.contact_name AS contactName,
+        a.contact_phone AS contactPhone,
+        a.approval_status AS approvalStatus,
+        a.approval_remark AS approvalRemark,
+        a.feedback_person_type AS feedbackPersonType,
+        a.feedback_type AS feedbackType,
+        a.feedback_class AS feedbackClass,
+        a.sheet_status AS sheetStatus,
+        a.case_stage AS caseStage,
+        a.case_stage_code AS caseStageCode,
+        a.feedback_remark AS feedbackRemark,
+        DATE_FORMAT(a.created_time, '%Y-%m-%d %H:%i:%s') AS createdTime,
+        DATE_FORMAT(a.update_time, '%Y-%m-%d %H:%i:%s') AS updateTime,
+        cs.name AS createdStaffName,
+        b.name AS accName,
+        a.service_type AS serviceType,
+        a.factory AS factory,
+        a.factory_code AS factoryCode,
+        DATE_FORMAT(a.close_time, '%Y-%m-%d %H:%i:%s') AS closeTime,
+        a.close_staff_id AS closeStaffId,
+        c.name AS closeStaffName,
+        a.account_id AS accountId,
+        a.create_remark AS createRemark,
+        cs.name AS createdStaffName,
+        us.name AS updateStaffName,
+        a.current_acceptance_staff_id AS currentAcceptanceStaffId,
+        a.sf_created AS sfCreated,
+        a.is_closed as isClosed,
+        a.close_reason as closeReason,
+        a.qa_status AS qaStatus,
+        a.sales_staff_id AS salesStaffId,
+        d.name AS salesStaffName,
+        a.qa_need as qaNeed,
+        a.attachment,
+        a.attachment_name as attachmentName,
+        a.area_code as areaCode,
+        ar.name as areaName,
+        a.district,
+        a.created_staff_id,
+        a.onsite_inspection as onsiteInspection,
+        a.contact_id as contactId,
+        a.replenish_invoice_no as replenishInvoiceNo
+    from
+        jml_case a
+        left join jml_account b on a.account_id = b.id
+        left join jml_staff cs on a.created_staff_id = cs.id
+        left join jml_staff us ON a.update_staff_id = us.id
+        left join jml_staff c ON a.close_staff_id = c.id
+        left join jml_staff d ON a.sales_staff_id = d.id
+        left join jml_area ar on a.area_code = ar.area_code
+        <where>
+            a.id=#{id}
+        </where>
+    </select>
+</sqlGroup>

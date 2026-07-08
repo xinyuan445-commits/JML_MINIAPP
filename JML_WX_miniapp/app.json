@@ -1,0 +1,164 @@
+{
+  "pages": [
+    "pages/user/login",
+    "pages/user/changePwd",
+    "pages/home",
+    "pages/test",
+    "pages/index/index",
+    "pages/director/Index",
+    "pages/director/list",
+    "pages/mileage/Index",
+    "pages/mileage/Detailed"
+  ],
+  "subPackages": [
+    {
+      "root": "Quote",
+      "pages": [
+        "Index",
+        "Detailed",
+        "Edit",
+        "History"
+      ]
+    },
+    {
+      "root": "pages/Po",
+      "pages": [
+        "Po",
+        "Details_Po"
+      ]
+    },
+    {
+      "root": "business",
+      "pages": [
+        "company/Index",
+        "company/Edit",
+        "company/Detailed",
+        "workreport/Index",
+        "workreport/Edit",
+        "workreport/Detailed",
+        "workreport/SignedReport",
+        "internalTicket/Index",
+        "internalTicket/Edit",
+        "internalTicket/Detailed",
+        "opportunity/Index",
+        "opportunity/Detailed",
+        "opportunity/Edit",
+        "cost/Index",
+        "cost/Detailed",
+        "cost/Edit",
+        "lead/Index",
+        "lead/Edit",
+        "lead/Detailed",
+        "project/Index",
+        "project/Detailed",
+        "project/Edit",
+        "contact/Index",
+        "contact/Edit",
+        "contact/Detailed",
+        "address/Detailed",
+        "address/Edit",
+        "opp_product/Index",
+        "opp_product/Detailed",
+        "opp_product/Edit"
+      ]
+    },
+    {
+      "root": "Toolss",
+      "pages": [
+        "Toolss",
+        "InventoryInput/InventoryInput",
+        "BatchConvert/BatchConvert",
+        "InventoryQuery/InventoryQuery",
+        "ScanReport/ScanReport",
+        "InventoryInput_data/InventoryInput_data",
+        "LabelInfo/LabelInfo",
+        "PositionStockQuery/PositionStockQuery",
+        "QualityConversion/Index",
+        "QualityConversion/Detailed"
+      ]
+    },
+    {
+      "root": "complaint-package",
+      "pages": [
+        "complaint/Index",
+        "complaint/ApproveList",
+        "complaint/Edit",
+        "complaint/Detailed"
+      ]
+    },
+    {
+      "root": "Mo",
+      "pages": [
+        "Mo",
+        "ProcessMgmt/Scanner",
+        "ProcessMgmt/Index",
+        "ProcessMgmt/Detailed"
+      ]
+    },
+    {
+      "root": "factory",
+      "pages": [
+        "pages/paintLinProd/Index",
+        "pages/paintLinProd/Edit",
+        "pages/paintLinProd/Detailed",
+        "pages/pressLineReport/Index",
+        "pages/pressLineReport/Edit",
+        "pages/pressLineReport/Detailed",
+        "pages/printingLineReport/Index",
+        "pages/printingLineReport/Edit",
+        "pages/printingLineReport/Detailed",
+        "pages/pressLineProduction/Index",
+        "pages/pressLineProduction/Edit",
+        "pages/pressLineProduction/Detailed",
+        "pages/sandingBelt/Index",
+        "pages/sandingBelt/Edit",
+        "pages/sandingBelt/Detailed",
+        "pages/perDeviceMnt/Index",
+        "pages/perDeviceMnt/Edit",
+        "pages/perDeviceMnt/Detailed",
+        "pages/nitrogenLog/Index",
+        "pages/nitrogenLog/Edit",
+        "pages/nitrogenLog/Detailed",
+        "pages/partsPurchase/Index",
+        "pages/partsPurchase/Edit",
+        "pages/partsPurchase/Detailed",
+        "pages/deviceRepair/Index",
+        "pages/deviceRepair/Edit",
+        "pages/deviceRepair/Detailed",
+        "pages/jobAssignment/Index",
+        "pages/jobAssignment/Edit",
+        "pages/jobAssignment/Detailed",
+        "pages/dailyInspection/Index",
+        "pages/dailyInspection/Edit",
+        "pages/dailyInspection/Detailed",
+        "pages/naturalGasLog/Index",
+        "pages/naturalGasLog/Edit",
+        "pages/naturalGasLog/Detailed",
+        "pages/electricityLog/Index",
+        "pages/electricityLog/Edit",
+        "pages/electricityLog/Detailed",
+        "pages/kaiguandengji/Index",
+        "pages/kaiguandengji/Edit",
+        "pages/kaiguandengji/Detail"
+      ]
+    }
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "加载中",
+    "navigationBarBackgroundColor": "#fff",
+    "backgroundColor": "#F8F8F8",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于定位打卡"
+    }
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "usingComponents": {}
+}

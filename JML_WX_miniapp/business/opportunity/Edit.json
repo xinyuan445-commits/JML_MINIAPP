@@ -1,0 +1,18 @@
+{
+  "navigationBarTitleText": "业务机会",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "zxz-uni-data-select": "../../uni_modules/zxz-uni-data-select/components/zxz-uni-data-select/zxz-uni-data-select",
+    "u-form-item": "../../node-modules/uview-plus/components/u-form-item/u-form-item",
+    "u--input": "../../node-modules/uview-plus/components/u-input/u-input",
+    "up-radio": "../../node-modules/uview-plus/components/u-radio/u-radio",
+    "up-radio-group": "../../node-modules/uview-plus/components/u-radio-group/u-radio-group",
+    "u--textarea": "../../node-modules/uview-plus/components/u-textarea/u-textarea",
+    "u-radio": "../../node-modules/uview-plus/components/u-radio/u-radio",
+    "u-radio-group": "../../node-modules/uview-plus/components/u-radio-group/u-radio-group",
+    "u--form": "../../node-modules/uview-plus/components/u-form/u-form",
+    "floating-window": "../../components/FloatingWindow",
+    "footer-btn": "../../components/FooterBtn",
+    "load-selector": "../../components/LoadSelector"
+  }
+}

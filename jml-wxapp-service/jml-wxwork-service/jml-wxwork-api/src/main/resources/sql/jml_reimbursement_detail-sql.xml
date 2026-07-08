@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 费用报销明细明细管理SQL -->
+<sqlGroup namespace="reimDetail">
+	<!--查询费用报销明细-->
+	<select id="queryListBy" parameterType="map">
+		select
+			a.id,
+			b.name as contactName,
+			a.contact_id as contactId,
+			a.`name`,
+			a.item,
+			a.category,
+			a.amount,
+			a.remark,
+			a.invites,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			a.tax,
+			a.untaxed_amount,
+			a.img1,
+			a.img2,
+			CONCAT_WS( ";", a.img1, a.img2) AS img,
+			date_format(a.occur_date,'%Y-%m-%d') as occur_date,
+			a.submit_status
+		from
+			jml_reimbursement_detail a
+		left join
+			jml_contact b ON a.contact_id = b.id
+		<where>
+			<if test="reimId != null and reimId != ''">
+				 a.reimbursement_id =#{reimId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+
+	<!--分页查询费用报销明细-相关用-->
+	<select id="queryPageBy" parameterType="map">
+		select
+			a.id,
+			a.item,
+			a.amount,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time
+		<pageTag/>
+		from
+			jml_reimbursement_detail a
+		<where>
+			<if test="contactId != null and contactId != ''">
+				a.contact_id =#{contactId}
+			</if>
+		</where>
+		order by
+			a.created_time desc
+	</select>
+	<!--获取费用报销明细明细-->
+	<select id="queryDetails" parameterType="map">
+		select
+			a.id,
+			b.name as contactName,
+			a.contact_id as contactId,
+			a.`name`,
+			a.item,
+			a.category,
+			a.amount,
+			a.remark,
+			a.invites,
+			date_format(a.created_time,'%Y-%m-%d %H:%i:%s') as created_time,
+			date_format(a.update_time,'%Y-%m-%d %H:%i:%s') as update_time,
+			CONCAT_WS( ";", a.img1, a.img2) AS img,
+			a.tax,
+			a.untaxed_amount,
+			date_format(a.occur_date,'%Y-%m-%d') as occur_date,
+			a.submit_status
+		from
+			jml_reimbursement_detail a
+		left join
+			jml_contact b ON a.contact_id = b.id
+		<where>
+			a.id=#{id}
+		</where>
+	</select>
+
+	<!--提交费用报销明细-->
+	<update id="submitReimDetail">
+		update
+			jml_reimbursement_detail
+		set
+			submit_status = '1',
+			sync_status = '1'
+		where
+			reimbursement_id =#{reimId}
+	</update>
+	<!--删除报销明细-->
+	<delete id="deleteReimDetail" parameterType="map">
+		delete from
+			jml_reimbursement_detail
+		where
+			reimbursement_id =#{reimId}
+	</delete>
+</sqlGroup>

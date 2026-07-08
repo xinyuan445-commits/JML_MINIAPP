@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "经理报告",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "floating-window": "../../components/FloatingWindow"
+  }
+}

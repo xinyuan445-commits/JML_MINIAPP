@@ -1,0 +1,146 @@
+<view class="{{['container', 'data-v-9ab3d753', virtualHostClass]}}" style="{{virtualHostStyle}}">
+  <u-sticky wx:if="{{c}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-s="{{['d']}}" u-i="9ab3d753-0" bind:__l="__l" u-p="{{c}}">
+    <view class="tool flex-end data-v-9ab3d753">
+      <view class="tool_main data-v-9ab3d753">
+        <view bindtap="{{b}}" class="menu_icon data-v-9ab3d753">
+          <u-icon wx:if="{{a}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="9ab3d753-1,9ab3d753-0" bind:__l="__l" u-p="{{a}}"></u-icon>
+        </view>
+      </view>
+    </view>
+  </u-sticky>
+  <view class="menu data-v-9ab3d753">
+    <view class="menu_title data-v-9ab3d753">工厂功能 </view>
+    <view class="menu_list data-v-9ab3d753">
+      <view wx:for="{{d}}" wx:for-item="item" wx:key="f" class="{{['data-v-9ab3d753', 'menu_item', item.g]}}" bindtap="{{item.h}}">
+        <u-badge wx:if="{{item.a}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="{{item.b}}" bind:__l="__l" u-p="{{item.c}}"></u-badge>
+        <u-icon wx:if="{{item.e}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="{{item.d}}" bind:__l="__l" u-p="{{item.e}}" />
+      </view>
+    </view>
+  </view>
+  <view class="calendar data-v-9ab3d753">
+    <u-tabs wx:if="{{f}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" bindchange="{{e}}" u-i="9ab3d753-4" bind:__l="__l" u-p="{{f}}"></u-tabs>
+    <view class="calendar_list data-v-9ab3d753" hidden="{{!r}}">
+      <uni-calendar wx:if="{{j}}" class="r data-v-9ab3d753" virtualHostClass="r data-v-9ab3d753" u-r="calendar" bindchange="{{h}}" bindmonthSwitch="{{i}}" u-i="9ab3d753-5" bind:__l="__l" u-p="{{j}}"></uni-calendar>
+      <u-divider class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="9ab3d753-6" bind:__l="__l"></u-divider>
+      <view wx:if="{{k}}" class="notice data-v-9ab3d753">
+        <view class="tit data-v-9ab3d753">{{l}} 周{{m}}</view>
+        <view class="list data-v-9ab3d753">
+          <block wx:if="{{n}}">
+            <view class="title data-v-9ab3d753">岗位分工</view>
+            <block wx:for="{{o}}" wx:for-item="itemChild" wx:key="j">
+              <view catchtap="{{itemChild.h}}" style="display:block" class="item link data-v-9ab3d753">
+                <view class="text data-v-9ab3d753">工单号: {{itemChild.a}}</view>
+                <view wx:if="{{itemChild.b}}" class="text data-v-9ab3d753">应完成数量: {{itemChild.c}}</view>
+                <view wx:if="{{itemChild.d}}" class="text data-v-9ab3d753">应完成时间: {{itemChild.e}}</view>
+                <view wx:if="{{itemChild.f}}" class="text data-v-9ab3d753">完成地点: {{itemChild.g}}</view>
+              </view>
+              <u-divider class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="{{itemChild.i}}" bind:__l="__l"></u-divider>
+            </block>
+          </block>
+          <block wx:if="{{p}}">
+            <view class="title data-v-9ab3d753">待审批采购</view>
+            <block wx:for="{{q}}" wx:for-item="itemChild" wx:key="g">
+              <view catchtap="{{itemChild.e}}" style="display:block" class="item link data-v-9ab3d753">
+                <view class="text data-v-9ab3d753">工单号: {{itemChild.a}}</view>
+                <view class="text data-v-9ab3d753">审批状态: {{itemChild.b}}</view>
+                <view class="text data-v-9ab3d753">零件数量: {{itemChild.c}}</view>
+                <view class="text data-v-9ab3d753">零件名称: {{itemChild.d}}</view>
+              </view>
+              <u-divider class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="{{itemChild.f}}" bind:__l="__l"></u-divider>
+            </block>
+          </block>
+        </view>
+      </view>
+    </view>
+    <view class="calendar_list data-v-9ab3d753" hidden="{{!x}}">
+      <view class="notice data-v-9ab3d753">
+        <view class="list data-v-9ab3d753">
+          <block wx:if="{{s}}">
+            <view class="title data-v-9ab3d753">每日巡检报告待确认</view>
+            <block wx:for="{{t}}" wx:for-item="itemChild" wx:key="h">
+              <view catchtap="{{itemChild.f}}" style="display:block" class="item link data-v-9ab3d753">
+                <view class="text data-v-9ab3d753">编号: {{itemChild.a}}</view>
+                <view wx:if="{{itemChild.b}}" class="text data-v-9ab3d753">巡检日期: {{itemChild.c}}</view>
+                <view wx:if="{{itemChild.d}}" class="text data-v-9ab3d753">巡检人: {{itemChild.e}}</view>
+              </view>
+              <u-divider class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="{{itemChild.g}}" bind:__l="__l"></u-divider>
+            </block>
+          </block>
+          <block wx:if="{{v}}">
+            <view class="title data-v-9ab3d753">待审批的采购</view>
+            <block wx:for="{{w}}" wx:for-item="itemChild" wx:key="g">
+              <view catchtap="{{itemChild.e}}" style="display:block" class="item link data-v-9ab3d753">
+                <view class="text data-v-9ab3d753">工单号: {{itemChild.a}}</view>
+                <view class="text data-v-9ab3d753">审批状态: {{itemChild.b}}</view>
+                <view class="text data-v-9ab3d753">零件数量: {{itemChild.c}}</view>
+                <view class="text data-v-9ab3d753">零件名称: {{itemChild.d}}</view>
+              </view>
+              <u-divider class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="{{itemChild.f}}" bind:__l="__l"></u-divider>
+            </block>
+          </block>
+        </view>
+      </view>
+    </view>
+  </view>
+  <select-map wx:if="{{C.show}}" class="r data-v-9ab3d753" virtualHostClass="r data-v-9ab3d753" u-r="map" bindcancel="{{z}}" bindconfirm="{{A}}" u-i="9ab3d753-11" bind:__l="__l" bindupdateShow="{{B}}" u-p="{{C}}"></select-map>
+  <u-popup wx:if="{{J}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-s="{{['d']}}" bindclose="{{I}}" u-i="9ab3d753-12" bind:__l="__l" u-p="{{J}}">
+    <view class="leftmenu data-v-9ab3d753">
+      <view class="leftmenu_tit data-v-9ab3d753">更多</view>
+      <view class="leftmenu_box data-v-9ab3d753">
+        <view bindtap="{{F}}" class="leftmenu_item data-v-9ab3d753">
+          <u-icon wx:if="{{D}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="9ab3d753-13,9ab3d753-12" bind:__l="__l" u-p="{{D}}"></u-icon><text class="data-v-9ab3d753">首页</text>
+          <view class="menu_left data-v-9ab3d753">
+            <u-icon wx:if="{{E}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="9ab3d753-14,9ab3d753-12" bind:__l="__l" u-p="{{E}}"></u-icon>
+          </view>
+        </view>
+        <navigator class="data-v-9ab3d753" url="user/changePwd" hover-class="navigator-hover">
+          <view class="leftmenu_item data-v-9ab3d753">
+            <u-icon wx:if="{{G}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="9ab3d753-15,9ab3d753-12" bind:__l="__l" u-p="{{G}}"></u-icon><text class="data-v-9ab3d753">更改密码</text>
+            <view class="menu_left data-v-9ab3d753">
+              <u-icon wx:if="{{H}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="9ab3d753-16,9ab3d753-12" bind:__l="__l" u-p="{{H}}"></u-icon>
+            </view>
+          </view>
+        </navigator>
+        <view bindtap="{{R}}" class="leftmenu_item data-v-9ab3d753" style="display:flex;align-items:center;">
+          <image src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48ZyBmaWxsPSJjdXJyZW50Q29sb3IiPjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTExIDIwYTEgMSAwIDAgMC0xLTFINVY1aDVhMSAxIDAgMSAwIDAtMkg1YTIgMiAwIDAgMC0yIDJ2MTRhMiAyIDAgMCAwIDIgMmg1YTEgMSAwIDAgMCAxLTEiIGNsaXAtcnVsZT0iZXZlbm9kZCIvPjxwYXRoIGQ9Ik0yMS43MTQgMTIuN2ExIDEgMCAwIDAgLjI4Ni0uNjk3di0uMDA2YTEgMSAwIDAgMC0uMjkzLS43MDRsLTQtNGExIDEgMCAxIDAtMS40MTQgMS40MTRMMTguNTg2IDExSDlhMSAxIDAgMSAwIDAgMmg5LjU4NmwtMi4yOTMgMi4yOTNhMSAxIDAgMCAwIDEuNDE0IDEuNDE0bDQtNHoiLz48L2c+PC9zdmc+" style="width:36rpx;height:36rpx;" />
+          <view style="display:flex;flex-direction:column;margin-left:12rpx;">
+            <text style="font-size:28rpx;color:#222;font-weight:600;">退出登录</text>
+            <text style="font-size:22rpx;color:#999;margin-top:2rpx;">清除会话并返回登录</text>
+          </view>
+          <view class="menu_left data-v-9ab3d753" style="margin-left:auto;">
+            <u-icon name="arrow-right"></u-icon>
+          </view>
+        </view>
+        <view class="leftmenu_item data-v-9ab3d753" style="display:flex;align-items:center;">
+  <image src="/static/icon/info.png" style="width:32rpx;height:32rpx;" />
+  <view style="display:flex;flex-direction:column;margin-left:12rpx;">
+    <text style="font-size:28rpx;color:#222;font-weight:600;">关于</text>
+    <text style="font-size:22rpx;color:#999;margin-top:2rpx;">v20260708</text>
+  </view>
+  <view class="menu_left data-v-9ab3d753" style="margin-left:auto;">
+    <u-icon name="arrow-right"></u-icon>
+  </view>
+</view>
+
+
+
+
+
+
+      </view>
+    </view>
+  </u-popup>
+
+  <drag-box wx:if="{{K}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-s="{{['d']}}" u-i="9ab3d753-17" bind:__l="__l">
+    <view bindtap="{{M}}" class="check-in data-v-9ab3d753">
+      <view class="data-v-9ab3d753">
+        <u-icon wx:if="{{L}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" u-i="9ab3d753-18,9ab3d753-17" bind:__l="__l" u-p="{{L}}" />
+      </view>
+      <view class="btn_txt data-v-9ab3d753">一键<view class="data-v-9ab3d753"></view>签到</view>
+    </view>
+  </drag-box>
+  <u-picker wx:if="{{P}}" class="data-v-9ab3d753" virtualHostClass="data-v-9ab3d753" bindconfirm="{{N}}" bindcancel="{{O}}" u-i="9ab3d753-19" bind:__l="__l" u-p="{{P}}"></u-picker>
+
+   
+
+</view>

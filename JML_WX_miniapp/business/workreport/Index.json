@@ -1,0 +1,16 @@
+{
+  "navigationBarTitleText": "工作报告",
+  "enablePullDownRefresh": false,
+  "usingComponents": {
+    "u-search": "../../node-modules/uview-plus/components/u-search/u-search",
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-divider": "../../node-modules/uview-plus/components/u-divider/u-divider",
+    "u-tag": "../../node-modules/uview-plus/components/u-tag/u-tag",
+    "uni-swipe-action-item": "../../uni_modules/uni-swipe-action/components/uni-swipe-action-item/uni-swipe-action-item",
+    "uni-swipe-action": "../../uni_modules/uni-swipe-action/components/uni-swipe-action/uni-swipe-action",
+    "u-empty": "../../node-modules/uview-plus/components/u-empty/u-empty",
+    "u-calendar": "../../node-modules/uview-plus/components/u-calendar/u-calendar",
+    "u-picker": "../../node-modules/uview-plus/components/u-picker/u-picker",
+    "floating-window": "../../components/FloatingWindow"
+  }
+}

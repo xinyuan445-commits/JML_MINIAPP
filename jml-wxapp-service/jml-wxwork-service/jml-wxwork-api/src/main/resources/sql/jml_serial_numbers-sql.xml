@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<!-- 流水号SQL -->
+<sqlGroup namespace="serialNumbers">
+	<!--查询当天的流水号-->
+	<select id="querySerNoBy" parameterType="map">
+		SELECT
+			*
+		FROM
+			jml_serial_numbers
+		WHERE
+			DATE_FORMAT( created_time, '%Y-%m-%d' ) = CURDATE()
+		    and type = #{type}
+	</select>
+	<!--更新当天的流水号-->
+	<update id="updateNoByToday">
+		update jml_serial_numbers
+			set counter = #{counter},
+			created_time = now()
+		where
+			 type = #{type}
+	</update>
+</sqlGroup>

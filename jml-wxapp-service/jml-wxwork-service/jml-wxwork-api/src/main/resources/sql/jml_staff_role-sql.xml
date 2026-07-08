@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="jml_staff_role">
+    <!--根据员工ID查询角色信息-->
+    <select id="queryByStaffId" parameterType="map">
+        select
+            a.id,
+            a.role_id,
+            a.staff_id,
+            a.enable,
+            b.role_code
+        from
+            jml_staff_role a
+        left join jml_role b on a.role_id = b.id
+        where
+            a.enable = '1'
+            and a.staff_id = #{staffId}
+    </select>
+</sqlGroup>

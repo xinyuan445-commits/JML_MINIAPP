@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlGroup PUBLIC "-
+<sqlGroup namespace="jml_role_function">
+    <!--根据员工ID和菜单ID查询功能-->
+    <select id="queryByStaffId" parameterType="map">
+        select distinct
+            a.function_id ,
+            b.function_code ,
+            b.name as function_name,
+            c.menu_code,
+            a.role_id ,
+            d.staff_id,
+            c.name as menu_name
+        from
+            jml_role_function a
+        left join jml_function b on a.function_id = b.id
+        left join jml_menu c on b.menu_id = c.id
+        left join jml_staff_role d on a.role_id = d.role_id
+        where
+            d.enable = '1'
+            and d.staff_id = #{staffId}
+        <if test="menuId != null and menuId != ''">
+            and c.id =#{menuId}
+        </if>
+    </select>
+
+    <!--查询员工的功能权限-->
+    <select id="queryStaffFuncAuth" parameterType="map">
+        select distinct
+            a.function_id ,
+            b.menu_id ,
+            b.function_code ,
+            b.action_api_url ,
+            b.name as function_name,
+            c.name as menu_name,
+            c.menu_code,
+            a.role_id ,
+            d.staff_id
+        from
+            jml_role_function a
+        left join jml_function b on a.function_id = b.id
+        left join jml_menu c on b.menu_id = c.id
+        left join jml_staff_role d on a.role_id = d.role_id
+        where
+            d.enable = '1'
+            and b.action_api_url = #{actionUrl}
+            and d.staff_id = #{staffId}
+    </select>
+</sqlGroup>

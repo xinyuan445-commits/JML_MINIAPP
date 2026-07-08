@@ -1,0 +1,29 @@
+<view class="page">
+  <view wx:if="{{list.length}}" class="list">
+    <view wx:for="{{list}}" wx:key="id" class="card" hover-class="card-hover" data-id="{{item.id}}" bindtap="onTap">
+      <view class="card-head">
+        <text class="quote-no">{{item.quote_no}}</text>
+      </view>
+      <view class="category">{{item.category_name || '—'}}</view>
+      <view class="price-panel">
+        <view class="price-cell" wx:if="{{item.direct_price_text}}">
+          <text class="price-label">直营含税</text>
+          <text class="price">¥{{item.direct_price_text}}</text>
+        </view>
+        <view class="price-divider" wx:if="{{item.direct_price_text && item.dealer_price_text}}"></view>
+        <view class="price-cell" wx:if="{{item.dealer_price_text}}">
+          <text class="price-label">经销商含税</text>
+          <text class="price">¥{{item.dealer_price_text}}</text>
+        </view>
+      </view>
+      <view class="card-foot">
+        <text class="staff">{{item.created_staff_name || '—'}}</text>
+        <text class="date">{{item.created_at}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{!loading}}" class="empty">
+    <text class="empty-text">该客户暂无历史报价</text>
+  </view>
+</view>

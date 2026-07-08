@@ -1,0 +1,41 @@
+CREATE TABLE IF NOT EXISTS `mo_receive_work_yx` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `execution_id` BIGINT NOT NULL COMMENT '当前工序完工执行记录ID',
+  `handover_id` BIGINT NOT NULL COMMENT '当前工序入站交接单ID',
+  `mo_code` VARCHAR(50) NOT NULL,
+  `sort_seq` INT NOT NULL,
+  `route_id` INT NOT NULL,
+  `seq` INT NOT NULL,
+  `process_name` VARCHAR(100) DEFAULT NULL,
+  `qty_input` DECIMAL(18,4) NOT NULL COMMENT '本次接收数量',
+  `qty_a` DECIMAL(18,4) NOT NULL DEFAULT 0 COMMENT '接收A级数量',
+  `qty_c` DECIMAL(18,4) NOT NULL DEFAULT 0 COMMENT '接收C级数量',
+  `qty_before` DECIMAL(18,4) NOT NULL DEFAULT 0 COMMENT '开始接收前已接收数量',
+  `qty_ref` DECIMAL(18,4) NOT NULL DEFAULT 0 COMMENT '上工序完工数量',
+  `reason` VARCHAR(500) DEFAULT NULL,
+  `photo_url` VARCHAR(1000) DEFAULT NULL COMMENT '接收完工照片',
+  `operator_id` VARCHAR(50) DEFAULT NULL,
+  `operator_name` VARCHAR(100) DEFAULT NULL,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'processing',
+  `start_time` DATETIME NOT NULL,
+  `end_time` DATETIME DEFAULT NULL,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_receive_work_execution_status` (`execution_id`, `status`),
+  KEY `idx_receive_work_order` (`mo_code`, `sort_seq`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='接收作业记录';
+
+CREATE TABLE IF NOT EXISTS `mo_receive_worker_yx` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `receive_id` BIGINT NOT NULL,
+  `ding_user_id` VARCHAR(100) NOT NULL,
+  `user_name_snapshot` VARCHAR(100) NOT NULL,
+  `mobile_snapshot` VARCHAR(30) DEFAULT NULL,
+  `dept_id_snapshot` BIGINT DEFAULT NULL,
+  `dept_path_snapshot` VARCHAR(1000) DEFAULT NULL,
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_receive_worker` (`receive_id`, `ding_user_id`),
+  KEY `idx_receive_worker` (`receive_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='接收人员快照';

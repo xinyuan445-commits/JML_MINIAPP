@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "内部工单列表",
+  "usingComponents": {
+    "list": "./components/List"
+  }
+}

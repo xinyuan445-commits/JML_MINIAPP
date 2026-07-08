@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="tabs">
+    <view class="tab {{tab === 'all' ? 'active' : ''}}" data-tab="all" bindtap="onTabChange">全部</view>
+    <view class="tab {{tab === 'mine' ? 'active' : ''}}" data-tab="mine" bindtap="onTabChange">我发起</view>
+    <view class="tab {{tab === 'todo' ? 'active' : ''}}" data-tab="todo" bindtap="onTabChange">待我审批</view>
+  </view>
+
+  <view class="list">
+    <view class="item" wx:for="{{list}}" wx:key="id" bindtap="goDetail" data-id="{{item.id}}">
+      <view class="card-head">
+        <view class="head-left">
+          <text class="order-no">{{item.order_no || '无单号'}}</text>
+          <text class="sub">{{item.related_order_no ? ('关联工单：' + item.related_order_no) : '关联工单：-'}}</text>
+          <text class="status">{{item.status_name || '-'}}</text>
+        </view>
+        <view class="qty-pill">
+          <text class="qty-num">{{item.quantity}}</text>
+        </view>
+      </view>
+
+      <view class="kv">
+        <text class="k">物料编码</text>
+        <text class="v">{{item.material_code || '-'}}</text>
+      </view>
+
+      <view class="kv">
+        <text class="k">转换类型</text>
+        <text class="v">{{item.conversion_type || '-'}}</text>
+      </view>
+
+      <view class="kv">
+        <text class="k">原因</text>
+        <text class="v v-reason">{{item.conversion_reason || '-'}}</text>
+      </view>
+    </view>
+  </view>
+  <view class="empty" wx:if="{{list.length === 0 && !isLoading}}">暂无数据</view>
+  
+  <view class="fab" bindtap="goAdd">+</view>
+</view>

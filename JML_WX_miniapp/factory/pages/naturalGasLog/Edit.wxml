@@ -1,0 +1,71 @@
+<!-- 旧版页面完整保留在 Edit.legacy.wxml。 -->
+<view class="page">
+  <view class="card">
+    <view class="field-label required">天然气设备</view>
+    <picker
+      mode="selector"
+      range="{{devices}}"
+      range-key="device_name"
+      value="{{deviceIndex}}"
+      bindchange="onDeviceChange"
+    >
+      <view class="picker-value {{deviceId ? '' : 'placeholder'}}">
+        {{deviceLabel || '请选择天然气设备'}}
+        <text class="arrow">›</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="card reading-card">
+    <view class="reading-row">
+      <text class="reading-label">上次天然气示数</text>
+      <text wx:if="{{loadingBefore}}" class="reading-value muted">查询中...</text>
+      <text wx:elif="{{hasBeforeReading}}" class="reading-value">{{beforeReading}} m³</text>
+      <text wx:else class="reading-value muted">{{deviceId ? '暂无上次记录' : '请先选择设备'}}</text>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="field-label required">本次天然气示数（m³）</view>
+    <input
+      class="reading-input"
+      type="digit"
+      value="{{dailyReading}}"
+      placeholder="请输入本次示数"
+      bindinput="onReadingInput"
+    />
+
+    <view wx:if="{{estimatedUsage !== null}}" class="usage {{estimatedUsage < 0 ? 'usage-error' : ''}}">
+      预计本次用量：{{estimatedUsage}} m³
+    </view>
+    <view wx:elif="{{deviceId && !hasBeforeReading}}" class="usage muted">
+      首次登记将作为基准，本次用量为 0
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="field-label required">本次示数照片</view>
+    <view class="photo-box" bindtap="choosePhoto">
+      <image wx:if="{{photoUrl}}" class="photo" src="{{photoUrl}}" mode="aspectFill" />
+      <block wx:else>
+        <view class="photo-plus">+</view>
+        <view class="photo-tip">点击拍照或上传</view>
+      </block>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="field-label">备注</view>
+    <textarea
+      class="remark"
+      value="{{remark}}"
+      maxlength="255"
+      placeholder="请输入备注"
+      bindinput="onRemarkInput"
+    ></textarea>
+  </view>
+
+  <button class="submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="onSubmit">
+    保存
+  </button>
+</view>
