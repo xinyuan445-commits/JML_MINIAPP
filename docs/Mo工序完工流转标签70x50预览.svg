@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="500" viewBox="0 0 700 500">
+  <rect x="0" y="0" width="700" height="500" fill="#ffffff"/>
+  <rect x="18" y="18" width="664" height="464" fill="none" stroke="#000000" stroke-width="4"/>
+
+  <!-- Header -->
+  <text x="36" y="58" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" font-weight="700" fill="#000000">工序流转卡</text>
+  <text x="36" y="102" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="34" font-weight="900" fill="#000000">MO20260708001-10</text>
+
+  <!-- QR placeholder -->
+  <rect x="538" y="36" width="118" height="118" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+  <rect x="550" y="48" width="28" height="28" fill="#000000"/>
+  <rect x="616" y="48" width="28" height="28" fill="#000000"/>
+  <rect x="550" y="114" width="28" height="28" fill="#000000"/>
+  <rect x="588" y="50" width="10" height="10" fill="#000000"/>
+  <rect x="602" y="62" width="8" height="18" fill="#000000"/>
+  <rect x="586" y="88" width="18" height="10" fill="#000000"/>
+  <rect x="616" y="92" width="26" height="10" fill="#000000"/>
+  <rect x="584" y="112" width="10" height="30" fill="#000000"/>
+  <rect x="600" y="116" width="12" height="12" fill="#000000"/>
+  <rect x="620" y="126" width="24" height="16" fill="#000000"/>
+
+  <!-- Product section -->
+  <line x1="36" y1="122" x2="510" y2="122" stroke="#000000" stroke-width="2"/>
+  <text x="36" y="154" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="21" fill="#000000">料号：1320ZZ-OSB-F4-4912-ELCR7-9011-A2</text>
+  <text x="36" y="187" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#000000">ELCR7-9011 F4 欧松板 49*12 墨翠榆木</text>
+  <text x="36" y="216" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#000000">双面木皮打印双面准分子（覆logo膜）（A2类）</text>
+
+  <!-- Process section -->
+  <rect x="36" y="236" width="616" height="48" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+  <line x1="250" y1="236" x2="250" y2="284" stroke="#000000" stroke-width="2"/>
+  <line x1="416" y1="236" x2="416" y2="284" stroke="#000000" stroke-width="2"/>
+  <text x="52" y="268" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" font-weight="700" fill="#000000">当前：压贴</text>
+  <text x="276" y="268" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="22" fill="#000000">步骤：2/5</text>
+  <text x="438" y="268" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="22" fill="#000000">下一：裁切</text>
+
+  <!-- Quantity highlight -->
+  <rect x="36" y="298" width="616" height="104" fill="#ffffff" stroke="#000000" stroke-width="5"/>
+  <line x1="326" y1="298" x2="326" y2="402" stroke="#000000" stroke-width="4"/>
+  <line x1="492" y1="298" x2="492" y2="402" stroke="#000000" stroke-width="4"/>
+  <text x="58" y="360" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="26" font-weight="700" fill="#000000">完工数</text>
+  <text x="156" y="367" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="58" font-weight="900" fill="#000000">100</text>
+  <text x="358" y="337" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#000000">A级</text>
+  <text x="356" y="382" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="48" font-weight="900" fill="#000000">96</text>
+  <rect x="492" y="298" width="160" height="104" fill="#000000"/>
+  <text x="530" y="337" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff">C级</text>
+  <text x="540" y="382" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="48" font-weight="900" fill="#ffffff">4</text>
+
+  <!-- Footer -->
+  <line x1="36" y1="418" x2="652" y2="418" stroke="#000000" stroke-width="2"/>
+  <text x="36" y="452" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" fill="#000000">工站：压贴1号机</text>
+  <text x="338" y="452" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" fill="#000000">完工：2026-07-08 16:25</text>
+</svg>

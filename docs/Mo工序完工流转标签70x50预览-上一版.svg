@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="500" viewBox="0 0 700 500">
+  <rect x="0" y="0" width="700" height="500" fill="#ffffff"/>
+  <rect x="18" y="18" width="664" height="464" fill="none" stroke="#000000" stroke-width="4"/>
+
+  <!-- Header -->
+  <text x="40" y="62" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="32" font-weight="700" fill="#000000">工序流转标签</text>
+  <text x="40" y="103" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="700" fill="#000000">工单：MO20260708001</text>
+  <text x="355" y="103" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="700" fill="#000000">行号：10</text>
+
+  <!-- QR placeholder -->
+  <rect x="540" y="42" width="112" height="112" fill="#ffffff" stroke="#000000" stroke-width="3"/>
+  <rect x="552" y="54" width="30" height="30" fill="#000000"/>
+  <rect x="610" y="54" width="30" height="30" fill="#000000"/>
+  <rect x="552" y="112" width="30" height="30" fill="#000000"/>
+  <rect x="592" y="96" width="16" height="16" fill="#000000"/>
+  <rect x="624" y="108" width="14" height="14" fill="#000000"/>
+  <rect x="586" y="128" width="18" height="18" fill="#000000"/>
+  <rect x="618" y="132" width="22" height="10" fill="#000000"/>
+  <text x="563" y="177" font-family="Arial, sans-serif" font-size="16" fill="#000000">扫码追溯</text>
+
+  <!-- Product section -->
+  <line x1="40" y1="126" x2="510" y2="126" stroke="#000000" stroke-width="2"/>
+  <text x="40" y="158" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="22" fill="#000000">产品：1320ZZ-OSB-F4-4912-ELCR7-9011-A2</text>
+  <text x="40" y="193" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#000000">名称：ELCR7-9011 F4 欧松板 49*12 墨翠榆木</text>
+  <text x="40" y="220" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="20" font-weight="700" fill="#000000">双面木皮打印双面准分子（覆logo膜）（A2类）</text>
+
+  <!-- Process section -->
+  <line x1="40" y1="235" x2="652" y2="235" stroke="#000000" stroke-width="2"/>
+  <text x="40" y="270" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="26" font-weight="700" fill="#000000">当前：压贴</text>
+  <text x="280" y="270" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" fill="#000000">步骤：2/5</text>
+  <text x="455" y="270" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" fill="#000000">下一：裁切</text>
+
+  <!-- Quantity highlight -->
+  <rect x="40" y="292" width="612" height="90" fill="#ffffff" stroke="#000000" stroke-width="5"/>
+  <line x1="318" y1="292" x2="318" y2="382" stroke="#000000" stroke-width="4"/>
+  <line x1="485" y1="292" x2="485" y2="382" stroke="#000000" stroke-width="4"/>
+  <text x="74" y="352" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="52" font-weight="900" fill="#000000">合计 100</text>
+  <text x="354" y="350" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="41" font-weight="900" fill="#000000">A 96</text>
+  <rect x="485" y="292" width="167" height="90" fill="#000000"/>
+  <text x="523" y="350" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="41" font-weight="900" fill="#ffffff">C 4</text>
+
+  <!-- Footer -->
+  <text x="40" y="425" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" fill="#000000">工站：压贴1号机</text>
+  <text x="350" y="425" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="24" fill="#000000">完工：2026-07-08 16:25</text>
+</svg>
