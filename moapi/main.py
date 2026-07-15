@@ -199,12 +199,13 @@ async def get_material_cost(inv_code: str):
 # ===================== 报价：材料最近采购单价 =====================
 # 按料号取最近一次已审核采购明细：iunitprice=未税单价，isum/iquantity=含税单价
 MATERIAL_PRICE_SQL = """
-SELECT cinvcode, iunitprice AS price_excl, price_incl
+SELECT cinvcode, iunitprice AS price_excl, price_incl, cDefine14
 FROM (
     SELECT
         b.cinvcode,
         b.iunitprice,
         b.isum / NULLIF(b.iquantity, 0)                                       AS price_incl,
+        a.cDefine14,
         ROW_NUMBER() OVER (PARTITION BY b.cinvcode ORDER BY a.cAuditTime DESC) AS rn
     FROM po_pomain a
     LEFT JOIN po_podetails b ON a.poid = b.poid
@@ -236,16 +237,21 @@ async def get_material_price(inv_code: str, mat_type: str = ""):
                 "price_excl": serialize(row[1]),
                 "price_incl": None,
                 "price_source": "IA_Subsidiary.iInCost",
+                "price_remark": None,
+                "default_logistics_enabled": False,
             }}
         cursor.execute(MATERIAL_PRICE_SQL, (inv_code,))
         row = cursor.fetchone()
         conn.close()
         if not row:
             return {"code": 1, "msg": "未找到该料号的采购单价", "data": None}
+        price_remark = (row[3] or "").strip() if row[3] is not None else ""
         return {"code": 0, "data": {
             "cinvcode":   row[0],
             "price_excl": serialize(row[1]),
             "price_incl": serialize(row[2]),
+            "price_remark": price_remark,
+            "default_logistics_enabled": price_remark == "供应商出厂价",
         }}
     except Exception as e:
         return {"code": 1, "msg": str(e), "data": None}

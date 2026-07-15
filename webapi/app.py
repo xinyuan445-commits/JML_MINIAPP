@@ -4,7 +4,9 @@ webapi — 本地 API 服务，专供 jml_admin 网页管理后台使用
 启动: python app.py
 """
 import os
+import json
 from datetime import datetime, date
+from decimal import Decimal
 
 import requests as http
 from dotenv import load_dotenv
@@ -12,6 +14,11 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import pooling
+
+try:
+    import pyodbc
+except ImportError:
+    pyodbc = None
 
 load_dotenv()
 
@@ -35,9 +42,29 @@ _pool = mysql.connector.pooling.MySQLConnectionPool(
 MOAPI = os.getenv("MOAPI_URL", "https://api.jinmilong.cn/api/mo")
 MOAPI_TOKEN = os.getenv("MOAPI_TOKEN", "123")
 
+U8_DB_CONFIG = {
+    "server": os.getenv("U8_DB_SERVER", "172.16.1.159"),
+    "database": os.getenv("U8_DB_NAME", "UFDATA_008_2021"),
+    "uid": os.getenv("U8_DB_USER", "sa"),
+    "pwd": os.getenv("U8_DB_PASSWORD", "r7B3LshWfs4.JH.F5f8Xpc+R"),
+}
+
 
 def db():
     return _pool.get_connection()
+
+
+def u8_db():
+    if pyodbc is None:
+        raise RuntimeError("缺少 pyodbc，请先安装 webapi/requirements.txt 中的依赖")
+    conn_str = (
+        "DRIVER={SQL Server};"
+        f"SERVER={U8_DB_CONFIG['server']};"
+        f"DATABASE={U8_DB_CONFIG['database']};"
+        f"UID={U8_DB_CONFIG['uid']};"
+        f"PWD={U8_DB_CONFIG['pwd']};"
+    )
+    return pyodbc.connect(conn_str, timeout=10)
 
 
 def _ser(row):
@@ -45,6 +72,21 @@ def _ser(row):
         return None
     return {k: (v.strftime('%Y-%m-%d %H:%M:%S') if isinstance(v, (datetime, date)) else v)
             for k, v in row.items()}
+
+
+def _u8_value(val):
+    if isinstance(val, Decimal):
+        return float(val)
+    if isinstance(val, datetime):
+        return val.strftime("%Y-%m-%d %H:%M:%S")
+    if isinstance(val, date):
+        return val.strftime("%Y-%m-%d")
+    return val
+
+
+def _u8_rows(cursor):
+    columns = [col[0] for col in cursor.description]
+    return [{k: _u8_value(v) for k, v in zip(columns, row)} for row in cursor.fetchall()]
 
 
 # ================================================================
@@ -67,6 +109,118 @@ def workorder_list():
         return jsonify(r.json())
     except Exception as e:
         return jsonify({"code": 1, "msg": str(e), "data": []})
+
+
+# ================================================================
+# 生产标签打印（查询 U8 工单明细）
+# ================================================================
+PRODUCTION_LABEL_SQL = """
+SELECT
+    a.MoCode AS mo_code,
+    dp.cDepName AS dept_name,
+    inv.cInvCode AS inv_code,
+    inv.cInvName AS inv_name,
+    inv.cInvStd AS inv_std,
+    b.Qty AS qty,
+    c.StartDate AS start_date,
+    c.DueDate AS due_date,
+    a.CreateTime AS create_time,
+    bom.Version AS bom_version,
+    b.OrderCode AS order_code,
+    b.OrderSeq AS order_seq,
+    u2.cUser_Name AS audit_user,
+    u1.cUser_Name AS create_user,
+    b.RelsTime AS audit_time,
+    b.SortSeq AS line_no,
+    CASE
+        WHEN LEFT(b.InvCode, 1) = '1' THEN N'成品'
+        WHEN LEFT(b.InvCode, 1) = '2' THEN N'半成品'
+        ELSE N''
+    END AS product_category,
+    u4.cVoucherNo AS source_voucher_no,
+    u8.cSOCode AS so_code,
+    u8.cCusName AS customer_name,
+    u7.iRowNo AS so_row_no,
+    u7.dPreDate AS delivery_date,
+    b.Remark AS remark,
+    dp.cDepMemo AS route_memo,
+    b.MoLotCode AS lot_code
+FROM mom_order a
+LEFT JOIN mom_orderdetail b ON a.MoId = b.MoId
+LEFT JOIN mom_morder c ON b.ModId = c.MoDId
+LEFT JOIN Inventory inv ON inv.cInvCode = b.InvCode
+LEFT JOIN Department dp ON b.MDeptCode = dp.cDepCode
+LEFT JOIN (
+    SELECT bb.Version, bp2.InvCode, bb.BomId
+    FROM bom_bom bb
+    LEFT JOIN bom_parent bp ON bb.BomId = bp.BomId
+    LEFT JOIN bas_part bp2 ON bp.ParentId = bp2.PartId
+    WHERE bb.CloseUser IS NULL AND bp2.InvCode IS NOT NULL
+) bom ON bom.InvCode = b.InvCode AND b.BomId = bom.BomId
+LEFT JOIN UFSystem..UA_User u1 ON a.CreateUser = u1.cUser_Id
+LEFT JOIN UFSystem..UA_User u2 ON u2.cUser_Id = b.RelsUser
+LEFT JOIN UFSystem..GC_SynergismTaskLog u3 ON b.OrderCode = u3.cVoucherNo
+LEFT JOIN UFSystem..GC_SynergismTaskLog u4 ON u3.FatherId = u4.AutoId AND u4.bMainTask = 1
+LEFT JOIN UFDATA_001_2021..SO_SOMain u8 ON u4.cVoucherNo = u8.cSOCode
+LEFT JOIN UFDATA_001_2021..SO_SODetails u7 ON u8.ID = u7.ID
+    AND u7.iRowNo = b.OrderSeq
+    AND u7.cInvCode = inv.cInvCode
+WHERE a.MoCode = ?
+ORDER BY b.SortSeq ASC
+"""
+
+
+@app.get("/api/mo/production-label")
+def production_label():
+    mo_code = (request.args.get("mo_code") or "").strip()
+    if not mo_code:
+        return jsonify({"code": 1, "msg": "工单号不能为空"})
+    try:
+        conn = u8_db()
+        cur = conn.cursor()
+        cur.execute(PRODUCTION_LABEL_SQL, (mo_code,))
+        rows = _u8_rows(cur)
+        cur.close(); conn.close()
+        if not rows:
+            return jsonify({"code": 1, "msg": "未找到生产订单", "data": None})
+
+        first = rows[0]
+        approved = any(str(r.get("audit_time") or "").strip() for r in rows)
+        total_qty = sum(float(r.get("qty") or 0) for r in rows)
+        header = {
+            "mo_code": first.get("mo_code"),
+            "dept_name": first.get("dept_name"),
+            "product_category": first.get("product_category"),
+            "start_date": first.get("start_date"),
+            "due_date": first.get("due_date"),
+            "create_user": first.get("create_user"),
+            "audit_user": first.get("audit_user"),
+            "audit_time": first.get("audit_time"),
+            "approved": approved,
+            "total_qty": total_qty,
+        }
+        lines = []
+        for r in rows:
+            line_no = r.get("line_no")
+            lines.append({
+                "line_no": line_no,
+                "inv_code": r.get("inv_code"),
+                "inv_name": r.get("inv_name"),
+                "inv_std": r.get("inv_std"),
+                "qty": r.get("qty"),
+                "lot_code": r.get("lot_code"),
+                "bom_version": r.get("bom_version"),
+                "order_code": r.get("order_code"),
+                "order_seq": r.get("order_seq"),
+                "customer_name": r.get("customer_name"),
+                "delivery_date": r.get("delivery_date"),
+                "route_memo": r.get("route_memo"),
+                "remark": r.get("remark"),
+                "qr_value": json.dumps({"mocode": mo_code, "sortseq": line_no}, ensure_ascii=False),
+            })
+        return jsonify({"code": 0, "data": {"header": header, "lines": lines}})
+    except Exception as e:
+        return jsonify({"code": 1, "msg": str(e), "data": None})
 
 
 # ================================================================

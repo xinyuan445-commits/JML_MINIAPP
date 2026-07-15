@@ -514,15 +514,18 @@ def inventory_search():
         return jsonify({"code": 1, "msg": "请输入关键词", "data": []})
     try:
         where, params = [], []
-        for t in tokens:
-            where.append("cinvcode LIKE %s"); params.append(f"%{t}%")
 
         if mat_type:
+            for t in tokens:
+                where.append("(cinvcode LIKE %s OR cinvname LIKE %s)")
+                params.extend([f"%{t}%", f"%{t}%"])
             prefix = _mat_prefix(mat_type)
             if not prefix:
                 return jsonify({"code": 1, "msg": "未知材料类型", "data": []})
             where.append("cinvcode LIKE %s"); params.append(prefix + "%")
         else:
+            for t in tokens:
+                where.append("cinvcode LIKE %s"); params.append(f"%{t}%")
             where += [
                 "cinvcode LIKE '1%'",
                 "cinvcode NOT LIKE '%88%'",

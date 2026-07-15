@@ -49,11 +49,11 @@ Page({
     selectedWorkers: [],
     selectedTempWorkerCount: 0,
     selectedWorkerText: '',
-    startPhotoUrl: '',
 
     // 完工弹窗
     showCompletePopup:    false,
     completeForm:         { qty_a: '', qty_c: '', reason: '' },
+    completePhotoUrl:     '',
     completeQtyWarn:      false,  // 不足
     completeQtyOver:      false,  // 超出
     completeQtyCDisabled: false,
@@ -464,56 +464,15 @@ Page({
     });
   },
 
-  onPickStartPhoto() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['camera'],
-      success: (res) => {
-        const file = res.tempFiles[0];
-        wx.showLoading({ title: '上传中...', mask: true });
-        wx.uploadFile({
-          url: UPLOAD_URL,
-          name: 'file',
-          filePath: file.tempFilePath,
-          success: ({ statusCode, data }) => {
-            try {
-              if (statusCode !== 200) {
-                wx.showToast({ title: `上传失败(${statusCode})`, icon: 'none' });
-                return;
-              }
-              const ret = JSON.parse(data);
-              const ok = ret.success === true || ret.code === 0 || ret.code === 1 || ret.code === '1';
-              if (ok && ret.data && ret.data.url) {
-                this.setData({ startPhotoUrl: ret.data.url });
-                wx.showToast({ title: '上传成功', icon: 'success' });
-              } else {
-                wx.showToast({ title: ret.msg || '上传失败', icon: 'none' });
-              }
-            } catch (err) {
-              wx.showToast({ title: '返回异常', icon: 'none' });
-            }
-          },
-          fail: () => wx.showToast({ title: '上传失败(网络)', icon: 'none' }),
-          complete: () => wx.hideLoading()
-        });
-      }
-    });
-  },
-
   // ── 开工 ──────────────────────────────────────────────────────
   onStart() {
-    const { execStatus, selectedStationId, selectedWorkers, selectedTempWorkerCount, startPhotoUrl } = this.data;
+    const { execStatus, selectedStationId, selectedWorkers, selectedTempWorkerCount } = this.data;
     if (execStatus.stations && execStatus.stations.length > 1 && !selectedStationId) {
       wx.showToast({ title: '请先选择工站', icon: 'none' });
       return;
     }
     if (!selectedWorkers.length) {
       wx.showToast({ title: '请至少选择一名正式员工', icon: 'none' });
-      return;
-    }
-    if (Number(execStatus.current_seq) === 1 && !startPhotoUrl) {
-      wx.showToast({ title: '请先拍主材照片', icon: 'none' });
       return;
     }
     wx.showLoading({ title: '开工中...', mask: true });
@@ -529,13 +488,11 @@ Page({
         station_id: selectedStationId,
         user_id:    getUserId(),
         worker_ids: selectedWorkers.map(item => item.user_id),
-        temp_worker_count: selectedTempWorkerCount,
-        start_photo_url: startPhotoUrl || ''
+        temp_worker_count: selectedTempWorkerCount
       },
       success: (res) => {
         if ((res.data || {}).code === 0) {
           wx.showToast({ title: '开工成功', icon: 'success' });
-          this.setData({ startPhotoUrl: '' });
           setTimeout(() => this.loadStatus(), 800);
         } else {
           wx.showToast({ title: res.data.msg || '开工失败', icon: 'none' });
@@ -565,6 +522,7 @@ Page({
       compThreshold:        this._calcThreshold(),
       compThresholdLabel:   received != null ? '上工序接收数量' : '子件参考数量',
       completeForm:         { qty_a: '', qty_c: '', reason: '' },
+      completePhotoUrl:     '',
       completeQtyWarn:      false,
       completeQtyOver:      false,
       completeQtyCDisabled: false
@@ -606,6 +564,43 @@ Page({
     this.setData({ 'completeForm.reason': e.detail.value });
   },
 
+  onPickCompletePhoto() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['camera'],
+      success: (res) => {
+        const file = res.tempFiles[0];
+        wx.showLoading({ title: '上传中...', mask: true });
+        wx.uploadFile({
+          url: UPLOAD_URL,
+          name: 'file',
+          filePath: file.tempFilePath,
+          success: ({ statusCode, data }) => {
+            try {
+              if (statusCode !== 200) {
+                wx.showToast({ title: `上传失败(${statusCode})`, icon: 'none' });
+                return;
+              }
+              const ret = JSON.parse(data);
+              const ok = ret.success === true || ret.code === 0 || ret.code === 1 || ret.code === '1';
+              if (ok && ret.data && ret.data.url) {
+                this.setData({ completePhotoUrl: ret.data.url });
+                wx.showToast({ title: '上传成功', icon: 'success' });
+              } else {
+                wx.showToast({ title: ret.msg || '上传失败', icon: 'none' });
+              }
+            } catch (err) {
+              wx.showToast({ title: '返回异常', icon: 'none' });
+            }
+          },
+          fail: () => wx.showToast({ title: '上传失败(网络)', icon: 'none' }),
+          complete: () => wx.hideLoading()
+        });
+      }
+    });
+  },
+
   closeComplete() {
     this.setData({ showCompletePopup: false });
   },
@@ -614,7 +609,7 @@ Page({
   },
 
   submitComplete() {
-    const { completeForm, completeQtyWarn } = this.data;
+    const { completeForm, completeQtyWarn, completePhotoUrl } = this.data;
     const qty_a = parseFloat(completeForm.qty_a || 0);
     const qty_c = parseFloat(completeForm.qty_c || 0);
     if (qty_a < 0 || qty_c < 0) {
@@ -633,6 +628,10 @@ Page({
       wx.showToast({ title: '数量与参考值不符，请填写说明', icon: 'none' });
       return;
     }
+    if (!completePhotoUrl) {
+      wx.showToast({ title: '\u8bf7\u5148\u62cd\u5b8c\u5de5\u4ea7\u54c1\u7167\u7247', icon: 'none' });
+      return;
+    }
     this.setData({ isCompleting: true });
     wx.request({
       url: `${PTHONAPI}/complete`,
@@ -643,6 +642,7 @@ Page({
         qty_a:           qty_a,
         qty_c:           qty_c,
         complete_reason: completeForm.reason.trim(),
+        complete_photo_url: completePhotoUrl,
         user_id:         getUserId()
       },
       success: (res) => {

@@ -1,7 +1,9 @@
 from datetime import datetime, date
 import hmac
+import json
 import os
 
+import requests
 from flask import Blueprint, jsonify, request, session
 from models.db2 import get_db2
 
@@ -33,6 +35,46 @@ def _format_duration(start_time, end_time):
 
 
 mo_bp = Blueprint("mo", __name__)
+
+MO_WORKORDER_DETAIL_URL = os.getenv(
+    "MO_WORKORDER_DETAIL_URL",
+    "https://api.jinmilong.cn/api/mo/workorder/detail"
+)
+
+
+def _first_step_material_shortages(mo_code, sort_seq):
+    """实时核对子件领料；只检查料号以 1、2、31 开头且应领数量大于 0 的材料。"""
+    try:
+        response = requests.get(
+            MO_WORKORDER_DETAIL_URL,
+            params={"mo_code": mo_code, "sort_seq": sort_seq},
+            timeout=8
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except (requests.RequestException, ValueError) as exc:
+        raise RuntimeError("暂时无法核对ERP领料数量，请稍后重试") from exc
+    if payload.get("code") != 0:
+        raise RuntimeError(payload.get("msg") or "暂时无法核对ERP领料数量，请稍后重试")
+
+    shortages = []
+    for item in (payload.get("data") or {}).get("components") or []:
+        code = str(item.get("sub_code") or "").strip()
+        if not code.startswith(("1", "2", "31")):
+            continue
+        try:
+            planned = float(item.get("qty_plan") or 0)
+            issued = float(item.get("qty_issued") or 0)
+        except (TypeError, ValueError):
+            planned = issued = 0
+        if planned > 0 and issued + 0.0001 < planned:
+            shortages.append({
+                "sub_code": code,
+                "sub_name": item.get("sub_name") or "",
+                "qty_plan": planned,
+                "qty_issued": issued
+            })
+    return shortages
 
 
 def _route_admin_authorized():
@@ -98,6 +140,46 @@ def _temp_worker_count(body):
 
 def _makeup_exceeds_plan(qty_before, qty_add, plan_qty):
     return plan_qty is not None and qty_before + qty_add > plan_qty
+
+
+def _num(body, key, default=0):
+    value = body.get(key, default)
+    return float(value or 0)
+
+
+def _complete_qty_from_body(body):
+    qty_a = _num(body, "qty_a")
+    qty_a1 = _num(body, "qty_a1")
+    qty_a2 = _num(body, "qty_a2")
+    qty_c = _num(body, "qty_c")
+    values = (qty_a, qty_a1, qty_a2, qty_c)
+    if any(v < 0 for v in values):
+        raise ValueError("数量不能为负数")
+    total = sum(values)
+    if total <= 0:
+        raise ValueError("完工数量必须大于0")
+    good_total = qty_a + qty_a1 + qty_a2
+    return qty_a, qty_a1, qty_a2, qty_c, total, good_total
+
+
+def _receive_qty_from_body(body, prefix="qty"):
+    if not any(body.get(f"{prefix}_{grade}") not in (None, "") for grade in ("a", "a1", "a2")):
+        fallback = body.get(prefix)
+        if fallback not in (None, ""):
+            body = dict(body)
+            body[f"{prefix}_a"] = fallback
+    qty_a = _num(body, f"{prefix}_a")
+    qty_a1 = _num(body, f"{prefix}_a1")
+    qty_a2 = _num(body, f"{prefix}_a2")
+    values = (qty_a, qty_a1, qty_a2)
+    if any(v < 0 for v in values):
+        raise ValueError("数量不能为负数")
+    total = sum(values)
+    if total <= 0:
+        raise ValueError("接收数量必须大于0")
+    if any(v > 99999 for v in values) or total > 99999:
+        raise ValueError("数量不能超过99999")
+    return qty_a, qty_a1, qty_a2, total
 
 
 # ----------------------------------------------------------------
@@ -299,7 +381,8 @@ def wo_status():
         handover_info = None
         if current_status == 'pending' and current_seq > 1:
             cur.execute("""
-                SELECT h.id, h.qty_out, h.status, e.complete_reason,
+                SELECT h.id, h.qty_out, h.qty_out_a, h.qty_out_a1, h.qty_out_a2,
+                       h.status, e.complete_reason,
                        p.process_name AS prev_process_name
                 FROM mo_handover_yx h
                 LEFT JOIN mo_execution_yx e
@@ -315,6 +398,9 @@ def wo_status():
                 handover_info = {
                     "id":               handover['id'],
                     "qty_out":          float(handover['qty_out']),
+                    "qty_out_a":        float(handover.get('qty_out_a') or 0),
+                    "qty_out_a1":       float(handover.get('qty_out_a1') or 0),
+                    "qty_out_a2":       float(handover.get('qty_out_a2') or 0),
                     "complete_reason":  handover['complete_reason'],
                     "prev_process_name": handover['prev_process_name'] or ''
                 }
@@ -323,7 +409,7 @@ def wo_status():
         received_qty = None
         if current_status == 'processing' and current_seq > 1:
             cur.execute("""
-                SELECT qty_in FROM mo_handover_yx
+                SELECT qty_in, qty_in_a, qty_in_a1, qty_in_a2 FROM mo_handover_yx
                 WHERE mo_code=%s AND sort_seq=%s AND to_seq=%s AND status='confirmed'
                 ORDER BY id DESC LIMIT 1
             """, (mo_code, sort_seq, current_seq))
@@ -342,7 +428,8 @@ def wo_status():
         latest_exec = None
         if ex_done:
             cur.execute("""
-                SELECT h.qty_out, h.qty_in, p.process_name
+                SELECT h.qty_out, h.qty_out_a, h.qty_out_a1, h.qty_out_a2,
+                       h.qty_in, h.qty_in_a, h.qty_in_a1, h.qty_in_a2, p.process_name
                 FROM mo_handover_yx h
                 LEFT JOIN mo_route_step_yx rs ON rs.route_id=h.route_id AND rs.seq=h.from_seq
                 LEFT JOIN mo_process_yx p ON p.id=rs.process_id
@@ -354,6 +441,12 @@ def wo_status():
                 receive_ref_process_name = incoming_handover['process_name'] or '上一步工序'
                 receive_ref_qty = float(incoming_handover['qty_out'] or 0)
                 receive_current_qty = float(incoming_handover['qty_in'] or 0)
+                receive_ref_a = float(incoming_handover.get('qty_out_a') or 0)
+                receive_ref_a1 = float(incoming_handover.get('qty_out_a1') or 0)
+                receive_ref_a2 = float(incoming_handover.get('qty_out_a2') or 0)
+                receive_current_a = float(incoming_handover.get('qty_in_a') or 0)
+                receive_current_a1 = float(incoming_handover.get('qty_in_a1') or 0)
+                receive_current_a2 = float(incoming_handover.get('qty_in_a2') or 0)
             else:
                 cur.execute("""
                     SELECT process_name, qty_done
@@ -365,6 +458,10 @@ def wo_status():
                 receive_ref_process_name = prev_done['process_name'] if prev_done else '上一步工序'
                 receive_ref_qty = float(prev_done['qty_done'] or 0) if prev_done else 0
                 receive_current_qty = 0
+                receive_ref_a = receive_ref_qty
+                receive_ref_a1 = 0
+                receive_ref_a2 = 0
+                receive_current_a = receive_current_a1 = receive_current_a2 = 0
             latest_exec = {
                 "id":              ex_done['id'],
                 "seq":             ex_done['seq'],
@@ -375,6 +472,12 @@ def wo_status():
                 "receive_ref_qty": receive_ref_qty,
                 "receive_current_qty": receive_current_qty,
                 "receive_available_qty": max(0, receive_ref_qty - receive_current_qty),
+                "receive_ref_a": receive_ref_a,
+                "receive_ref_a1": receive_ref_a1,
+                "receive_ref_a2": receive_ref_a2,
+                "receive_current_a": receive_current_a,
+                "receive_current_a1": receive_current_a1,
+                "receive_current_a2": receive_current_a2,
             }
 
         cur.close(); conn.close()
@@ -463,10 +566,24 @@ def start_work():
                 cur.close(); conn.close()
                 return jsonify({"code": 1, "msg": "工单正在进行中"})
         current_seq = state['current_seq'] if state else 1
-        if int(current_seq) == 1 and not start_photo_url:
-            cur.close(); conn.close()
-            return jsonify({"code": 1, "msg": "第一道工序请先拍主材照片"})
-
+        if current_seq == 1:
+            try:
+                material_shortages = _first_step_material_shortages(mo_code, sort_seq)
+            except RuntimeError as exc:
+                cur.close(); conn.close()
+                return jsonify({"code": 1, "msg": str(exc)})
+            if material_shortages:
+                first = material_shortages[0]
+                more = f"，另有{len(material_shortages) - 1}项" if len(material_shortages) > 1 else ""
+                cur.close(); conn.close()
+                return jsonify({
+                    "code": 1,
+                    "msg": (
+                        f"材料未领齐，不能开工：{first['sub_code']}"
+                        f"（应领{first['qty_plan']:g}，已领{first['qty_issued']:g}）{more}"
+                    ),
+                    "data": {"material_shortages": material_shortages}
+                })
         if current_seq > 1:
             cur.execute("""
                 SELECT status FROM mo_handover_yx
@@ -564,22 +681,17 @@ def complete_work():
     body            = request.get_json() or {}
     mo_code         = body.get("mo_code", "").strip()
     sort_seq        = body.get("sort_seq")
-    qty_a           = body.get("qty_a")
-    qty_c           = body.get("qty_c", 0)
     complete_reason = (body.get("complete_reason") or "").strip() or None
+    complete_photo_url = (body.get("complete_photo_url") or "").strip() or None
     user_id         = body.get("user_id", "").strip()
-    if not mo_code or sort_seq is None or qty_a is None:
+    if not mo_code or sort_seq is None:
         return jsonify({"code": 1, "msg": "参数不完整"})
+    if not complete_photo_url:
+        return jsonify({"code": 1, "msg": "完工请先上传产品照片"})
     try:
-        qty_a = float(qty_a)
-        qty_c = float(qty_c)
-        if qty_a < 0 or qty_c < 0:
-            return jsonify({"code": 1, "msg": "数量不能为负数"})
-        if qty_a + qty_c <= 0:
-            return jsonify({"code": 1, "msg": "完工数量必须大于0"})
-        qty_done = qty_a + qty_c
+        qty_a, qty_a1, qty_a2, qty_c, qty_done, good_total = _complete_qty_from_body(body)
     except (ValueError, TypeError):
-        return jsonify({"code": 1, "msg": "数量格式错误"})
+        return jsonify({"code": 1, "msg": "数量格式错误或数量不合法"})
     try:
         conn = get_db2()
         cur = conn.cursor(dictionary=True)
@@ -611,9 +723,11 @@ def complete_work():
 
         cur.execute("""
             UPDATE mo_execution_yx
-            SET status='done', qty_done=%s, qty_a=%s, qty_c=%s, complete_reason=%s, end_time=%s
+            SET status='done', qty_done=%s, qty_a=%s, qty_a1=%s, qty_a2=%s, qty_c=%s,
+                complete_reason=%s, complete_photo_url=%s, end_time=%s
             WHERE id=%s
-        """, (qty_done, qty_a, qty_c, complete_reason, now, exec_rec['id']))
+        """, (qty_done, qty_a, qty_a1, qty_a2, qty_c,
+              complete_reason, complete_photo_url, now, exec_rec['id']))
 
         if next_step:
             next_seq = next_step['seq']
@@ -621,16 +735,20 @@ def complete_work():
                 UPDATE mo_wo_state_yx SET status='pending', current_seq=%s
                 WHERE mo_code=%s AND sort_seq=%s
             """, (next_seq, mo_code, sort_seq))
-            # 交接单只流转A级数量，C级不进入下一工序
+            # 交接单只流转 A/A1/A2 合格数量，C级不进入下一工序
             cur.execute("""
                 INSERT INTO mo_handover_yx
-                  (mo_code, sort_seq, route_id, from_seq, to_seq, qty_out, operator_out, status)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,'pending')
+                  (mo_code, sort_seq, route_id, from_seq, to_seq,
+                   qty_out, qty_out_a, qty_out_a1, qty_out_a2, operator_out, status)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'pending')
                 ON DUPLICATE KEY UPDATE
-                  qty_out=%s, qty_in=0, operator_out=%s, status='pending',
+                  qty_out=%s, qty_out_a=%s, qty_out_a1=%s, qty_out_a2=%s,
+                  qty_in=0, qty_in_a=0, qty_in_a1=0, qty_in_a2=0,
+                  operator_out=%s, status='pending',
                   confirm_time=NULL, receipt_reason=NULL
             """, (mo_code, sort_seq, route_id, current_seq, next_seq,
-                  qty_a, operator_name, qty_a, operator_name))
+                  good_total, qty_a, qty_a1, qty_a2, operator_name,
+                  good_total, qty_a, qty_a1, qty_a2, operator_name))
         else:
             cur.execute("""
                 UPDATE mo_wo_state_yx SET status='done'
@@ -639,7 +757,11 @@ def complete_work():
 
         conn.commit()
         cur.close(); conn.close()
-        return jsonify({"code": 0, "msg": "完工成功"})
+        return jsonify({
+            "code": 0,
+            "msg": "完工成功",
+            "data": {"exec_id": exec_rec['id'], "has_next": bool(next_step)}
+        })
     except Exception as e:
         return jsonify({"code": 1, "msg": str(e)})
 
@@ -683,7 +805,8 @@ def makeup_work():
             return jsonify({"code": 1, "msg": "执行记录不存在或状态不正确"})
 
         cur.execute("""
-            SELECT id, qty_out, qty_in
+            SELECT id, qty_out, qty_out_a, qty_out_a1, qty_out_a2,
+                   qty_in, qty_in_a, qty_in_a1, qty_in_a2
             FROM mo_handover_yx
             WHERE mo_code=%s AND sort_seq=%s AND route_id=%s AND to_seq=%s
             ORDER BY id DESC LIMIT 1
@@ -743,15 +866,17 @@ def receive_handover():
     mo_code        = body.get("mo_code", "").strip()
     sort_seq       = body.get("sort_seq")
     handover_id    = body.get("handover_id")
-    qty_in         = body.get("qty_in")
     receipt_reason = (body.get("receipt_reason") or "").strip() or None
+    photo_url      = (body.get("photo_url") or "").strip() or None
     user_id        = body.get("user_id", "").strip()
-    if not mo_code or sort_seq is None or not handover_id or qty_in is None:
+    if not mo_code or sort_seq is None or not handover_id:
         return jsonify({"code": 1, "msg": "参数不完整"})
+    if not photo_url:
+        return jsonify({"code": 1, "msg": "接收请先上传领用照片"})
     try:
-        qty_in = float(qty_in)
-        if qty_in <= 0:
-            return jsonify({"code": 1, "msg": "接收数量必须大于0"})
+        if body.get("qty_in") not in (None, "") and body.get("qty_a") in (None, ""):
+            body["qty_a"] = body.get("qty_in")
+        qty_a, qty_a1, qty_a2, qty_in = _receive_qty_from_body(body, "qty")
     except (ValueError, TypeError):
         return jsonify({"code": 1, "msg": "数量格式错误"})
     conn = None
@@ -763,7 +888,8 @@ def receive_handover():
         now = datetime.now()
 
         cur.execute("""
-            SELECT id,qty_out,qty_in,status FROM mo_handover_yx
+            SELECT id,qty_out,qty_out_a,qty_out_a1,qty_out_a2,qty_in,status
+            FROM mo_handover_yx
             WHERE id=%s AND mo_code=%s AND sort_seq=%s FOR UPDATE
         """, (handover_id, mo_code, sort_seq))
         handover = cur.fetchone()
@@ -771,6 +897,20 @@ def receive_handover():
             cur.close(); conn.close()
             return jsonify({"code": 1, "msg": "交接单不存在或已接收完成"})
         qty_out = float(handover['qty_out'] or 0)
+        out_a = float(handover.get('qty_out_a') or 0)
+        out_a1 = float(handover.get('qty_out_a1') or 0)
+        out_a2 = float(handover.get('qty_out_a2') or 0)
+        if out_a + out_a1 + out_a2 <= 0:
+            out_a, out_a1, out_a2 = qty_out, 0, 0
+        if qty_a > out_a:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": f"A最多可接收{out_a:g}件"})
+        if qty_a1 > out_a1:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": f"A1最多可接收{out_a1:g}件"})
+        if qty_a2 > out_a2:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": f"A2最多可接收{out_a2:g}件"})
         if qty_in != qty_out and not receipt_reason:
             cur.close(); conn.close()
             return jsonify({"code": 1, "msg": "接收数量与交接数量不一致，请填写说明"})
@@ -779,10 +919,11 @@ def receive_handover():
         cur = conn.cursor()
         cur.execute("""
             UPDATE mo_handover_yx
-            SET qty_in=%s, receipt_reason=%s, operator_in=%s,
+            SET qty_in=%s, qty_in_a=%s, qty_in_a1=%s, qty_in_a2=%s,
+                receipt_reason=%s, operator_in=%s, receive_photo_url=%s,
                 status='confirmed', confirm_time=%s
             WHERE id=%s AND mo_code=%s AND sort_seq=%s AND status='pending'
-        """, (qty_in, receipt_reason, operator_name, now,
+        """, (qty_in, qty_a, qty_a1, qty_a2, receipt_reason, operator_name, photo_url, now,
               handover_id, mo_code, sort_seq))
 
         if cur.rowcount == 0:
@@ -921,7 +1062,9 @@ def execution_detail():
         cur.execute("""
             SELECT id,mo_code,sort_seq,route_id,seq,process_name,station_name,
                    operator_name,start_time,end_time,status,
-                   start_photo_url,qty_done,qty_a,qty_c,complete_reason
+                   start_photo_url,complete_photo_url,qty_done,qty_a,qty_a1,qty_a2,qty_c,complete_reason,
+                   (SELECT COUNT(*) FROM mo_execution_print_log_yx pl
+                    WHERE pl.execution_id=mo_execution_yx.id) AS print_count
             FROM mo_execution_yx WHERE id=%s
         """, (exec_id,))
         row = cur.fetchone()
@@ -947,7 +1090,8 @@ def execution_detail():
         """, (row['mo_code'], row['sort_seq'], row['seq']))
         next_exec = cur.fetchone()
         cur.execute("""
-            SELECT h.id,h.from_seq AS seq,h.qty_out,h.qty_in,p.process_name
+            SELECT h.id,h.from_seq AS seq,h.qty_out,h.qty_out_a,h.qty_out_a1,h.qty_out_a2,
+                   h.qty_in,h.qty_in_a,h.qty_in_a1,h.qty_in_a2,p.process_name
             FROM mo_handover_yx h
             LEFT JOIN mo_route_step_yx rs ON rs.route_id=h.route_id AND rs.seq=h.from_seq
             LEFT JOIN mo_process_yx p ON p.id=rs.process_id
@@ -971,7 +1115,9 @@ def execution_detail():
         """, (exec_id,))
         makeup_records = cur.fetchall()
         cur.execute("""
-            SELECT id,qty_input,qty_a,qty_c,qty_before,qty_ref,reason,photo_url,status,start_time,end_time
+            SELECT id,qty_input,qty_input_a,qty_input_a1,qty_input_a2,
+                   qty_a,qty_a1,qty_a2,qty_c,qty_before,qty_ref,reason,
+                   photo_url,complete_photo_url,status,start_time,end_time
             FROM mo_receive_work_yx
             WHERE execution_id=%s
             ORDER BY id DESC
@@ -993,8 +1139,8 @@ def execution_detail():
             receive_work_records[0] if receive_work_records else None
         )
         cur.execute("""
-            SELECT id,qty_input,qty_a,qty_c,reason,complete_remark,status,
-                   start_time,end_time
+            SELECT id,qty_input,qty_a,qty_a1,qty_a2,qty_c,reason,complete_remark,status,
+                   photo_url,complete_photo_url,start_time,end_time
             FROM mo_rework_yx
             WHERE source_execution_id=%s
             ORDER BY id DESC
@@ -1017,6 +1163,8 @@ def execution_detail():
         data = _ser(row)
         data["qty_done"] = float(data["qty_done"] or 0)
         data["qty_a"] = float(data["qty_a"] or 0)
+        data["qty_a1"] = float(data["qty_a1"] or 0)
+        data["qty_a2"] = float(data["qty_a2"] or 0)
         data["qty_c"] = float(data["qty_c"] or 0)
         data["workers"] = workers
         data["duration_text"] = duration_text
@@ -1035,6 +1183,9 @@ def execution_detail():
         if data["previous_exec"]:
             data["previous_exec"]["qty_out"] = float(data["previous_exec"].get("qty_out") or 0)
             data["previous_exec"]["qty_in"] = float(data["previous_exec"].get("qty_in") or 0)
+            for field in ("qty_out_a", "qty_out_a1", "qty_out_a2", "qty_in_a", "qty_in_a1", "qty_in_a2"):
+                if field in data["previous_exec"]:
+                    data["previous_exec"][field] = float(data["previous_exec"].get(field) or 0)
             if "qty_done" in data["previous_exec"]:
                 data["previous_exec"]["qty_done"] = float(data["previous_exec"]["qty_done"] or 0)
         data["receive_ref_process_name"] = (
@@ -1043,12 +1194,24 @@ def execution_detail():
         if previous_exec and "qty_out" in previous_exec:
             data["receive_ref_qty"] = float(previous_exec["qty_out"] or 0)
             data["receive_current_qty"] = float(previous_exec["qty_in"] or 0)
+            data["receive_ref_a"] = float(previous_exec.get("qty_out_a") or 0)
+            data["receive_ref_a1"] = float(previous_exec.get("qty_out_a1") or 0)
+            data["receive_ref_a2"] = float(previous_exec.get("qty_out_a2") or 0)
+            data["receive_current_a"] = float(previous_exec.get("qty_in_a") or 0)
+            data["receive_current_a1"] = float(previous_exec.get("qty_in_a1") or 0)
+            data["receive_current_a2"] = float(previous_exec.get("qty_in_a2") or 0)
         elif previous_exec:
             data["receive_ref_qty"] = float(previous_exec["qty_done"] or 0)
             data["receive_current_qty"] = 0
+            data["receive_ref_a"] = data["receive_ref_qty"]
+            data["receive_ref_a1"] = 0
+            data["receive_ref_a2"] = 0
+            data["receive_current_a"] = data["receive_current_a1"] = data["receive_current_a2"] = 0
         else:
             data["receive_ref_qty"] = 0
             data["receive_current_qty"] = 0
+            data["receive_ref_a"] = data["receive_ref_a1"] = data["receive_ref_a2"] = 0
+            data["receive_current_a"] = data["receive_current_a1"] = data["receive_current_a2"] = 0
         data["receive_available_qty"] = max(0, data["receive_ref_qty"] - data["receive_current_qty"])
         data["makeup_records"] = [_ser(record) for record in makeup_records]
         for record in data["makeup_records"]:
@@ -1057,7 +1220,8 @@ def execution_detail():
         data["receive_work_records"] = []
         for record in receive_work_records:
             item = _ser(record)
-            for field in ("qty_input", "qty_a", "qty_c", "qty_before", "qty_ref"):
+            for field in ("qty_input", "qty_input_a", "qty_input_a1", "qty_input_a2",
+                          "qty_a", "qty_a1", "qty_a2", "qty_c", "qty_before", "qty_ref"):
                 item[field] = float(item[field] or 0)
             item["workers"] = receive_worker_map.get(record['id'], [])
             item["duration_text"] = _format_duration(record['start_time'], record['end_time'])
@@ -1069,7 +1233,7 @@ def execution_detail():
         data["rework_records"] = []
         for record in rework_records:
             item = _ser(record)
-            for field in ("qty_input", "qty_a", "qty_c"):
+            for field in ("qty_input", "qty_a", "qty_a1", "qty_a2", "qty_c"):
                 item[field] = float(item[field] or 0)
             item["workers"] = rework_worker_map.get(record['id'], [])
             item["duration_text"] = _format_duration(record['start_time'], record['end_time'])
@@ -1080,6 +1244,119 @@ def execution_detail():
         )
         return jsonify({"code": 0, "data": data})
     except Exception as e:
+        return jsonify({"code": 1, "msg": str(e)})
+
+
+@mo_bp.get("/execution/label")
+def execution_label():
+    exec_id = request.args.get("id", "").strip()
+    if not exec_id:
+        return jsonify({"code": 1, "msg": "id不能为空"})
+    try:
+        conn = get_db2()
+        cur = conn.cursor(dictionary=True)
+        cur.execute("""
+            SELECT e.id,e.mo_code,e.sort_seq,e.route_id,e.seq,e.process_name,e.station_name,
+                   e.end_time,e.status,e.qty_done,e.qty_a,e.qty_a1,e.qty_a2,e.qty_c,
+                   r.route_name,
+                   (SELECT COUNT(*) FROM mo_execution_print_log_yx pl
+                    WHERE pl.execution_id=e.id) AS print_count
+            FROM mo_execution_yx e
+            LEFT JOIN mo_route_yx r ON r.id=e.route_id
+            WHERE e.id=%s
+        """, (exec_id,))
+        row = cur.fetchone()
+        if not row:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "执行记录不存在"})
+        if row['status'] != 'done':
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "工序尚未完工，不能打印标签"})
+
+        cur.execute("""
+            SELECT rs.seq,p.process_name
+            FROM mo_route_step_yx rs
+            JOIN mo_process_yx p ON p.id=rs.process_id
+            WHERE rs.route_id=%s
+            ORDER BY rs.seq
+        """, (row['route_id'],))
+        steps = cur.fetchall()
+        cur.close(); conn.close()
+
+        current_index = next(
+            (index for index, step in enumerate(steps) if int(step['seq']) == int(row['seq'])),
+            -1
+        )
+        next_process_name = (
+            steps[current_index + 1]['process_name']
+            if current_index >= 0 and current_index + 1 < len(steps) else ''
+        )
+        data = _ser(row)
+        for field in ("qty_done", "qty_a", "qty_a1", "qty_a2", "qty_c"):
+            data[field] = float(data[field] or 0)
+        data["print_count"] = int(data["print_count"] or 0)
+        data["steps"] = [_ser(step) for step in steps]
+        data["step_index"] = current_index + 1 if current_index >= 0 else int(row['seq'])
+        data["step_total"] = len(steps)
+        data["next_process_name"] = next_process_name
+        data["qr_content"] = json.dumps({
+            "mocode": row['mo_code'],
+            "sortseq": row['sort_seq'],
+            "execid": row['id']
+        }, ensure_ascii=False, separators=(",", ":"))
+        return jsonify({"code": 0, "data": data})
+    except Exception as e:
+        return jsonify({"code": 1, "msg": str(e)})
+
+
+@mo_bp.post("/execution/print-log")
+def execution_print_log():
+    body = request.get_json() or {}
+    exec_id = body.get("execution_id")
+    client_job_id = (body.get("client_job_id") or "").strip()
+    printer_device_id = (body.get("printer_device_id") or "").strip() or None
+    printer_name = (body.get("printer_name") or "").strip() or None
+    user_id = (body.get("user_id") or "").strip()
+    if not exec_id or not client_job_id:
+        return jsonify({"code": 1, "msg": "打印记录参数不完整"})
+    conn = None
+    try:
+        conn = get_db2()
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT id,status FROM mo_execution_yx WHERE id=%s", (exec_id,))
+        execution = cur.fetchone()
+        if not execution:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "执行记录不存在"})
+        if execution['status'] != 'done':
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "工序尚未完工，不能记录打印"})
+        operator_name = _get_operator(cur, user_id)
+        cur.execute("""
+            INSERT IGNORE INTO mo_execution_print_log_yx
+              (execution_id,client_job_id,printer_device_id,printer_name,operator_id,operator_name)
+            VALUES (%s,%s,%s,%s,%s,%s)
+        """, (exec_id, client_job_id, printer_device_id, printer_name,
+              user_id or None, operator_name or None))
+        conn.commit()
+        cur.execute("""
+            SELECT COUNT(*) AS print_count
+            FROM mo_execution_print_log_yx WHERE execution_id=%s
+        """, (exec_id,))
+        count_row = cur.fetchone()
+        cur.close(); conn.close()
+        return jsonify({
+            "code": 0,
+            "msg": "打印记录成功",
+            "data": {"print_count": int(count_row['print_count'] or 0)}
+        })
+    except Exception as e:
+        if conn:
+            try:
+                conn.rollback()
+                conn.close()
+            except Exception:
+                pass
         return jsonify({"code": 1, "msg": str(e)})
 
 
@@ -1109,9 +1386,7 @@ def start_receive_work():
     if len(worker_ids) + temp_worker_count > 50:
         return jsonify({"code": 1, "msg": "单次接收人员不能超过50人"})
     try:
-        qty_input = float(body.get("qty_input"))
-        if qty_input <= 0 or qty_input > 99999:
-            return jsonify({"code": 1, "msg": "接收数量必须大于0且不能超过99999"})
+        qty_input_a, qty_input_a1, qty_input_a2, qty_input = _receive_qty_from_body(body, "qty_input")
     except (ValueError, TypeError):
         return jsonify({"code": 1, "msg": "接收数量格式错误"})
 
@@ -1148,6 +1423,26 @@ def start_receive_work():
             return jsonify({"code": 1, "msg": "未找到上工序交接记录，不能接收"})
         qty_ref = float(handover['qty_out'] or 0)
         qty_before = float(handover['qty_in'] or 0)
+        out_a = float(handover.get('qty_out_a') or 0)
+        out_a1 = float(handover.get('qty_out_a1') or 0)
+        out_a2 = float(handover.get('qty_out_a2') or 0)
+        in_a = float(handover.get('qty_in_a') or 0)
+        in_a1 = float(handover.get('qty_in_a1') or 0)
+        in_a2 = float(handover.get('qty_in_a2') or 0)
+        if out_a + out_a1 + out_a2 <= 0:
+            out_a, out_a1, out_a2 = qty_ref, 0, 0
+        avail_a = max(0, out_a - in_a)
+        avail_a1 = max(0, out_a1 - in_a1)
+        avail_a2 = max(0, out_a2 - in_a2)
+        if qty_input_a > avail_a:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": f"A最多可接收{avail_a:g}件"})
+        if qty_input_a1 > avail_a1:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": f"A1最多可接收{avail_a1:g}件"})
+        if qty_input_a2 > avail_a2:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": f"A2最多可接收{avail_a2:g}件"})
         if _makeup_exceeds_plan(qty_before, qty_input, qty_ref) and not reason:
             cur.close(); conn.close()
             return jsonify({"code": 1, "msg": "累计接收数量超过上工序完工数量，请填写原因"})
@@ -1162,10 +1457,12 @@ def start_receive_work():
         cur.execute("""
             INSERT INTO mo_receive_work_yx
               (execution_id,handover_id,mo_code,sort_seq,route_id,seq,process_name,
-               qty_input,qty_before,qty_ref,reason,photo_url,operator_id,operator_name,status,start_time)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'processing',%s)
+               qty_input,qty_input_a,qty_input_a1,qty_input_a2,
+               qty_before,qty_ref,reason,photo_url,operator_id,operator_name,status,start_time)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'processing',%s)
         """, (source['id'], handover['id'], source['mo_code'], source['sort_seq'],
-              source['route_id'], source['seq'], source['process_name'], qty_input,
+              source['route_id'], source['seq'], source['process_name'],
+              qty_input, qty_input_a, qty_input_a1, qty_input_a2,
               qty_before, qty_ref, reason, photo_url, user_id or None, operator_name or None, now))
         receive_id = cur.lastrowid
         worker_rows = [(
@@ -1199,13 +1496,13 @@ def start_receive_work():
 def complete_receive_work():
     body = request.get_json() or {}
     receive_id = body.get("receive_id")
+    complete_photo_url = (body.get("complete_photo_url") or "").strip() or None
     if not receive_id:
         return jsonify({"code": 1, "msg": "receive_id不能为空"})
+    if not complete_photo_url:
+        return jsonify({"code": 1, "msg": "接收完工请先上传照片"})
     try:
-        qty_a = float(body.get("qty_a", 0) or 0)
-        qty_c = float(body.get("qty_c", 0) or 0)
-        if qty_a < 0 or qty_c < 0 or qty_a + qty_c <= 0:
-            return jsonify({"code": 1, "msg": "接收完工数量必须大于0"})
+        qty_a, qty_a1, qty_a2, qty_c, qty_done, _good_total = _complete_qty_from_body(body)
     except (ValueError, TypeError):
         return jsonify({"code": 1, "msg": "接收完工数量格式错误"})
     conn = None
@@ -1228,9 +1525,9 @@ def complete_receive_work():
             return jsonify({"code": 1, "msg": "交接记录不存在"})
         qty_before = float(handover['qty_in'] or 0)
         qty_add = float(receive['qty_input'] or 0)
-        if abs(qty_a + qty_c - qty_add) > 0.0001:
+        if abs(qty_done - qty_add) > 0.0001:
             cur.close(); conn.close()
-            return jsonify({"code": 1, "msg": "A级与C级合计必须等于接收数量"})
+            return jsonify({"code": 1, "msg": "A/A1/A2/C级合计必须等于接收数量"})
         qty_after = qty_before + qty_add
         qty_ref = float(handover['qty_out'] or 0)
         if _makeup_exceeds_plan(qty_before, qty_add, qty_ref) and not receive['reason']:
@@ -1241,10 +1538,16 @@ def complete_receive_work():
         cur = conn.cursor()
         cur.execute("""
             UPDATE mo_handover_yx
-            SET qty_in=%s, status='confirmed', confirm_time=COALESCE(confirm_time,%s),
+            SET qty_in=%s,
+                qty_in_a=qty_in_a+%s, qty_in_a1=qty_in_a1+%s, qty_in_a2=qty_in_a2+%s,
+                status='confirmed', confirm_time=COALESCE(confirm_time,%s),
                 operator_in=COALESCE(operator_in,%s), receipt_reason=COALESCE(receipt_reason,%s)
             WHERE id=%s
-        """, (qty_after, now, receive['operator_name'], receive['reason'], receive['handover_id']))
+        """, (qty_after,
+              float(receive.get('qty_input_a') or 0),
+              float(receive.get('qty_input_a1') or 0),
+              float(receive.get('qty_input_a2') or 0),
+              now, receive['operator_name'], receive['reason'], receive['handover_id']))
         cur.execute("""
             INSERT INTO mo_makeup_record_yx
               (execution_id,mo_code,sort_seq,seq,qty_before,qty_add,qty_after,
@@ -1255,14 +1558,16 @@ def complete_receive_work():
               receive['reason'], receive['operator_id'], receive['operator_name']))
         cur.execute("""
             UPDATE mo_receive_work_yx
-            SET qty_a=%s, qty_c=%s, status='done', end_time=%s
+            SET qty_a=%s, qty_a1=%s, qty_a2=%s, qty_c=%s,
+                complete_photo_url=%s, status='done', end_time=%s
             WHERE id=%s
-        """, (qty_a, qty_c, now, receive_id))
+        """, (qty_a, qty_a1, qty_a2, qty_c, complete_photo_url, now, receive_id))
         cur.execute("""
             UPDATE mo_execution_yx
-            SET end_time=%s
+            SET qty_done=qty_done+%s, qty_a=qty_a+%s, qty_a1=qty_a1+%s,
+                qty_a2=qty_a2+%s, qty_c=qty_c+%s, end_time=%s
             WHERE id=%s
-        """, (now, receive['execution_id']))
+        """, (qty_done, qty_a, qty_a1, qty_a2, qty_c, now, receive['execution_id']))
         conn.commit(); cur.close(); conn.close()
         return jsonify({"code": 0, "msg": "接收完工成功"})
     except Exception as e:
@@ -1279,6 +1584,7 @@ def start_rework():
     body = request.get_json() or {}
     exec_id = body.get("exec_id")
     reason = (body.get("reason") or "").strip()
+    photo_url = (body.get("photo_url") or "").strip() or None
     worker_ids = body.get("worker_ids") or []
     try:
         temp_worker_count = _temp_worker_count(body)
@@ -1287,6 +1593,8 @@ def start_rework():
     user_id = (body.get("user_id") or "").strip()
     if not exec_id or not reason:
         return jsonify({"code": 1, "msg": "返工数量和返工说明不能为空"})
+    if not photo_url:
+        return jsonify({"code": 1, "msg": "返工开工请先上传照片"})
     if not isinstance(worker_ids, list):
         return jsonify({"code": 1, "msg": "返工人员格式错误"})
     worker_ids = list(dict.fromkeys(
@@ -1338,11 +1646,11 @@ def start_rework():
         cur.execute("""
             INSERT INTO mo_rework_yx
               (source_execution_id,mo_code,sort_seq,route_id,seq,process_name,
-               qty_input,reason,operator_id,operator_name,status,start_time)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'processing',%s)
+               qty_input,reason,photo_url,operator_id,operator_name,status,start_time)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'processing',%s)
         """, (exec_id, source['mo_code'], source['sort_seq'], source['route_id'],
               source['seq'], source['process_name'], qty_input, reason,
-              user_id or None, operator_name or None, now))
+              photo_url, user_id or None, operator_name or None, now))
         rework_id = cur.lastrowid
         worker_rows = [(
             rework_id, worker_id, worker_map[worker_id]['user_name'],
@@ -1376,11 +1684,11 @@ def complete_rework():
     body = request.get_json() or {}
     rework_id = body.get("rework_id")
     remark = (body.get("remark") or "").strip() or None
+    complete_photo_url = (body.get("complete_photo_url") or "").strip() or None
+    if not complete_photo_url:
+        return jsonify({"code": 1, "msg": "返工完工请先上传照片"})
     try:
-        qty_a = float(body.get("qty_a", 0) or 0)
-        qty_c = float(body.get("qty_c", 0) or 0)
-        if qty_a < 0 or qty_c < 0 or qty_a + qty_c <= 0:
-            return jsonify({"code": 1, "msg": "返工完工数量必须大于0"})
+        qty_a, qty_a1, qty_a2, qty_c, qty_done, good_total = _complete_qty_from_body(body)
     except (ValueError, TypeError):
         return jsonify({"code": 1, "msg": "返工完工数量格式错误"})
     conn = None
@@ -1394,31 +1702,36 @@ def complete_rework():
         if not rework or rework['status'] != 'processing':
             cur.close(); conn.close()
             return jsonify({"code": 1, "msg": "返工记录不存在或已经完工"})
-        if abs(qty_a + qty_c - float(rework['qty_input'])) > 0.0001:
+        if abs(qty_done - float(rework['qty_input'])) > 0.0001:
             cur.close(); conn.close()
-            return jsonify({"code": 1, "msg": "A级与C级合计必须等于返工投入数量"})
+            return jsonify({"code": 1, "msg": "A/A1/A2/C级合计必须等于返工投入数量"})
         now = datetime.now()
         cur.close()
         cur = conn.cursor()
         cur.execute("""
             UPDATE mo_rework_yx
-            SET qty_a=%s,qty_c=%s,complete_remark=%s,status='done',end_time=%s
+            SET qty_a=%s,qty_a1=%s,qty_a2=%s,qty_c=%s,
+                complete_remark=%s,complete_photo_url=%s,status='done',end_time=%s
             WHERE id=%s
-        """, (qty_a, qty_c, remark, now, rework_id))
+        """, (qty_a, qty_a1, qty_a2, qty_c, remark, complete_photo_url, now, rework_id))
         cur.execute("""
             UPDATE mo_execution_yx
-            SET qty_a=qty_a+%s,qty_c=qty_c-%s,end_time=%s
+            SET qty_a=qty_a+%s,qty_a1=qty_a1+%s,qty_a2=qty_a2+%s,
+                qty_c=qty_c-%s,end_time=%s
             WHERE id=%s AND qty_c>=%s
-        """, (qty_a, qty_a, now, rework['source_execution_id'], qty_a))
+        """, (qty_a, qty_a1, qty_a2, good_total, now, rework['source_execution_id'], good_total))
         if cur.rowcount == 0:
             conn.rollback(); cur.close(); conn.close()
             return jsonify({"code": 1, "msg": "原记录C级数量不足，返工完工失败"})
-        if qty_a > 0:
+        if good_total > 0:
             cur.execute("""
-                UPDATE mo_handover_yx SET qty_out=qty_out+%s
+                UPDATE mo_handover_yx
+                SET qty_out=qty_out+%s, qty_out_a=qty_out_a+%s,
+                    qty_out_a1=qty_out_a1+%s, qty_out_a2=qty_out_a2+%s
                 WHERE mo_code=%s AND sort_seq=%s AND from_seq=%s
                 ORDER BY id DESC LIMIT 1
-            """, (qty_a, rework['mo_code'], rework['sort_seq'], rework['seq']))
+            """, (good_total, qty_a, qty_a1, qty_a2,
+                  rework['mo_code'], rework['sort_seq'], rework['seq']))
         conn.commit(); cur.close(); conn.close()
         return jsonify({"code": 0, "msg": "返工完工成功"})
     except Exception as e:

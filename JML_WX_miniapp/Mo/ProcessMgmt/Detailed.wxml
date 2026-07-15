@@ -94,6 +94,10 @@
           <text class="history-section-sub">主材照片</text>
           <image class="history-start-photo" src="{{historyRecord.start_photo_url}}" mode="aspectFill" />
         </view>
+        <view wx:if="{{historyRecord.complete_photo_url}}" class="history-photo-wrap">
+          <text class="history-section-sub">完工产品照片</text>
+          <image class="history-start-photo" src="{{historyRecord.complete_photo_url}}" mode="aspectFill" />
+        </view>
         <view class="history-reason" wx:if="{{historyRecord.complete_reason}}">
           <text class="history-reason-label">完工备注</text>
           <text class="history-reason-text">{{historyRecord.complete_reason}}</text>
@@ -251,16 +255,6 @@
             <text class="worker-select-arrow">›</text>
           </view>
 
-          <view class="receive-photo-box start-photo-box" bindtap="onPickStartPhoto">
-            <block wx:if="{{startPhotoUrl}}">
-              <image class="receive-photo" src="{{startPhotoUrl}}" mode="aspectFill" />
-            </block>
-            <block wx:else>
-              <text class="receive-photo-plus">+</text>
-              <text class="receive-photo-tip">{{execStatus.current_seq === 1 ? '第一道工序主材拍照' : '点击拍主材照片'}}</text>
-            </block>
-          </view>
-
           <view class="start-wrap">
             <t-button theme="primary" size="large" block
               loading="{{isStarting}}" bind:tap="onStart">开工</t-button>
@@ -392,6 +386,15 @@
       <view class="popup-total">
         <text class="popup-total-label">完工总数</text>
         <text class="popup-total-val">{{(completeForm.qty_a * 1 + completeForm.qty_c * 1) || 0}} 件</text>
+      </view>
+      <view class="receive-photo-box" bindtap="onPickCompletePhoto">
+        <block wx:if="{{completePhotoUrl}}">
+          <image class="receive-photo" src="{{completePhotoUrl}}" mode="aspectFill" />
+        </block>
+        <block wx:else>
+          <text class="receive-photo-plus">+</text>
+          <text class="receive-photo-tip">点击拍完工产品照片</text>
+        </block>
       </view>
       <view class="popup-warn-block">
         <text wx:if="{{completeQtyWarn || completeQtyOver}}" class="popup-warn">{{completeQtyOver ? '完工总数超出参考值，需填写说明' : '完工总数不足参考值，需填写说明'}}</text>

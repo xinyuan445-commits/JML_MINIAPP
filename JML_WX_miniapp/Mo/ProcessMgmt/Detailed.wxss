@@ -663,10 +663,6 @@
   overflow: hidden;
 }
 
-.start-photo-box {
-  margin-bottom: 20rpx;
-}
-
 .receive-photo {
   width: 100%;
   height: 100%;

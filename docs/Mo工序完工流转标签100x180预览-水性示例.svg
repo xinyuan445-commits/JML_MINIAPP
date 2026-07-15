@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100mm" height="180mm" viewBox="0 0 1000 1800">
+  <rect x="0" y="0" width="1000" height="1800" fill="#ffffff"/>
+  <rect x="28" y="28" width="944" height="1744" fill="none" stroke="#000000" stroke-width="6"/>
+
+  <!-- Header -->
+  <text x="70" y="115" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="54" font-weight="900" fill="#000000">工序流转标签</text>
+  <text x="72" y="168" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="26" font-weight="900" fill="#000000">完整路线</text>
+  <rect x="190" y="140" width="120" height="38" rx="6" fill="#000000" stroke="#000000" stroke-width="3"/>
+  <text x="250" y="166" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#ffffff">当前工序</text>
+  <rect x="325" y="140" width="120" height="38" rx="6" fill="#ffffff" stroke="#000000" stroke-width="4"/>
+  <text x="385" y="166" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="21" font-weight="800" fill="#000000">下一工序</text>
+
+  <text x="142" y="228" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#000000">倒角</text>
+  <text x="225" y="229" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="28" font-weight="900" fill="#000000">→</text>
+  <text x="332" y="228" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#000000">拉丝</text>
+  <text x="415" y="229" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="28" font-weight="900" fill="#000000">→</text>
+  <text x="522" y="228" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="800" fill="#000000">修补</text>
+
+  <rect x="70" y="260" width="145" height="48" fill="#000000" stroke="#000000" stroke-width="3"/>
+  <text x="142" y="293" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="900" fill="#ffffff">水性</text>
+  <text x="225" y="294" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="28" font-weight="900" fill="#000000">→</text>
+  <rect x="260" y="260" width="145" height="48" fill="#ffffff" stroke="#000000" stroke-width="6"/>
+  <text x="332" y="293" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="25" font-weight="900" fill="#000000">修色</text>
+  <text x="415" y="294" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="28" font-weight="900" fill="#000000">→</text>
+  <text x="562" y="293" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="22" font-weight="800" fill="#000000">木皮打印（含覆膜）</text>
+
+  <!-- QR placeholder -->
+  <rect x="710" y="72" width="200" height="200" fill="#ffffff" stroke="#000000" stroke-width="5"/>
+  <rect x="735" y="97" width="52" height="52" fill="#000000"/>
+  <rect x="838" y="97" width="52" height="52" fill="#000000"/>
+  <rect x="735" y="200" width="52" height="52" fill="#000000"/>
+  <rect x="805" y="170" width="28" height="28" fill="#000000"/>
+  <rect x="858" y="192" width="26" height="26" fill="#000000"/>
+  <rect x="795" y="226" width="32" height="32" fill="#000000"/>
+  <rect x="850" y="234" width="36" height="18" fill="#000000"/>
+  <text x="810" y="318" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="28" font-weight="700" fill="#000000">扫码追溯</text>
+
+  <!-- Work order section -->
+  <line x1="70" y1="380" x2="930" y2="380" stroke="#000000" stroke-width="4"/>
+  <text x="70" y="455" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="46" font-weight="900" fill="#000000">工单：SCDD26072807</text>
+  <text x="70" y="520" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="40" font-weight="700" fill="#000000">行号：10</text>
+
+  <!-- Product section -->
+  <rect x="70" y="580" width="860" height="265" fill="#ffffff" stroke="#000000" stroke-width="4"/>
+  <text x="100" y="640" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="32" font-weight="700" fill="#000000">产品</text>
+  <line x1="100" y1="670" x2="900" y2="670" stroke="#000000" stroke-width="2"/>
+  <text x="100" y="725" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="31" fill="#000000">1320ZZ-OSB-F4-4912-ELCR7-9011-A2</text>
+  <text x="100" y="785" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="31" font-weight="700" fill="#000000">ELCR7-9011 F4 欧松板 49*12 墨翠榆木</text>
+  <text x="100" y="825" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#000000">双面木皮打印双面准分子（覆logo膜）（A2类）</text>
+
+  <!-- Process section -->
+  <rect x="70" y="890" width="860" height="250" fill="#ffffff" stroke="#000000" stroke-width="4"/>
+  <text x="100" y="948" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="32" font-weight="900" fill="#000000">当前流转</text>
+  <text x="770" y="948" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#000000">步骤 1/3</text>
+  <line x1="100" y1="980" x2="900" y2="980" stroke="#000000" stroke-width="2"/>
+  <rect x="100" y="1010" width="340" height="88" fill="#000000" stroke="#000000" stroke-width="4"/>
+  <text x="270" y="1068" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="42" font-weight="900" fill="#ffffff">当前：水性</text>
+  <rect x="520" y="1010" width="340" height="88" fill="#ffffff" stroke="#000000" stroke-width="6"/>
+  <text x="690" y="1068" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="42" font-weight="900" fill="#000000">下一步：修色</text>
+
+  <!-- Quantity highlight -->
+  <rect x="70" y="1195" width="860" height="210" fill="#ffffff" stroke="#000000" stroke-width="7"/>
+  <line x1="260" y1="1195" x2="260" y2="1405" stroke="#000000" stroke-width="4"/>
+  <line x1="427" y1="1195" x2="427" y2="1405" stroke="#000000" stroke-width="4"/>
+  <line x1="594" y1="1195" x2="594" y2="1405" stroke="#000000" stroke-width="4"/>
+  <line x1="761" y1="1195" x2="761" y2="1405" stroke="#000000" stroke-width="4"/>
+  <text x="165" y="1265" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#000000">合计</text>
+  <text x="165" y="1352" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="68" font-weight="900" fill="#000000">100</text>
+  <text x="343" y="1265" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#000000">A</text>
+  <text x="343" y="1348" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="56" font-weight="900" fill="#000000">90</text>
+  <text x="510" y="1265" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#000000">A1</text>
+  <text x="510" y="1348" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="56" font-weight="900" fill="#000000">3</text>
+  <text x="677" y="1265" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#000000">A2</text>
+  <text x="677" y="1348" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="56" font-weight="900" fill="#000000">3</text>
+  <rect x="761" y="1195" width="169" height="210" fill="#000000"/>
+  <text x="845" y="1265" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#ffffff">C</text>
+  <text x="845" y="1348" text-anchor="middle" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="56" font-weight="900" fill="#ffffff">4</text>
+
+  <!-- Station and time -->
+  <rect x="70" y="1460" width="860" height="170" fill="#ffffff" stroke="#000000" stroke-width="4"/>
+  <text x="100" y="1535" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="42" font-weight="900" fill="#000000">工站：水性</text>
+  <text x="100" y="1595" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="36" fill="#000000">完工：2026-07-09 16:25</text>
+
+  <!-- Footer notice -->
+  <line x1="70" y1="1675" x2="930" y2="1675" stroke="#000000" stroke-width="3"/>
+  <text x="70" y="1728" font-family="Microsoft YaHei, SimHei, Arial, sans-serif" font-size="30" font-weight="700" fill="#000000">提示：下一工序接收前，请核对工单、步骤、数量与产品信息。</text>
+</svg>
