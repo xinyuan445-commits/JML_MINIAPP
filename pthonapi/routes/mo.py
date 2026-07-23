@@ -1,7 +1,9 @@
 from datetime import datetime, date
+from functools import wraps
 import hmac
 import json
 import os
+import re
 
 import requests
 from flask import Blueprint, jsonify, request, session
@@ -79,6 +81,18 @@ def _first_step_material_shortages(mo_code, sort_seq):
 
 def _route_admin_authorized():
     return session.get("mo_route_admin") is True
+
+
+def _admin_api_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        expected = os.getenv("MO_ADMIN_API_TOKEN", "")
+        supplied = request.headers.get("X-MO-Admin-Token", "")
+        if not expected or not hmac.compare_digest(expected, supplied):
+            return jsonify({"code": 403, "msg": "后台管理接口未授权"}), 403
+        return view(*args, **kwargs)
+
+    return wrapped
 
 
 def _find_route(cur, mo_code, sort_seq, category_name=''):
@@ -246,6 +260,7 @@ def process_detail():
 
 
 @mo_bp.post("/process/add")
+@_admin_api_required
 def process_add():
     body = request.get_json() or {}
     code = body.get("process_code", "").strip()
@@ -269,6 +284,7 @@ def process_add():
 
 
 @mo_bp.post("/process/update")
+@_admin_api_required
 def process_update():
     body = request.get_json() or {}
     pid  = body.get("id")
@@ -293,6 +309,7 @@ def process_update():
 
 
 @mo_bp.post("/process/toggle")
+@_admin_api_required
 def process_toggle():
     body = request.get_json() or {}
     pid = body.get("id")
@@ -724,10 +741,12 @@ def complete_work():
         cur.execute("""
             UPDATE mo_execution_yx
             SET status='done', qty_done=%s, qty_a=%s, qty_a1=%s, qty_a2=%s, qty_c=%s,
-                complete_reason=%s, complete_photo_url=%s, end_time=%s
+                complete_reason=%s, complete_photo_url=%s,
+                complete_operator_id=%s, complete_operator_name=%s, end_time=%s
             WHERE id=%s
         """, (qty_done, qty_a, qty_a1, qty_a2, qty_c,
-              complete_reason, complete_photo_url, now, exec_rec['id']))
+              complete_reason, complete_photo_url, user_id or None,
+              operator_name or None, now, exec_rec['id']))
 
         if next_step:
             next_seq = next_step['seq']
@@ -1061,7 +1080,7 @@ def execution_detail():
         cur = conn.cursor(dictionary=True)
         cur.execute("""
             SELECT id,mo_code,sort_seq,route_id,seq,process_name,station_name,
-                   operator_name,start_time,end_time,status,
+                   operator_name,complete_operator_name,start_time,end_time,status,
                    start_photo_url,complete_photo_url,qty_done,qty_a,qty_a1,qty_a2,qty_c,complete_reason,
                    (SELECT COUNT(*) FROM mo_execution_print_log_yx pl
                     WHERE pl.execution_id=mo_execution_yx.id) AS print_count
@@ -1776,6 +1795,7 @@ def workstation_list():
 
 
 @mo_bp.post("/workstation/add")
+@_admin_api_required
 def workstation_add():
     d = request.json or {}
     code = (d.get("station_code") or "").strip()
@@ -1796,6 +1816,7 @@ def workstation_add():
 
 
 @mo_bp.post("/workstation/update")
+@_admin_api_required
 def workstation_update():
     d = request.json or {}
     if not d.get("id"):
@@ -1814,6 +1835,7 @@ def workstation_update():
 
 
 @mo_bp.post("/workstation/toggle")
+@_admin_api_required
 def workstation_toggle():
     d = request.json or {}
     if not d.get("id"):
@@ -1850,7 +1872,123 @@ def product_category_list():
         return jsonify({"code": 1, "msg": str(e), "data": []})
 
 
+@mo_bp.get("/product-category/manage-list")
+def product_category_manage_list():
+    try:
+        conn = get_db2()
+        cur = conn.cursor(dictionary=True)
+        cur.execute("""
+            SELECT code,name,is_enabled,created_at,updated_at
+            FROM bj_product_cost_yx
+            ORDER BY CAST(code AS UNSIGNED),code
+        """)
+        rows = cur.fetchall()
+        cur.close(); conn.close()
+        return jsonify({"code": 0, "data": [_ser(row) for row in rows]})
+    except Exception as e:
+        return jsonify({"code": 1, "msg": str(e), "data": []})
+
+
+@mo_bp.post("/product-category/add")
+@_admin_api_required
+def product_category_add():
+    name = str((request.get_json() or {}).get("name") or "").strip()
+    if not name:
+        return jsonify({"code": 1, "msg": "产品类别名称不能为空"})
+    try:
+        conn = get_db2()
+        cur = conn.cursor()
+        cur.execute("SELECT code FROM bj_product_cost_yx WHERE name=%s LIMIT 1", (name,))
+        if cur.fetchone():
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "产品类别名称已存在"})
+        cur.execute("SELECT COALESCE(MAX(CAST(code AS UNSIGNED)),0)+1 FROM bj_product_cost_yx WHERE code REGEXP '^[0-9]+$'")
+        next_code = str(int(cur.fetchone()[0])).zfill(2)
+        cur.execute("""
+            INSERT INTO bj_product_cost_yx
+                (code,name,unit,mgmt_rate,mgmt_method,is_enabled,remark)
+            VALUES (%s,%s,NULL,0,NULL,1,'报工产品类别')
+        """, (next_code, name))
+        conn.commit(); cur.close(); conn.close()
+        return jsonify({"code": 0, "msg": "新增成功", "data": {"code": next_code}})
+    except Exception as e:
+        return jsonify({"code": 1, "msg": str(e)})
+
+
+@mo_bp.post("/product-category/update")
+@_admin_api_required
+def product_category_update():
+    body = request.get_json() or {}
+    code = str(body.get("code") or "").strip()
+    name = str(body.get("name") or "").strip()
+    if not code or not name:
+        return jsonify({"code": 1, "msg": "产品类别编码和名称不能为空"})
+    try:
+        conn = get_db2()
+        cur = conn.cursor()
+        cur.execute("SELECT code FROM bj_product_cost_yx WHERE name=%s AND code<>%s LIMIT 1", (name, code))
+        if cur.fetchone():
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "产品类别名称已存在"})
+        cur.execute("UPDATE bj_product_cost_yx SET name=%s WHERE code=%s", (name, code))
+        if cur.rowcount == 0:
+            conn.rollback(); cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "产品类别不存在"})
+        conn.commit(); cur.close(); conn.close()
+        return jsonify({"code": 0, "msg": "更新成功"})
+    except Exception as e:
+        return jsonify({"code": 1, "msg": str(e)})
+
+
+@mo_bp.post("/product-category/toggle")
+@_admin_api_required
+def product_category_toggle():
+    code = str((request.get_json() or {}).get("code") or "").strip()
+    if not code:
+        return jsonify({"code": 1, "msg": "产品类别编码不能为空"})
+    try:
+        conn = get_db2()
+        cur = conn.cursor()
+        cur.execute("UPDATE bj_product_cost_yx SET is_enabled=1-is_enabled WHERE code=%s", (code,))
+        if cur.rowcount == 0:
+            conn.rollback(); cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "产品类别不存在"})
+        conn.commit(); cur.close(); conn.close()
+        return jsonify({"code": 0, "msg": "操作成功"})
+    except Exception as e:
+        return jsonify({"code": 1, "msg": str(e)})
+
+
+def _route_usage_count(cur, route_id):
+    cur.execute("""
+        SELECT COUNT(DISTINCT CONCAT(mo_code, '#', sort_seq)) AS cnt
+        FROM (
+            SELECT mo_code,sort_seq FROM mo_execution_yx WHERE route_id=%s
+            UNION ALL SELECT mo_code,sort_seq FROM mo_wo_state_yx WHERE route_id=%s
+            UNION ALL SELECT mo_code,sort_seq FROM mo_handover_yx WHERE route_id=%s
+            UNION ALL SELECT mo_code,sort_seq FROM mo_wo_route_yx WHERE route_id=%s
+        ) usage_rows
+    """, (route_id, route_id, route_id, route_id))
+    row = cur.fetchone()
+    value = row["cnt"] if isinstance(row, dict) else row[0]
+    return int(value or 0)
+
+
+def _sync_route_categories(cur, route_id, version_group):
+    cur.execute(
+        "DELETE FROM mo_product_route_yx WHERE route_id IN "
+        "(SELECT id FROM mo_route_yx WHERE version_group=%s)",
+        (version_group,),
+    )
+    cur.execute("""
+        INSERT INTO mo_product_route_yx (product_code,route_id)
+        SELECT product_code,route_id FROM mo_route_version_category_yx WHERE route_id=%s
+        ON DUPLICATE KEY UPDATE route_id=VALUES(route_id)
+    """, (route_id,))
+
+
 @mo_bp.post("/route/set-categories")
+@_admin_api_required
 def route_set_categories():
     d = request.json or {}
     route_id = d.get("route_id")
@@ -1860,13 +1998,21 @@ def route_set_categories():
     try:
         conn = get_db2()
         cur = conn.cursor()
-        cur.execute("DELETE FROM mo_product_route_yx WHERE route_id=%s", (route_id,))
+        cur.execute("SELECT version_group,is_current FROM mo_route_yx WHERE id=%s", (route_id,))
+        route = cur.fetchone()
+        if not route or not route[1]:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "只能修改当前路线版本"})
+        if _route_usage_count(cur, route_id) > 0:
+            cur.close(); conn.close()
+            return jsonify({"code": 2, "msg": "路线已使用，请创建新版本后修改", "require_new_version": True})
+        cur.execute("DELETE FROM mo_route_version_category_yx WHERE route_id=%s", (route_id,))
         for product_code in product_codes:
             cur.execute("""
-                INSERT INTO mo_product_route_yx (product_code, route_id)
+                INSERT INTO mo_route_version_category_yx (route_id,product_code)
                 VALUES (%s,%s)
-                ON DUPLICATE KEY UPDATE route_id=VALUES(route_id)
-            """, (product_code, route_id))
+            """, (route_id, product_code))
+        _sync_route_categories(cur, route_id, route[0])
         conn.commit(); cur.close(); conn.close()
         return jsonify({"code": 0, "msg": "产品类别已保存"})
     except Exception as e:
@@ -1880,13 +2026,14 @@ def route_list():
         cur = conn.cursor(dictionary=True)
         cur.execute("""
             SELECT r.*,
-                   GROUP_CONCAT(pr.product_code ORDER BY pr.product_code) AS product_codes,
-                   GROUP_CONCAT(pc.name ORDER BY pr.product_code SEPARATOR '、') AS product_names
+                   GROUP_CONCAT(vc.product_code ORDER BY vc.product_code) AS product_codes,
+                   GROUP_CONCAT(pc.name ORDER BY vc.product_code SEPARATOR '、') AS product_names
             FROM mo_route_yx r
-            LEFT JOIN mo_product_route_yx pr ON pr.route_id=r.id
-            LEFT JOIN bj_product_cost_yx pc ON pc.code=pr.product_code
+            LEFT JOIN mo_route_version_category_yx vc ON vc.route_id=r.id
+            LEFT JOIN bj_product_cost_yx pc ON pc.code=vc.product_code
+            WHERE r.is_current=1
             GROUP BY r.id
-            ORDER BY r.id ASC
+            ORDER BY r.dept_code,r.route_name
         """)
         rows = cur.fetchall()
         for row in rows:
@@ -1926,6 +2073,7 @@ def route_detail():
 
 
 @mo_bp.post("/route/add")
+@_admin_api_required
 def route_add():
     d = request.json or {}
     code = (d.get("route_code") or "").strip()
@@ -1935,9 +2083,15 @@ def route_add():
     try:
         conn = get_db2()
         cur = conn.cursor()
+        version_match = re.search(r"V(\d+)$", name, flags=re.IGNORECASE)
+        version_no = int(version_match.group(1)) if version_match else 1
         cur.execute(
-            "INSERT INTO mo_route_yx (route_code,route_name,dept_code,description,is_active,is_default,create_time,update_time) VALUES (%s,%s,%s,%s,1,0,NOW(),NOW())",
-            (code, name, d.get("dept_code",""), d.get("description",""))
+            """INSERT INTO mo_route_yx
+               (route_code,version_group,version_no,route_name,dept_code,description,
+                version_note,is_active,is_default,is_current,create_time,update_time)
+               VALUES (%s,%s,%s,%s,%s,%s,%s,1,0,1,NOW(),NOW())""",
+            (code, code, version_no, name, d.get("dept_code",""),
+             d.get("description",""), d.get("version_note",""))
         )
         conn.commit(); cur.close(); conn.close()
         return jsonify({"code": 0, "msg": "添加成功"})
@@ -1946,16 +2100,28 @@ def route_add():
 
 
 @mo_bp.post("/route/update")
+@_admin_api_required
 def route_update():
     d = request.json or {}
     if not d.get("id"):
         return jsonify({"code": 1, "msg": "id不能为空"})
     try:
         conn = get_db2()
-        cur = conn.cursor()
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT is_current FROM mo_route_yx WHERE id=%s", (d["id"],))
+        route = cur.fetchone()
+        if not route or not route["is_current"]:
+            cur.close(); conn.close()
+            return jsonify({"code": 1, "msg": "只能编辑当前路线版本"})
+        if _route_usage_count(cur, d["id"]) > 0:
+            cur.close(); conn.close()
+            return jsonify({"code": 2, "msg": "路线已使用，请创建新版本后修改", "require_new_version": True})
+        cur.close(); cur = conn.cursor()
         cur.execute(
-            "UPDATE mo_route_yx SET route_name=%s,dept_code=%s,description=%s,update_time=NOW() WHERE id=%s",
-            (d.get("route_name",""), d.get("dept_code",""), d.get("description",""), d["id"])
+            """UPDATE mo_route_yx SET route_name=%s,dept_code=%s,description=%s,
+               version_note=%s,update_time=NOW() WHERE id=%s""",
+            (d.get("route_name",""), d.get("dept_code",""), d.get("description",""),
+             d.get("version_note",""), d["id"])
         )
         conn.commit(); cur.close(); conn.close()
         return jsonify({"code": 0, "msg": "更新成功"})
@@ -1964,6 +2130,7 @@ def route_update():
 
 
 @mo_bp.post("/route/toggle")
+@_admin_api_required
 def route_toggle():
     d = request.json or {}
     if not d.get("id"):
@@ -1980,6 +2147,7 @@ def route_toggle():
 
 
 @mo_bp.post("/route/set-processes")
+@_admin_api_required
 def route_set_processes():
     d = request.json or {}
     route_id = d.get("route_id")
@@ -1989,17 +2157,17 @@ def route_set_processes():
     try:
         conn = get_db2()
         cur = conn.cursor(dictionary=True)
-        cur.execute("SELECT id FROM mo_route_yx WHERE id=%s", (route_id,))
-        if not cur.fetchone():
+        cur.execute("SELECT id,is_current FROM mo_route_yx WHERE id=%s", (route_id,))
+        route = cur.fetchone()
+        if not route:
             cur.close(); conn.close()
             return jsonify({"code": 1, "msg": "路线不存在"})
-        cur.execute("SELECT 1 FROM mo_execution_yx WHERE route_id=%s LIMIT 1", (route_id,))
-        has_execution = cur.fetchone() is not None
-        cur.execute("SELECT 1 FROM mo_wo_state_yx WHERE route_id=%s LIMIT 1", (route_id,))
-        has_state = cur.fetchone() is not None
-        if has_execution or has_state:
+        if not route["is_current"]:
             cur.close(); conn.close()
-            return jsonify({"code": 1, "msg": "路线已使用，不能调整工序；请另存为新版本"})
+            return jsonify({"code": 1, "msg": "只能修改当前路线版本"})
+        if _route_usage_count(cur, route_id) > 0:
+            cur.close(); conn.close()
+            return jsonify({"code": 2, "msg": "路线已使用，不能调整工序；请创建新版本", "require_new_version": True})
 
         cur.execute("SELECT id FROM mo_route_step_yx WHERE route_id=%s", (route_id,))
         step_ids = [row["id"] for row in cur.fetchall()]
@@ -2032,6 +2200,7 @@ def route_set_processes():
 
 
 @mo_bp.post("/route/admin-authorize")
+@_admin_api_required
 def route_admin_authorize():
     expected = os.getenv("MO_ROUTE_ADMIN_PASSWORD", "")
     supplied = str((request.get_json() or {}).get("password") or "")
@@ -2043,6 +2212,7 @@ def route_admin_authorize():
 
 
 @mo_bp.post("/route/delete")
+@_admin_api_required
 def route_delete():
     if not _route_admin_authorized():
         return jsonify({"code": 1, "msg": "仅admin可以删除工艺路线"}), 403
@@ -2053,7 +2223,7 @@ def route_delete():
     try:
         conn = get_db2()
         cur = conn.cursor(dictionary=True)
-        cur.execute("SELECT id,route_name FROM mo_route_yx WHERE id=%s FOR UPDATE", (route_id,))
+        cur.execute("SELECT id,route_name,version_group,is_current,is_default FROM mo_route_yx WHERE id=%s FOR UPDATE", (route_id,))
         route = cur.fetchone()
         if not route:
             cur.close(); conn.close()
@@ -2086,7 +2256,21 @@ def route_delete():
             cur.execute(f"DELETE FROM mo_step_station_yx WHERE step_id IN ({marks})", step_ids)
         cur.execute("DELETE FROM mo_route_step_yx WHERE route_id=%s", (route_id,))
         cur.execute("DELETE FROM mo_product_route_yx WHERE route_id=%s", (route_id,))
+        cur.execute("DELETE FROM mo_route_version_category_yx WHERE route_id=%s", (route_id,))
         cur.execute("DELETE FROM mo_route_yx WHERE id=%s", (route_id,))
+        if route["is_current"]:
+            cur.execute(
+                "SELECT id FROM mo_route_yx WHERE version_group=%s ORDER BY version_no DESC,id DESC LIMIT 1",
+                (route["version_group"],),
+            )
+            previous = cur.fetchone()
+            if previous:
+                previous_id = previous[0]
+                cur.execute(
+                    "UPDATE mo_route_yx SET is_current=1,is_default=%s WHERE id=%s",
+                    (route["is_default"], previous_id),
+                )
+                _sync_route_categories(cur, previous_id, route["version_group"])
         conn.commit(); cur.close(); conn.close()
         return jsonify({"code": 0, "msg": "删除成功"})
     except Exception as e:
@@ -2119,6 +2303,7 @@ def wo_route_list():
 
 
 @mo_bp.post("/wo-route/set")
+@_admin_api_required
 def wo_route_set():
     d = request.json or {}
     mo_code  = (d.get("mo_code") or "").strip()
@@ -2141,6 +2326,7 @@ def wo_route_set():
 
 
 @mo_bp.post("/wo-route/set-batch")
+@_admin_api_required
 def wo_route_set_batch():
     d = request.json or {}
     route_id = d.get("route_id")

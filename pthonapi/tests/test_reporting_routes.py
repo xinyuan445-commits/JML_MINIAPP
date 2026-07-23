@@ -21,10 +21,9 @@ class ReportingRouteTests(unittest.TestCase):
             with self.subTest(product_code=product_code):
                 self.assertTrue(removed.isdisjoint(steps))
 
-    def test_hpl_routes_keep_backing_board_bonding(self):
-        for product_code in ("07", "10", "19"):
-            self.assertEqual(REPORTING_ROUTES[product_code][0], "HPL三胺基材粘贴垫板")
-        self.assertEqual(REPORTING_ROUTES["15"][0], "HPL素板粘贴垫板")
+    def test_hpl_routes_exclude_backing_board_bonding(self):
+        for product_code in ("07", "10", "15", "19"):
+            self.assertFalse(any("粘贴垫板" in step for step in REPORTING_ROUTES[product_code]))
 
 
 if __name__ == "__main__":

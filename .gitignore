@@ -1,0 +1,3 @@
+webapi/.env.admin
+**/__pycache__/
+*.pyc

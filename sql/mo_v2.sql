@@ -121,6 +121,8 @@ CREATE TABLE `mo_execution_yx` (
   `station_name`     VARCHAR(100)  DEFAULT NULL            COMMENT '工站名快照',
   `operator_id`      VARCHAR(50)   DEFAULT NULL,
   `operator_name`    VARCHAR(100)  DEFAULT NULL,
+  `complete_operator_id` VARCHAR(50) DEFAULT NULL     COMMENT '完工操作人ID',
+  `complete_operator_name` VARCHAR(100) DEFAULT NULL  COMMENT '完工操作人姓名',
   `start_photo_url`  VARCHAR(1000) DEFAULT NULL            COMMENT '开工照片',
   `complete_photo_url` VARCHAR(1000) DEFAULT NULL          COMMENT '完工产品照片',
   `qty_done`         DECIMAL(18,4) NOT NULL DEFAULT 0      COMMENT '完成数量',
