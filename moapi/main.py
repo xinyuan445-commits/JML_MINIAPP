@@ -1,7 +1,12 @@
 from decimal import Decimal
+from datetime import datetime
+from hashlib import sha256
+from uuid import UUID, uuid4
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 import pyodbc
+import re
 
 app = FastAPI(title="JML Internal DB API")
 
@@ -19,20 +24,42 @@ DB_CONFIG = {
     "pwd": "r7B3LshWfs4.JH.F5f8Xpc+R"
 }
 
-def get_db():
+def get_db(database=None):
     conn_str = (
         "DRIVER={SQL Server};"
         f"SERVER={DB_CONFIG['server']};"
-        f"DATABASE={DB_CONFIG['database']};"
+        f"DATABASE={database or DB_CONFIG['database']};"
         f"UID={DB_CONFIG['uid']};"
         f"PWD={DB_CONFIG['pwd']};"
     )
     return pyodbc.connect(conn_str, timeout=5)
 
+def get_yx_test_db():
+    return get_db("yx_test")
+
 def serialize(val):
     if isinstance(val, Decimal):
         return float(val)
+    if isinstance(val, datetime):
+        return val.strftime("%Y-%m-%d %H:%M:%S")
     return val
+
+def row_to_dict(cursor, row):
+    if not row:
+        return None
+    columns = [col[0] for col in cursor.description]
+    return {key: serialize(value) for key, value in zip(columns, row)}
+
+def get_operator_name(cursor, user_id):
+    if not user_id:
+        return ""
+    cursor.execute("""
+        SELECT TOP 1 staff_name
+        FROM dbo.jml_staff_yx
+        WHERE staff_id = ?
+    """, (user_id,))
+    row = cursor.fetchone()
+    return (row[0] or "").strip() if row else ""
 
 WORKORDER_SQL = """
 SELECT MoCode_a, SortSeq_b, a.MDeptCode_b AS DeptCode, cDepName,
@@ -196,27 +223,150 @@ async def get_material_cost(inv_code: str):
         return {"code": 1, "msg": str(e), "data": None}
 
 
-# ===================== 报价：材料最近采购单价 =====================
-# 按料号取最近一次已审核采购明细：iunitprice=未税单价，isum/iquantity=含税单价
-MATERIAL_PRICE_SQL = """
-SELECT cinvcode, iunitprice AS price_excl, price_incl, cDefine14
-FROM (
+# ===================== 报价：材料存货搜索及最近采购单价 =====================
+def material_prefix(mat_type: str):
+    if mat_type == "基材":
+        return "31"
+    if "装饰纸" in mat_type:
+        return "3401"
+    if "木皮" in mat_type:
+        return "3402"
+    return ""
+
+
+MATERIAL_SEARCH_SQL = """
+WITH purchase_rows AS (
     SELECT
-        b.cinvcode,
-        b.iunitprice,
-        b.isum / NULLIF(b.iquantity, 0)                                       AS price_incl,
+        inv.cInvCode AS code,
+        inv.cInvName AS name,
+        inv.cInvStd  AS spec,
+        p.iUnitPrice AS price_excl,
+        p.price_incl,
+        p.cDefine14,
+        p.cAuditTime,
+        ROW_NUMBER() OVER (
+            PARTITION BY inv.cInvCode
+            ORDER BY CASE WHEN p.cInvCode IS NULL THEN 1 ELSE 0 END,
+                     p.cAuditTime DESC
+        ) AS rn
+    FROM UFDATA_008_2021..Inventory inv
+    LEFT JOIN (
+        SELECT
+            b.cInvCode,
+            b.iUnitPrice,
+            b.iSum / NULLIF(b.iQuantity, 0) AS price_incl,
+            a.cDefine14,
+            a.cAuditTime
+        FROM UFDATA_008_2021..PO_Pomain a
+        INNER JOIN UFDATA_008_2021..PO_Podetails b ON a.POID = b.POID
+        WHERE a.cAuditTime IS NOT NULL
+          AND b.iSum > 0
+          AND b.iQuantity <> 0
+    ) p ON inv.cInvCode = p.cInvCode
+    WHERE {where_sql}
+)
+SELECT TOP 50
+    pr.code,
+    pr.name,
+    pr.spec,
+    CASE WHEN ? = 1 THEN veneer.iInCost ELSE pr.price_excl END AS price_excl,
+    CASE WHEN ? = 1 THEN NULL ELSE pr.price_incl END            AS price_incl,
+    CASE WHEN ? = 1 THEN NULL ELSE pr.cDefine14 END             AS price_remark,
+    CASE WHEN pr.cAuditTime IS NULL THEN 0 ELSE 1 END           AS has_purchase
+FROM purchase_rows pr
+OUTER APPLY (
+    SELECT TOP 1 ia.iInCost
+    FROM UFDATA_008_2021..IA_Subsidiary ia
+    WHERE ia.bRdFlag = 1
+      AND ia.iInCost > 0
+      AND ia.cInvCode = pr.code
+    ORDER BY ia.AutoID DESC
+) veneer
+WHERE pr.rn = 1
+  AND (? = 1 OR pr.cAuditTime IS NOT NULL)
+ORDER BY CASE WHEN pr.cAuditTime IS NULL THEN 1 ELSE 0 END,
+         pr.code
+"""
+
+
+@app.get("/api/mo/material/search")
+async def search_material(keyword: str = "", mat_type: str = "", include_unpurchased: bool = False):
+    tokens = [t for t in re.split(r"[\s,，、]+", keyword.strip()) if t]
+    if not tokens:
+        return {"code": 1, "msg": "请输入料号或存货名称", "data": []}
+
+    prefix = material_prefix(mat_type.strip())
+    if not prefix:
+        return {"code": 1, "msg": "未知材料类型", "data": []}
+
+    where, params = [], []
+    for token in tokens:
+        where.append("(inv.cInvCode LIKE ? OR inv.cInvName LIKE ?)")
+        like = f"%{token}%"
+        params.extend((like, like))
+    where.append("inv.cInvCode LIKE ?")
+    params.append(prefix + "%")
+
+    is_veneer = 1 if "木皮" in mat_type else 0
+    params.extend((is_veneer, is_veneer, is_veneer, 1 if include_unpurchased else 0))
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute(MATERIAL_SEARCH_SQL.format(where_sql=" AND ".join(where)), tuple(params))
+        columns = [col[0] for col in cursor.description]
+        rows = [{k: serialize(v) for k, v in zip(columns, row)} for row in cursor.fetchall()]
+        conn.close()
+
+        data = []
+        for row in rows:
+            remark = (row.get("price_remark") or "").strip()
+            data.append({
+                "code": row.get("code"),
+                "name": row.get("name"),
+                "spec": row.get("spec"),
+                "price_excl": row.get("price_excl"),
+                "price_incl": row.get("price_incl"),
+                "price_remark": remark or None,
+                "has_purchase": bool(row.get("has_purchase")),
+                "default_logistics_enabled": not is_veneer and remark == "供应商出厂价",
+            })
+        return {"code": 0, "data": data}
+    except Exception as e:
+        return {"code": 1, "msg": str(e), "data": []}
+
+
+# 按料号取最近一次已审核采购明细：iUnitPrice=未税单价，iSum/iQuantity=含税单价
+MATERIAL_PRICE_SQL = """
+SELECT TOP 1
+    inv.cInvCode,
+    inv.cInvName,
+    inv.cInvStd,
+    purchase.iUnitPrice AS price_excl,
+    purchase.price_incl,
+    purchase.cDefine14,
+    CASE WHEN purchase.cAuditTime IS NULL THEN 0 ELSE 1 END AS has_purchase
+FROM UFDATA_008_2021..Inventory inv
+OUTER APPLY (
+    SELECT TOP 1
+        b.iUnitPrice,
+        b.iSum / NULLIF(b.iQuantity, 0) AS price_incl,
         a.cDefine14,
-        ROW_NUMBER() OVER (PARTITION BY b.cinvcode ORDER BY a.cAuditTime DESC) AS rn
-    FROM po_pomain a
-    LEFT JOIN po_podetails b ON a.poid = b.poid
-    WHERE b.isum > 0 AND a.cAuditTime IS NOT NULL AND b.cinvcode = ?
-) x
-WHERE rn = 1
+        a.cAuditTime
+    FROM UFDATA_008_2021..PO_Pomain a
+    INNER JOIN UFDATA_008_2021..PO_Podetails b ON a.POID = b.POID
+    WHERE a.cAuditTime IS NOT NULL
+      AND b.iSum > 0
+      AND b.iQuantity <> 0
+      AND b.cInvCode = inv.cInvCode
+    ORDER BY a.cAuditTime DESC
+) purchase
+WHERE inv.cInvCode = ?
 """
 
 VENEER_IN_COST_SQL = """
 SELECT TOP 1 cInvCode, iInCost
-FROM IA_Subsidiary
+FROM UFDATA_008_2021..IA_Subsidiary
 WHERE bRdFlag = 1 AND iInCost > 0 AND cInvCode = ?
 ORDER BY AutoID DESC
 """
@@ -226,35 +376,191 @@ async def get_material_price(inv_code: str, mat_type: str = ""):
     try:
         conn = get_db()
         cursor = conn.cursor()
+        cursor.execute(MATERIAL_PRICE_SQL, (inv_code.strip(),))
+        purchase_row = cursor.fetchone()
+        if not purchase_row:
+            conn.close()
+            return {"code": 1, "msg": "未找到该存货料号", "data": None}
+
+        has_purchase = bool(purchase_row[6])
         if mat_type in ("正面装饰木皮", "反面装饰木皮"):
             cursor.execute(VENEER_IN_COST_SQL, (inv_code,))
-            row = cursor.fetchone()
+            veneer_row = cursor.fetchone()
             conn.close()
-            if not row:
-                return {"code": 1, "msg": "未找到该木皮料号的入库成本", "data": None}
             return {"code": 0, "data": {
-                "cinvcode":   row[0],
-                "price_excl": serialize(row[1]),
+                "cinvcode":   purchase_row[0],
+                "price_excl": serialize(veneer_row[1]) if veneer_row else None,
                 "price_incl": None,
-                "price_source": "IA_Subsidiary.iInCost",
+                "price_source": "IA_Subsidiary.iInCost" if veneer_row else None,
                 "price_remark": None,
+                "has_purchase": has_purchase,
                 "default_logistics_enabled": False,
             }}
-        cursor.execute(MATERIAL_PRICE_SQL, (inv_code,))
-        row = cursor.fetchone()
+
         conn.close()
-        if not row:
-            return {"code": 1, "msg": "未找到该料号的采购单价", "data": None}
-        price_remark = (row[3] or "").strip() if row[3] is not None else ""
+        price_remark = (purchase_row[5] or "").strip() if purchase_row[5] is not None else ""
         return {"code": 0, "data": {
-            "cinvcode":   row[0],
-            "price_excl": serialize(row[1]),
-            "price_incl": serialize(row[2]),
-            "price_remark": price_remark,
+            "cinvcode":   purchase_row[0],
+            "price_excl": serialize(purchase_row[3]),
+            "price_incl": serialize(purchase_row[4]),
+            "price_remark": price_remark or None,
+            "has_purchase": has_purchase,
             "default_logistics_enabled": price_remark == "供应商出厂价",
         }}
     except Exception as e:
         return {"code": 1, "msg": str(e), "data": None}
+
+
+# ===================== 木皮裁切后宽度 =====================
+
+class VeneerCutCreate(BaseModel):
+    scan_content: str = Field(min_length=1, max_length=500)
+    width_cm: Decimal = Field(gt=0)
+    length_cm: Decimal = Field(default=Decimal("285.00"), gt=0)
+    user_id: str = Field(min_length=1, max_length=64)
+    user_name: str = Field(default="", max_length=100)
+    request_id: str | None = None
+
+
+@app.post("/api/mo/veneer-cut")
+async def create_veneer_cut(payload: VeneerCutCreate):
+    scan_content = payload.scan_content.strip()
+    user_id = payload.user_id.strip()
+    user_name = payload.user_name.strip()
+    if not scan_content:
+        return {"code": 1, "msg": "扫码内容不能为空", "data": None}
+    if not user_id:
+        return {"code": 1, "msg": "用户不能为空", "data": None}
+
+    try:
+        request_id = str(UUID(payload.request_id)) if payload.request_id else str(uuid4())
+    except ValueError:
+        return {"code": 1, "msg": "request_id 格式不正确", "data": None}
+
+    scan_hash = sha256(scan_content.encode("utf-8")).hexdigest().upper()
+    length_cm = payload.length_cm.quantize(Decimal("0.01"))
+    width_cm = payload.width_cm.quantize(Decimal("0.01"))
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_yx_test_db()
+        cursor = conn.cursor()
+        cursor.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE")
+        operator_name = get_operator_name(cursor, user_id) or user_name
+
+        cursor.execute("""
+            SELECT RecordId, RequestId, ScanContent, CutNo, LengthCm, WidthCm,
+                   OperatorId, OperatorName, CreatedAt
+            FROM dbo.MupiCutWidthRecord_yx WITH (UPDLOCK, HOLDLOCK)
+            WHERE RequestId = ?
+        """, (request_id,))
+        existing = cursor.fetchone()
+        if existing:
+            record = row_to_dict(cursor, existing)
+            conn.commit()
+            return {
+                "code": 0,
+                "msg": "success",
+                "data": record,
+                "duplicate": True
+            }
+
+        cursor.execute("""
+            SELECT ISNULL(MAX(CutNo), 0) + 1
+            FROM dbo.MupiCutWidthRecord_yx WITH (UPDLOCK, HOLDLOCK)
+            WHERE ScanHash = ? AND ScanContent = ?
+        """, (scan_hash, scan_content))
+        cut_no = int(cursor.fetchone()[0])
+
+        cursor.execute("""
+            INSERT INTO dbo.MupiCutWidthRecord_yx
+                (RequestId, ScanContent, ScanHash, CutNo, LengthCm, WidthCm,
+                 OperatorId, OperatorName)
+            OUTPUT INSERTED.RecordId, INSERTED.RequestId, INSERTED.ScanContent,
+                   INSERTED.CutNo, INSERTED.LengthCm, INSERTED.WidthCm,
+                   INSERTED.OperatorId, INSERTED.OperatorName, INSERTED.CreatedAt
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            request_id,
+            scan_content,
+            scan_hash,
+            cut_no,
+            length_cm,
+            width_cm,
+            user_id,
+            operator_name
+        ))
+        record = row_to_dict(cursor, cursor.fetchone())
+        conn.commit()
+        return {
+            "code": 0,
+            "msg": "success",
+            "data": record,
+            "duplicate": False
+        }
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return {"code": 1, "msg": str(e), "data": None}
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@app.get("/api/mo/veneer-cut/history")
+async def get_veneer_cut_history(scan_content: str, limit: int = 20):
+    scan_content = scan_content.strip()
+    if not scan_content:
+        return {"code": 1, "msg": "扫码内容不能为空", "data": None}
+
+    limit = min(max(limit, 1), 100)
+    scan_hash = sha256(scan_content.encode("utf-8")).hexdigest().upper()
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_yx_test_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM dbo.MupiCutWidthRecord_yx
+            WHERE ScanHash = ? AND ScanContent = ?
+        """, (scan_hash, scan_content))
+        total = int(cursor.fetchone()[0])
+
+        cursor.execute(f"""
+            SELECT TOP {limit}
+                   RecordId, RequestId, ScanContent, CutNo, LengthCm, WidthCm,
+                   OperatorId, OperatorName, CreatedAt
+            FROM dbo.MupiCutWidthRecord_yx
+            WHERE ScanHash = ? AND ScanContent = ?
+            ORDER BY CutNo DESC, RecordId DESC
+        """, (scan_hash, scan_content))
+        columns = [col[0] for col in cursor.description]
+        history = [
+            {key: serialize(value) for key, value in zip(columns, row)}
+            for row in cursor.fetchall()
+        ]
+        return {
+            "code": 0,
+            "msg": "success",
+            "data": {
+                "scan_content": scan_content,
+                "cut_count": total,
+                "latest": history[0] if history else None,
+                "history": history
+            }
+        }
+    except Exception as e:
+        return {"code": 1, "msg": str(e), "data": None}
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 if __name__ == "__main__":

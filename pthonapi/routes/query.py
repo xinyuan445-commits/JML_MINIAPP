@@ -88,7 +88,7 @@ def run_query():
         if not only_select(sql):
             return jsonify({"code": 1, "msg": "只允许执行单条 SELECT 语句"}), 400
 
-        conn = get_db()
+        conn = get_db2()
         cur = conn.cursor(dictionary=True)
         cur.execute(sql)
         data = cur.fetchall()
@@ -557,7 +557,7 @@ def query_stock_by_cinvcode():
             return jsonify({"code": 1, "msg": "缺少参数 cinvcode"}), 400
 
         # 参数校验
-        if not re.match(r"^[A-Za-z0-9._\\-]+$", cinvcode):
+        if not re.match(r"^[A-Za-z0-9._*\\-]+$", cinvcode):
             return jsonify({"code": 1, "msg": "非法的 cinvcode 格式"}), 400
 
         sql = """
@@ -573,7 +573,7 @@ def query_stock_by_cinvcode():
         WHERE cInvCode = %s
         """
 
-        conn = get_db()
+        conn = get_db2()
         cur = conn.cursor(dictionary=True)
         cur.execute(sql, (cinvcode,))
         rows = cur.fetchall()
@@ -666,7 +666,7 @@ def query_label_qty():
         if not traceBackCode:
             return jsonify({"code": 1, "msg": "缺少参数 traceBackCode"}), 400
 
-        if not re.match(r"^[A-Za-z0-9._\-|]+$", traceBackCode):
+        if not re.match(r"^[A-Za-z0-9._*\-|]+$", traceBackCode):
             return jsonify({"code": 1, "msg": "非法的 traceBackCode 格式"}), 400
 
         conn = get_db()
@@ -676,7 +676,7 @@ def query_label_qty():
         sql_qty = """
         SELECT SUM(`sum`) AS qty
         FROM TraceBackOnlyCode_all
-        WHERE traceBackCode = %s
+        WHERE RTRIM(traceBackCode) = %s
         """
         cur.execute(sql_qty, (traceBackCode,))
         row_qty = cur.fetchone()
@@ -692,16 +692,11 @@ def query_label_qty():
         FROM TraceBackOnlyCode_all tcode
         JOIN TraceBackGoods_all tgoods
             ON tcode.pdaGoodsUuid = tgoods.pdaGoodsUuid
-        JOIN (
-            SELECT traceBackCode, MAX(time) AS max_time
-            FROM TraceBackOnlyCode_all
-            WHERE traceBackCode = %s 
-            AND pdaGoodsUuid IS NOT NULL 
-            AND pdaGoodsUuid <> ''
-            GROUP BY traceBackCode
-        ) latest
-            ON latest.traceBackCode = tcode.traceBackCode
-           AND latest.max_time = tcode.time
+        WHERE RTRIM(tcode.traceBackCode) = %s
+          AND tcode.pdaGoodsUuid IS NOT NULL
+          AND tcode.pdaGoodsUuid <> ''
+        ORDER BY tcode.time DESC
+        LIMIT 1
         """
 
         cur.execute(sql_pos, (traceBackCode,))
@@ -812,7 +807,7 @@ def query_inventory_name():
             return jsonify({"code": 1, "msg": "缺少参数 cinvcode"}), 400
 
         # 参数校验（与库存接口保持一致）
-        if not re.match(r"^[A-Za-z0-9._\-]+$", cinvcode):
+        if not re.match(r"^[A-Za-z0-9._*\-]+$", cinvcode):
             return jsonify({"code": 1, "msg": "非法的 cinvcode 格式"}), 400
 
         sql = """
