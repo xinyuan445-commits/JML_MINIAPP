@@ -8,7 +8,7 @@ from services.dingtalk_sync import DingTalkSyncError, latest_sync, sync_contacts
 
 
 dingtalk_bp = Blueprint("dingtalk", __name__)
-VISIBLE_ROOT_DEPT_IDS = {661823215, 594600049}
+DEFAULT_VISIBLE_ROOT_DEPT_IDS = {661823215, 594600049}
 
 
 def _authorized():
@@ -17,22 +17,55 @@ def _authorized():
     return bool(expected) and hmac.compare_digest(expected, provided)
 
 
-def _visible_dept_ids(cur):
+def _department_scope(cur):
     cur.execute("""SELECT dept_id,parent_dept_id FROM ding_department_yx
                    WHERE is_active=1""")
     departments = cur.fetchall()
-    visible = set(VISIBLE_ROOT_DEPT_IDS)
+    try:
+        cur.execute("SELECT dept_id FROM mo_worker_department_scope_yx")
+        selected = {
+            int(item["dept_id"]) for item in cur.fetchall()
+            if item.get("dept_id") is not None
+        }
+    except Exception:
+        selected = set()
+    if not selected:
+        selected = set(DEFAULT_VISIBLE_ROOT_DEPT_IDS)
+
+    worker_scope = set(selected)
     changed = True
     while changed:
         changed = False
         for item in departments:
             dept_id = int(item["dept_id"])
             parent_id = item["parent_dept_id"]
-            if parent_id is not None and int(parent_id) in visible and dept_id not in visible:
-                visible.add(dept_id)
+            if parent_id is not None and int(parent_id) in worker_scope and dept_id not in worker_scope:
+                worker_scope.add(dept_id)
                 changed = True
+
+    parent_by_id = {
+        int(item["dept_id"]): (
+            int(item["parent_dept_id"])
+            if item["parent_dept_id"] is not None else None
+        )
+        for item in departments
+    }
+    visible = set(worker_scope)
+    for dept_id in tuple(worker_scope):
+        parent_id = parent_by_id.get(dept_id)
+        while parent_id is not None and parent_id not in visible:
+            visible.add(parent_id)
+            parent_id = parent_by_id.get(parent_id)
     visible.add(1)
-    return visible
+    return visible, worker_scope
+
+
+def _visible_dept_ids(cur):
+    return _department_scope(cur)[0]
+
+
+def _worker_scope_dept_ids(cur):
+    return _department_scope(cur)[1]
 
 
 @dingtalk_bp.post("/sync")
@@ -82,7 +115,7 @@ def workers():
     conn = get_db2()
     try:
         cur = conn.cursor(dictionary=True)
-        visible = _visible_dept_ids(cur) - {1}
+        visible = _worker_scope_dept_ids(cur) - {1}
         placeholders = ",".join(["%s"] * len(visible))
         cur.execute(
             f"""SELECT u.user_id,u.user_name,u.main_dept_id,

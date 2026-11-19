@@ -1,0 +1,234 @@
+.page {
+  min-height: 100%;
+  padding: 20px 24px;
+  color: var(--jml-text);
+  background: var(--jml-page-bg);
+}
+
+.header,
+.heading,
+.refreshArea,
+.quickLinks,
+.panelHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header { justify-content: space-between; }
+.heading h3 { margin: 0; font-size: 24px; }
+.secondary { color: var(--jml-text-secondary); font-size: 12px; }
+.quickLinks { gap: 16px; margin: 6px 0 14px; }
+.quickLinks :global(.ant-btn) { height: 28px; padding: 0; font-size: 13px; }
+.alert { margin-bottom: 12px; }
+
+.processRing:focus-visible { outline: 2px solid var(--jml-sider-selected-text); outline-offset: 3px; }
+.ordersPanel { overflow: hidden; background: var(--jml-panel-bg); border: 1px solid var(--jml-border); border-radius: 8px; }
+.ordersPanel { margin-bottom: 16px; scroll-margin-top: 72px; }
+.panelHeading { justify-content: space-between; flex-wrap: wrap; padding: 14px 16px; }
+.panelHeading > div:first-child { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; }
+.panelHeading h2 { margin: 0; font-size: 16px; }
+.tableLink { height: auto; padding: 0; font-weight: 600; }
+.deletedBadge {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 1px 6px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  border-radius: 3px;
+  background: #c93445;
+}
+.product,
+.plan { display: flex; flex-direction: column; gap: 3px; }
+.product strong { font-weight: 500; }
+.product > span,
+.plan > span,
+.plan small { color: var(--jml-text-secondary); font-size: 12px; font-weight: 400; }
+.processLegend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  color: var(--jml-text-secondary);
+  font-size: 12px;
+}
+.processLegend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.processLegend i { width: 9px; height: 9px; border-radius: 50%; }
+.processLegend i[data-state='done'] { background: #2f8d73; }
+.processLegend i[data-state='work'] { background: #b27c14; }
+.processLegend i[data-state='ready'] { background: #3c82c5; }
+.processLegend i[data-state='rework'] { background: #c84e5b; }
+.processLegend i[data-anomaly='true'] { background: #d13d4d; box-shadow: 0 0 0 2px rgb(209 61 77 / 18%); }
+.processLegend i[data-state='pending'] { background: #8497ad; }
+
+.processFlow {
+  display: flex;
+  align-items: center;
+  min-height: 120px;
+  overflow-x: auto;
+  padding: 6px 2px;
+}
+
+.processRing {
+  --ring-color: #8497ad;
+  --ring-track: #e5e9ee;
+  --ring-progress: 0deg;
+  position: relative;
+  display: grid;
+  flex: 0 0 108px;
+  width: 108px;
+  height: 108px;
+  padding: 8px;
+  color: var(--jml-text);
+  font: inherit;
+  border: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--ring-color) var(--ring-progress), var(--ring-track) 0deg);
+  cursor: pointer;
+  place-items: center;
+}
+.processRing::before {
+  position: absolute;
+  inset: 6px;
+  content: '';
+  border: 1px solid var(--jml-border);
+  border-radius: 50%;
+  background: var(--jml-panel-bg);
+}
+.processRing:hover { transform: translateY(-1px); filter: brightness(1.04); }
+.processRing[data-state='done'] { --ring-color: #2f8d73; --ring-track: #d9eee8; }
+.processRing[data-state='work'] { --ring-color: #b27c14; --ring-track: #f5e9cf; }
+.processRing[data-state='received'],
+.processRing[data-state='ready'] { --ring-color: #3c82c5; --ring-track: #dceaf6; }
+.processRing[data-state='rework'] { --ring-color: #c84e5b; --ring-track: #f6dfe2; }
+.processRing[data-state='pending'],
+.processRing[data-state='unknown'] { --ring-color: #8497ad; --ring-track: #e5e9ee; }
+.processRing[data-anomaly='true'] { --ring-color: #d13d4d; --ring-track: #f6dadd; box-shadow: 0 0 0 2px rgb(209 61 77 / 20%); }
+
+.ringOverdueBadge,
+.overdueBadge {
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 9px;
+  background: #d13d4d;
+}
+.ringOverdueBadge {
+  position: absolute;
+  z-index: 2;
+  top: 1px;
+  right: 1px;
+  min-width: 30px;
+  padding: 0 5px;
+  box-shadow: 0 1px 3px rgb(122 23 36 / 28%);
+}
+.dueDateCell {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  min-height: 44px;
+  padding-top: 13px;
+}
+.dueDateCell strong { font-weight: 500; }
+.overdueBadge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 28px;
+  padding: 0 5px;
+}
+
+.ringContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  width: 82px;
+  min-width: 0;
+  line-height: 1.15;
+  text-align: center;
+}
+.ringContent b {
+  display: -webkit-box;
+  width: 100%;
+  min-height: 30px;
+  margin: 2px 0;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.ringContent strong {
+  width: 100%;
+  overflow: hidden;
+  color: var(--ring-color);
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ringDuration {
+  width: 100%;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--jml-text-secondary);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.processConnector {
+  position: relative;
+  flex: 0 0 28px;
+  height: 2px;
+  background: var(--jml-border);
+}
+.processConnector::after {
+  position: absolute;
+  top: -3px;
+  right: 0;
+  width: 0;
+  height: 0;
+  content: '';
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid var(--jml-border);
+}
+
+:global(.ant-tooltip).stepTooltipPopup { max-width: min(380px, calc(100vw - 24px)); }
+.stepTooltip { width: 340px; max-width: 100%; }
+.stepTooltip > strong { display: block; margin-bottom: 7px; }
+.tooltipProgresses { display: grid; gap: 8px; margin: 10px 0 12px; }
+.tooltipProgresses > div > span { display: block; margin-bottom: 2px; font-weight: 600; }
+.tooltipProgresses :global(.ant-progress-text) { color: #fff; font-size: 12px; }
+.tooltipProgresses small { display: block; margin-top: -2px; color: rgb(255 255 255 / 68%); }
+.stepTooltip dl { margin: 0; }
+.stepTooltip dl > div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; margin-top: 3px; }
+.stepTooltip dt { color: rgb(255 255 255 / 68%); }
+.stepTooltip dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.tooltipAnomaly { margin: 7px 0 0; color: #ffabb3; line-height: 1.45; }
+.stepDetails { padding: 6px 4px; }
+.detailHeading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
+.detailHeading span { color: var(--jml-text-secondary); font-size: 12px; }
+.ordersPanel :global(.ant-pagination) { padding-right: 16px; }
+
+@media (max-width: 1200px) {
+  .header { align-items: flex-start; flex-direction: column; gap: 8px; }
+}
+
+@media (max-width: 768px) {
+  .page { padding: 14px; }
+  .heading,
+  .refreshArea,
+  .quickLinks { flex-wrap: wrap; }
+}

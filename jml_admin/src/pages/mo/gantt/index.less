@@ -1,0 +1,128 @@
+.page {
+  min-height: 100%;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 88% 0%, rgb(48 94 220 / 7%), transparent 30%),
+    var(--jml-page-bg);
+}
+
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #2457d6;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.title {
+  margin: 0 0 6px !important;
+  color: var(--jml-text) !important;
+}
+
+.description {
+  margin: 0 !important;
+  color: var(--jml-text-secondary) !important;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.metricCard,
+.chartCard {
+  border: 1px solid var(--jml-border);
+  border-radius: 14px;
+  box-shadow: var(--jml-shadow);
+}
+
+.metricCard :global(.ant-statistic-content) {
+  color: var(--jml-text);
+  font-weight: 700;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--jml-divider);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.workOrderSelect {
+  width: 270px;
+}
+
+.statusSelect {
+  width: 150px;
+}
+
+.chartScroller {
+  padding-top: 12px;
+  overflow-x: auto;
+}
+
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--jml-divider);
+}
+
+.empty {
+  display: grid;
+  min-height: 420px;
+  color: var(--jml-text-secondary);
+  place-items: center;
+}
+
+@media (max-width: 1050px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .toolbar,
+  .filters {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .workOrderSelect,
+  .statusSelect {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 14px;
+  }
+
+  .hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}

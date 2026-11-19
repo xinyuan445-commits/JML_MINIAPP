@@ -132,12 +132,16 @@ class DingTalkSyncTests(unittest.TestCase):
 
 
 class VisibleDepartmentTests(unittest.TestCase):
-    def test_only_configured_company_subtrees_are_visible(self):
+    def test_default_company_subtrees_are_used_before_admin_configuration(self):
         class Cursor:
+            query = ""
+
             def execute(self, sql):
-                pass
+                self.query = sql
 
             def fetchall(self):
+                if "mo_worker_department_scope_yx" in self.query:
+                    return []
                 return [
                     {"dept_id": 1, "parent_dept_id": None},
                     {"dept_id": 661823215, "parent_dept_id": 1},
@@ -151,6 +155,34 @@ class VisibleDepartmentTests(unittest.TestCase):
         visible = dingtalk_route._visible_dept_ids(Cursor())
 
         self.assertEqual({1, 661823215, 10, 594600049, 20}, visible)
+
+    def test_admin_scope_includes_descendants_but_workers_exclude_ancestors(self):
+        class Cursor:
+            query = ""
+
+            def execute(self, sql):
+                self.query = sql
+
+            def fetchall(self):
+                if "mo_worker_department_scope_yx" in self.query:
+                    return [{"dept_id": 10}, {"dept_id": 20}]
+                return [
+                    {"dept_id": 1, "parent_dept_id": None},
+                    {"dept_id": 100, "parent_dept_id": 1},
+                    {"dept_id": 10, "parent_dept_id": 100},
+                    {"dept_id": 11, "parent_dept_id": 10},
+                    {"dept_id": 20, "parent_dept_id": 100},
+                    {"dept_id": 30, "parent_dept_id": 100},
+                ]
+
+        self.assertEqual(
+            {1, 100, 10, 11, 20},
+            dingtalk_route._visible_dept_ids(Cursor()),
+        )
+        self.assertEqual(
+            {10, 11, 20},
+            dingtalk_route._worker_scope_dept_ids(Cursor()),
+        )
 
 
 class DurationTests(unittest.TestCase):

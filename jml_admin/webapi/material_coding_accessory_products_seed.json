@@ -1,0 +1,16 @@
+{
+  "products": [
+    {"code":"001","name":"R50大圆弧 (2700*68*68*18)","drawing":"001","process":"包覆+封边","customer_material":"1MM饰面板\n+29MM宽封边条"},
+    {"code":"002","name":"R50大圆弧 (2700*68*68*18)","drawing":"002","process":"折弯","customer_material":"1MM饰面板"},
+    {"code":"003","name":"R50直角圆弧\n（ 2700*68*68MM)","drawing":"003","process":"包覆+封边","customer_material":"1MM饰面板\n+29MM/38MM宽封边条"},
+    {"code":"004","name":"R30大圆弧 (2700*37*37*18)","drawing":"004","process":"包覆+封边","customer_material":"1MM饰面板\n+29MM宽封边条"},
+    {"code":"005","name":"R30大圆弧 (2700*37*37*18)","drawing":"005","process":"折弯","customer_material":"1MM饰面板"},
+    {"code":"006","name":"R20圆弧三胺门套线\n（ 2700*50*46*18\nMM)","drawing":"006","process":"包覆+封边","customer_material":"1MM饰面板\n+29MM宽封边条"},
+    {"code":"007","name":"门套线 A(2700*50*15/3 2MM)","drawing":"007","process":"折弯","customer_material":"1MM饰面板"},
+    {"code":"008","name":"木门_平开门档条 (2700*40*15)","drawing":"008","process":"折弯","customer_material":"1MM饰面板"},
+    {"code":"009","name":"门套线B\n（ 2700*60*15MM\n）","drawing":"009","process":"折弯","customer_material":"1MM饰面板"},
+    {"code":"010","name":"格栅板","drawing":"010","process":"折弯","customer_material":"1MM饰面板"},
+    {"code":"011","name":"格栅板大收口条","drawing":"011","process":"折弯","customer_material":"1MM饰面板"},
+    {"code":"012","name":"格栅板小收口条","drawing":"012","process":"折弯","customer_material":"1MM饰面板"}
+  ]
+}

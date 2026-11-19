@@ -1,0 +1,56 @@
+{
+  "sections": [
+    {
+      "title": "原纸",
+      "examples": [
+        {"code": "4401-49-CKB230-PS", "description": "原纸 CKB230 49"}
+      ],
+      "groups": [
+        {"title": "存货类型", "rows": [["44", "二阶原材料"]]},
+        {"title": "原材料类型", "rows": [["01", "原纸"]]},
+        {"title": "规格", "rows": [["49", "1250*2780"], ["48", "1250*2470"], ["410", "1250*3080"]]},
+        {"title": "原纸色号", "rows": [], "note": "详见产品型号明细"},
+        {"title": "原纸供应商", "rows": [], "note": "详见供应商简称明细"}
+      ]
+    },
+    {
+      "title": "天然木皮",
+      "examples": [
+        {"code": "4402-48-WOCR7", "description": "天然木皮 白橡山纹 2440mm R7色号"}
+      ],
+      "groups": [
+        {"title": "存货类型", "rows": [["44", "二阶原材料"]]},
+        {"title": "原材料类型", "rows": [["02", "天然木皮"]]},
+        {"title": "长度", "rows": [["48", "2440mm"], ["49", "2800mm"]]},
+        {"heading": "木皮编码", "title": "木种", "rows": [
+          ["EL", "榆木 ELM"], ["WO", "白橡   WHITE OAK"], ["RO", "红橡   RED OAK"], ["EU", "尤加利   EUCALYPTUS"],
+          ["WN", "胡桃木   WALNUT"], ["CH", "樱桃木   CHERRY"], ["TT", "泰国柚木 TEAK   THAI"], ["TB", "巴西柚木 TEAK   BRAZIL"],
+          ["MP", "枫木   MAPLE"], ["BR", "桦木   BIRCH"], ["FX", "水曲柳   FRAXINUS"], ["PN", "松木   PINE"], ["BE", "榉木   BEECH"]
+        ], "note": "详见木皮饰板设计部编码规则"},
+        {"heading": "木皮编码", "title": "纹理", "rows": [["C", "山纹"], ["S", "直纹"], ["K", "结疤"]]},
+        {"heading": "木皮编码", "title": "原皮底色&色号", "rows": [
+          ["Y1", "白"], ["Y3", "浅白"], ["Y5", "浅黄"], ["Y7", "黄"], ["R1", "浅红"], ["R3", "浅黄红"],
+          ["R5", "浅青红"], ["R7", "青红"], ["R9", "红"], ["G9", "青"], ["UU", "未定义"]
+        ]},
+        {"title": "天然木皮供应商", "rows": [], "note": "详见供应商简称明细。取消，由批次号来管理、追溯"}
+      ]
+    },
+    {
+      "title": "天然木皮-采购",
+      "examples": [
+        {"code": "4402-48-WOC", "description": "天然木皮 白橡山纹 2440mm"}
+      ],
+      "groups": [
+        {"title": "存货类型", "rows": [["44", "二阶原材料"]]},
+        {"title": "原材料类型", "rows": [["02", "天然木皮"]]},
+        {"title": "长度", "rows": [["48", "2440mm"], ["49", "2800mm"]]},
+        {"heading": "木皮编码", "title": "木种", "rows": [
+          ["EL", "榆木 ELM"], ["WO", "白橡   WHITE OAK"], ["RO", "红橡   RED OAK"], ["EU", "尤加利   EUCALYPTUS"],
+          ["WN", "胡桃木   WALNUT"], ["CH", "樱桃木   CHERRY"], ["TT", "泰国柚木 TEAK   THAI"], ["TB", "巴西柚木 TEAK   BRAZIL"],
+          ["MP", "枫木   MAPLE"], ["BR", "桦木   BIRCH"], ["FX", "水曲柳   FRAXINUS"], ["PN", "松木   PINE"], ["BE", "榉木   BEECH"]
+        ]},
+        {"heading": "木皮编码", "title": "纹理", "rows": [["C", "山纹"], ["S", "直纹"], ["K", "结疤"]]}
+      ]
+    }
+  ]
+}

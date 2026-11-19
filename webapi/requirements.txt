@@ -1,7 +1,0 @@
-flask
-Werkzeug>=3.1.0,<4
-flask-cors
-mysql-connector-python
-python-dotenv
-requests
-pyodbc

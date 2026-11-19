@@ -62,3 +62,11 @@ CREATE TABLE IF NOT EXISTS `ding_sync_log_yx` (
   KEY `idx_ding_sync_start` (`start_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='钉钉通讯录同步日志';
 
+CREATE TABLE IF NOT EXISTS `mo_worker_department_scope_yx` (
+  `dept_id`          BIGINT       NOT NULL COMMENT '允许参与报工的钉钉部门ID',
+  `updated_by`       VARCHAR(100) DEFAULT NULL,
+  `create_time`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time`      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`dept_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='小程序报工人员部门范围';
+

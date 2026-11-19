@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `mo_workorder_context_yx` (
+  `mo_code` varchar(50) NOT NULL COMMENT '生产订单号',
+  `sort_seq` int NOT NULL COMMENT '生产订单行号',
+  `inv_code` varchar(100) DEFAULT NULL COMMENT '产品编码',
+  `inv_name` varchar(255) DEFAULT NULL COMMENT '产品名称',
+  `inv_std` varchar(255) DEFAULT NULL COMMENT '规格型号',
+  `plan_qty` decimal(18,4) DEFAULT NULL COMMENT '计划生产数量',
+  `so_code_008` varchar(60) DEFAULT NULL COMMENT '008销售订单号',
+  `so_row_008` int DEFAULT NULL COMMENT '008销售订单行号，暂不参与客户匹配',
+  `source_account` varchar(10) DEFAULT NULL COMMENT '客户来源账套',
+  `source_so_code` varchar(60) DEFAULT NULL COMMENT '来源销售订单号',
+  `source_so_row` int DEFAULT NULL COMMENT '来源销售订单行号，预留',
+  `customer_code` varchar(60) DEFAULT NULL COMMENT '客户编码',
+  `customer_name` varchar(255) DEFAULT NULL COMMENT '客户名称',
+  `sync_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`mo_code`,`sort_seq`),
+  KEY `idx_mo_context_customer` (`customer_name`),
+  KEY `idx_mo_context_so008` (`so_code_008`),
+  KEY `idx_mo_context_source_so` (`source_so_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='生产工单产品及客户资料';

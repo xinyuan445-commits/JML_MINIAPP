@@ -61,14 +61,91 @@ def get_operator_name(cursor, user_id):
     row = cursor.fetchone()
     return (row[0] or "").strip() if row else ""
 
-WORKORDER_SQL = """
+WORKORDER_CONTEXT_SELECT = """
+       a.OrderCode_b AS SOCode008,
+       a.OrderSeq_b AS SORow008,
+       CASE
+           WHEN source001.LinkCount > 0 THEN '001'
+           WHEN source002.LinkCount > 0 THEN '002'
+           WHEN sales008.ID IS NOT NULL THEN '008'
+           ELSE NULL
+       END AS SourceAccount,
+       CASE
+           WHEN source001.LinkCount > 0 THEN source001.SourceSOCode
+           WHEN source002.LinkCount > 0 THEN source002.SourceSOCode
+           ELSE a.OrderCode_b
+       END AS SourceSOCode,
+       CASE
+           WHEN source001.LinkCount > 0 THEN source001.CustomerCode
+           WHEN source002.LinkCount > 0 THEN source002.CustomerCode
+           ELSE sales008.cCusCode
+       END AS CustomerCode,
+       CASE
+           WHEN source001.LinkCount > 0 THEN source001.CustomerName
+           WHEN source002.LinkCount > 0 THEN source002.CustomerName
+           ELSE COALESCE(sales008.cCusName, customer008.cCusName)
+       END AS CustomerName
+"""
+
+WORKORDER_CONTEXT_JOINS = """
+LEFT JOIN dbo.SO_SOMain sales008 ON sales008.cSOCode = a.OrderCode_b
+LEFT JOIN dbo.Customer customer008 ON customer008.cCusCode = sales008.cCusCode
+OUTER APPLY (
+    SELECT
+        COUNT(*) AS LinkCount,
+        CASE WHEN COUNT(DISTINCT sales001.cCusCode) > 1 THEN N'待核对'
+             ELSE MAX(sales001.cSOCode) END AS SourceSOCode,
+        CASE WHEN COUNT(DISTINCT sales001.cCusCode) > 1 THEN N'待核对'
+             ELSE MAX(sales001.cCusCode) END AS CustomerCode,
+        CASE WHEN COUNT(DISTINCT sales001.cCusCode) > 1 THEN N'待核对'
+             ELSE MAX(COALESCE(sales001.cCusName, customer001.cCusName)) END AS CustomerName
+    FROM dbo.SO_SODetails detail008
+    INNER JOIN UFDATA_001_2021.dbo.PO_Podetails purchase001
+        ON purchase001.POID = detail008.GCSourceId
+       AND purchase001.ID = detail008.GCSourceIds
+    INNER JOIN UFDATA_001_2021.dbo.SO_SODetails detail001
+        ON detail001.iSOsID = purchase001.iSOsID
+    INNER JOIN UFDATA_001_2021.dbo.SO_SOMain sales001
+        ON sales001.ID = detail001.ID
+    LEFT JOIN UFDATA_001_2021.dbo.Customer customer001
+        ON customer001.cCusCode = sales001.cCusCode
+    WHERE detail008.ID = sales008.ID
+      AND detail008.GCSourceId IS NOT NULL
+      AND detail008.GCSourceIds IS NOT NULL
+) source001
+OUTER APPLY (
+    SELECT
+        COUNT(*) AS LinkCount,
+        CASE WHEN COUNT(DISTINCT sales002.cCusCode) > 1 THEN N'待核对'
+             ELSE MAX(sales002.cSOCode) END AS SourceSOCode,
+        CASE WHEN COUNT(DISTINCT sales002.cCusCode) > 1 THEN N'待核对'
+             ELSE MAX(sales002.cCusCode) END AS CustomerCode,
+        CASE WHEN COUNT(DISTINCT sales002.cCusCode) > 1 THEN N'待核对'
+             ELSE MAX(COALESCE(sales002.cCusName, customer002.cCusName)) END AS CustomerName
+    FROM UFDATA_002_2025.dbo.PO_Pomain purchase_main002
+    INNER JOIN UFDATA_002_2025.dbo.PO_Podetails purchase002
+        ON purchase002.POID = purchase_main002.POID
+    INNER JOIN UFDATA_002_2025.dbo.SO_SODetails detail002
+        ON detail002.iSOsID = purchase002.iSOsID
+    INNER JOIN UFDATA_002_2025.dbo.SO_SOMain sales002
+        ON sales002.ID = detail002.ID
+    LEFT JOIN UFDATA_002_2025.dbo.Customer customer002
+        ON customer002.cCusCode = sales002.cCusCode
+    WHERE purchase_main002.cPOID = LTRIM(RTRIM(sales008.cDefine3))
+      AND sales008.cCusCode = N'0086'
+) source002
+"""
+
+WORKORDER_SQL = f"""
 SELECT MoCode_a, SortSeq_b, a.MDeptCode_b AS DeptCode, cDepName,
-       InvCode_b, cInvName,
+       InvCode_b, cInvName, inv.cInvStd,
        LTRIM(RTRIM(inv.cInvDefine7)) AS CategoryName,
-       Qty_b, MoDId_b,StartDate_c,DueDate_c
+       Qty_b, MoDId_b,StartDate_c,DueDate_c,
+       {WORKORDER_CONTEXT_SELECT}
 FROM momlist_yx a
 LEFT JOIN Inventory  inv ON a.InvCode_b   = inv.cInvCode
 LEFT JOIN Department dp  ON a.MDeptCode_b = dp.cDepCode
+{WORKORDER_CONTEXT_JOINS}
 WHERE a.RelsDate_b IS NOT NULL
   AND a.CloseDate_b IS NULL
 """
@@ -87,18 +164,20 @@ async def get_workorder_list():
         return {"code": 1, "msg": str(e), "data": []}
 
 
-DETAIL_SQL = """
+DETAIL_SQL = f"""
 SELECT MoCode_a, SortSeq_b, a.MDeptCode_b AS DeptCode, cDepName,
-       InvCode_b, inv.cInvName,
+       InvCode_b, inv.cInvName, inv.cInvStd,
        LTRIM(RTRIM(inv.cInvDefine7)) AS CategoryName,
        Qty_b, MoDId_b,
        ma.InvCode AS sub_code, inv2.cInvName AS sub_name,
-       ma.Qty AS qty_plan, ma.IssQty AS qty_issued,StartDate_c,DueDate_c
+       ma.Qty AS qty_plan, ma.IssQty AS qty_issued,StartDate_c,DueDate_c,
+       {WORKORDER_CONTEXT_SELECT}
 FROM momlist_yx a
 LEFT JOIN Inventory      inv  ON a.InvCode_b   = inv.cInvCode
 LEFT JOIN mom_moallocate ma   ON a.MoDId_b     = ma.MoDId
 LEFT JOIN Inventory      inv2 ON ma.InvCode    = inv2.cInvCode
 LEFT JOIN Department     dp   ON a.MDeptCode_b = dp.cDepCode
+{WORKORDER_CONTEXT_JOINS}
 WHERE a.MoCode_a = ? AND a.SortSeq_b = ?
   AND a.RelsDate_b IS NOT NULL
 --  AND a.CloseDate_b IS NUL
@@ -123,10 +202,17 @@ async def get_workorder_detail(mo_code: str, sort_seq: int):
             "cDepName":   first["cDepName"],
             "InvCode_b":  first["InvCode_b"],
             "cInvName":   first["cInvName"],
+            "cInvStd":    first["cInvStd"],
             "CategoryName": first["CategoryName"],
             "Qty_b":      first["Qty_b"],
             "StartDate_c": str(first["StartDate_c"]) if first["StartDate_c"] else None,
             "DueDate_c":   str(first["DueDate_c"])   if first["DueDate_c"]   else None,
+            "SOCode008": first["SOCode008"],
+            "SORow008": first["SORow008"],
+            "SourceAccount": first["SourceAccount"],
+            "SourceSOCode": first["SourceSOCode"],
+            "CustomerCode": first["CustomerCode"],
+            "CustomerName": first["CustomerName"],
         }
         components = [
             {
@@ -140,6 +226,140 @@ async def get_workorder_detail(mo_code: str, sort_seq: int):
         return {"code": 0, "data": {"header": header, "components": components}}
     except Exception as e:
         return {"code": 1, "msg": str(e)}
+
+
+class ProductionStatusKey(BaseModel):
+    mo_code: str = Field(min_length=1, max_length=50)
+    sort_seq: int = Field(ge=1)
+
+
+class ProductionStatusBatch(BaseModel):
+    items: list[ProductionStatusKey] = Field(min_length=1, max_length=400)
+
+
+@app.post("/api/mo/workorder/production-status/batch")
+async def get_production_status_batch(body: ProductionStatusBatch):
+    """Batch material, veneer-cut and product-receipt facts for production boards."""
+    keys = sorted({(item.mo_code.strip(), item.sort_seq) for item in body.items})
+    if not keys or any(not key[0] for key in keys):
+        return {"code": 1, "msg": "工单参数不完整", "data": []}
+    values = ",".join(["(?,?)"] * len(keys))
+    params = [value for key in keys for value in key]
+    conn = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute(f"""
+            WITH requested(mo_code,sort_seq) AS (
+                SELECT * FROM (VALUES {values}) source(mo_code,sort_seq)
+            )
+            SELECT requested.mo_code,requested.sort_seq,dp.cDepName AS department_name,
+                   a.Qty_b AS plan_qty,
+                   materials.issued_qty AS first_issued_qty,
+                   materials.calc_mode AS first_issue_calc_mode,
+                   materials.material_line_count AS first_issue_material_count,
+                   bottleneck.InvCode AS first_issue_bottleneck_inv_code,
+                   bottleneck.required_qty AS first_issue_bottleneck_required_qty,
+                   bottleneck.issued_qty AS first_issue_bottleneck_issued_qty,
+                   bottleneck.receipt_ratio AS first_issue_bottleneck_ratio,
+                   cut.cut_start_time,
+                   receipt.receipt_qty,receipt.receipt_end_time
+            FROM requested
+            LEFT JOIN dbo.momlist_yx a
+              ON a.MoCode_a=requested.mo_code AND a.SortSeq_b=requested.sort_seq
+            LEFT JOIN dbo.Department dp ON dp.cDepCode=a.MDeptCode_b
+            OUTER APPLY (
+                SELECT CASE
+                    WHEN SUM(CASE WHEN
+                        LEFT(LTRIM(RTRIM(ma.InvCode)),1) IN ('1','2')
+                        OR LEFT(LTRIM(RTRIM(ma.InvCode)),2)='31'
+                    THEN 1 ELSE 0 END)>0
+                    THEN SUM(CASE WHEN ma.IssQty>0 AND (
+                        LEFT(LTRIM(RTRIM(ma.InvCode)),1) IN ('1','2')
+                        OR LEFT(LTRIM(RTRIM(ma.InvCode)),2)='31'
+                    ) THEN ma.IssQty ELSE 0 END)
+                    WHEN SUM(CASE WHEN ma.Qty>0 THEN 1 ELSE 0 END)>0
+                         AND a.Qty_b>0
+                    THEN a.Qty_b * MIN(CASE WHEN ma.Qty>0 THEN
+                        CASE
+                            WHEN COALESCE(ma.IssQty,0)<=0 THEN 0
+                            WHEN ma.IssQty>=ma.Qty THEN 1
+                            ELSE CAST(ma.IssQty AS decimal(28,10))
+                                 / NULLIF(CAST(ma.Qty AS decimal(28,10)),0)
+                        END
+                    END)
+                    ELSE NULL
+                END AS issued_qty,
+                CASE
+                    WHEN SUM(CASE WHEN
+                        LEFT(LTRIM(RTRIM(ma.InvCode)),1) IN ('1','2')
+                        OR LEFT(LTRIM(RTRIM(ma.InvCode)),2)='31'
+                    THEN 1 ELSE 0 END)>0 THEN 'controlled_sum'
+                    WHEN SUM(CASE WHEN ma.Qty>0 THEN 1 ELSE 0 END)>0
+                         AND a.Qty_b>0 THEN 'bom_ratio'
+                    ELSE NULL
+                END AS calc_mode,
+                SUM(CASE WHEN ma.Qty>0 THEN 1 ELSE 0 END) AS material_line_count
+                FROM dbo.mom_moallocate ma
+                WHERE ma.MoDId=a.MoDId_b
+            ) materials
+            OUTER APPLY (
+                SELECT TOP 1 LTRIM(RTRIM(ma.InvCode)) AS InvCode,
+                       ma.Qty AS required_qty,
+                       CASE WHEN COALESCE(ma.IssQty,0)>0 THEN ma.IssQty ELSE 0 END AS issued_qty,
+                       ratio.receipt_ratio
+                FROM dbo.mom_moallocate ma
+                CROSS APPLY (
+                    SELECT CASE
+                        WHEN COALESCE(ma.IssQty,0)<=0 THEN 0
+                        WHEN ma.IssQty>=ma.Qty THEN 1
+                        ELSE CAST(ma.IssQty AS decimal(28,10))
+                             / NULLIF(CAST(ma.Qty AS decimal(28,10)),0)
+                    END AS receipt_ratio
+                ) ratio
+                WHERE ma.MoDId=a.MoDId_b AND ma.Qty>0
+                  AND materials.calc_mode='bom_ratio'
+                ORDER BY ratio.receipt_ratio,LTRIM(RTRIM(ma.InvCode))
+            ) bottleneck
+            OUTER APPLY (
+                SELECT TOP 1 DATEADD(HOUR,8,item.CreatedAtUtc) AS cut_start_time
+                FROM YX_TEST.dbo.MupiMaterialIssue_yx issue
+                JOIN YX_TEST.dbo.MupiMaterialIssueItem_yx item
+                  ON item.IssueId=issue.IssueId
+                CROSS APPLY OPENJSON(
+                    CASE WHEN ISJSON(item.AllocationJson)=1
+                         THEN item.AllocationJson ELSE N'[]' END
+                ) WITH (WorkOrderLineNumber int '$.workOrderLineNumber') allocation
+                WHERE issue.WorkOrderCode=requested.mo_code
+                  AND allocation.WorkOrderLineNumber=requested.sort_seq
+                ORDER BY item.CreatedAtUtc,item.ItemId
+            ) cut
+            OUTER APPLY (
+                SELECT SUM(CASE WHEN r.iQuantity>0 THEN r.iQuantity ELSE 0 END) AS receipt_qty,
+                       MAX(COALESCE(r.dnverifytime,r.dVeriDate)) AS receipt_end_time
+                FROM dbo.rdall_yx r
+                WHERE r.cOrderCode=requested.mo_code
+                  AND r.orderirowno=requested.sort_seq
+                  AND r.class='10' AND r.bRdFlag=1 AND r.dVeriDate IS NOT NULL
+            ) receipt
+        """, params)
+        rows = [row_to_dict(cursor, row) for row in cursor.fetchall()]
+        for row in rows:
+            row["first_issue_calculation"] = ({
+                "mode": "bom_ratio",
+                "material_count": row.pop("first_issue_material_count", None),
+                "bottleneck_inv_code": row.pop("first_issue_bottleneck_inv_code", None),
+                "bottleneck_required_qty": row.pop("first_issue_bottleneck_required_qty", None),
+                "bottleneck_issued_qty": row.pop("first_issue_bottleneck_issued_qty", None),
+                "bottleneck_ratio": row.pop("first_issue_bottleneck_ratio", None),
+            } if row.pop("first_issue_calc_mode", None) == "bom_ratio" else None)
+        cursor.close()
+        conn.close()
+        return {"code": 0, "data": rows}
+    except Exception as e:
+        if conn is not None:
+            conn.close()
+        return {"code": 1, "msg": str(e), "data": []}
 
 @app.get("/api/mo/departments")
 async def get_departments():

@@ -1,0 +1,373 @@
+.page {
+  min-height: 100%;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 88% 0%, rgb(48 94 220 / 7%), transparent 30%),
+    var(--jml-page-bg);
+}
+
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #2457d6;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.title {
+  margin: 0 0 6px !important;
+  color: var(--jml-text) !important;
+}
+
+.description {
+  margin: 0 !important;
+  color: var(--jml-text-secondary) !important;
+}
+
+.notice {
+  margin-bottom: 16px;
+}
+
+.table {
+  overflow: hidden;
+  border: 1px solid var(--jml-border);
+  border-radius: 14px;
+  box-shadow: var(--jml-shadow);
+}
+
+.workorderLink {
+  display: block;
+  height: auto;
+  padding: 0;
+  font-weight: 700;
+}
+
+.productCell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.quantityBlock {
+  display: grid;
+  margin-top: 14px;
+  gap: 8px;
+}
+
+.quantityGrid {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--jml-border);
+  border-radius: 10px;
+  grid-template-columns: repeat(5, minmax(68px, 1fr));
+}
+
+.quantityItem {
+  display: flex;
+  min-height: 62px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-right: 1px solid var(--jml-border);
+  flex-direction: column;
+  background: var(--jml-panel-bg);
+  gap: 3px;
+}
+
+.quantityItem:last-child {
+  border-right: 0;
+}
+
+.quantityItem span {
+  color: var(--jml-text-secondary);
+  font-size: 12px;
+}
+
+.quantityItem strong {
+  color: var(--jml-text);
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.quantityItem.gradeC {
+  background: rgb(250 140 22 / 10%);
+}
+
+.quantityItem.gradeC strong {
+  color: #d46b08;
+}
+
+.singleQuantity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--jml-border);
+  border-radius: 8px;
+  background: var(--jml-panel-bg);
+  gap: 24px;
+}
+
+.singleQuantity span {
+  color: var(--jml-text-secondary);
+}
+
+.singleQuantity strong {
+  font-size: 18px;
+}
+
+.detail {
+  padding-bottom: 24px;
+}
+
+.detailHero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px;
+  border: 1px solid var(--jml-border);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgb(36 87 214 / 8%), transparent 65%),
+    var(--jml-panel-bg);
+}
+
+.detailHero h4 {
+  max-width: 620px;
+  margin: 4px 0 !important;
+}
+
+.detailMetrics {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 36px;
+}
+
+.summaryCard {
+  margin-top: 16px;
+  border-color: var(--jml-border);
+}
+
+.summaryCard .timeRow {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--jml-divider);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 24px 0 14px;
+}
+
+.sectionTitle h4 {
+  margin: 0 0 2px !important;
+}
+
+.processCard {
+  margin-bottom: 8px;
+  border-color: var(--jml-border);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgb(26 47 88 / 4%);
+}
+
+.processBody {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.processMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.processQr {
+  display: flex;
+  width: 140px;
+  flex: 0 0 140px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--jml-border);
+  border-radius: 10px;
+  flex-direction: column;
+  background: var(--jml-soft-bg);
+  gap: 6px;
+}
+
+.qrCode {
+  display: block;
+  width: 116px;
+  height: 116px;
+}
+
+.processMeta,
+.subRecordMeta {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  color: var(--jml-text-secondary);
+  font-size: 13px;
+  gap: 8px 24px;
+}
+
+.timeRow {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--jml-border);
+  border-radius: 9px;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) minmax(100px, 0.6fr);
+}
+
+.timeRow > div {
+  display: flex;
+  min-width: 0;
+  padding: 10px 12px;
+  border-right: 1px solid var(--jml-border);
+  flex-direction: column;
+  background: var(--jml-soft-bg);
+  gap: 3px;
+}
+
+.timeRow > div:last-child {
+  border-right: 0;
+}
+
+.timeRow span {
+  color: var(--jml-text-secondary);
+  font-size: 12px;
+}
+
+.timeRow strong {
+  color: var(--jml-text);
+  font-size: 13px;
+}
+
+.reason {
+  margin-top: 12px;
+  padding: 9px 12px;
+  border-left: 3px solid #fa8c16;
+  border-radius: 0 8px 8px 0;
+  color: #9c5300;
+  background: #fff8eb;
+}
+
+.photoRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 14px;
+}
+
+.photoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.photoList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.photoList :global(.ant-image),
+.photoList :global(.ant-image-img) {
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.subCollapse {
+  margin-top: 18px;
+}
+
+.subRecordList {
+  display: grid;
+  gap: 10px;
+}
+
+.subRecord {
+  padding: 13px 14px;
+  border: 1px solid var(--jml-border);
+  border-radius: 10px;
+  background: var(--jml-soft-bg);
+}
+
+.subRecord.receive {
+  border-left: 3px solid #2f76de;
+}
+
+.subRecord.rework {
+  border-left: 3px solid #fa8c16;
+}
+
+.subRecordHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 14px;
+  }
+
+  .hero,
+  .detailHero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .detailMetrics {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .processBody {
+    flex-direction: column;
+  }
+
+  .processQr {
+    width: 100%;
+  }
+
+  .timeRow {
+    grid-template-columns: 1fr;
+  }
+
+  .timeRow > div {
+    border-right: 0;
+    border-bottom: 1px solid var(--jml-border);
+  }
+
+  .timeRow > div:last-child {
+    border-bottom: 0;
+  }
+
+  .quantityGrid {
+    grid-template-columns: repeat(2, minmax(86px, 1fr));
+  }
+
+  .quantityItem {
+    border-right: 1px solid var(--jml-border);
+    border-bottom: 1px solid var(--jml-border);
+  }
+}

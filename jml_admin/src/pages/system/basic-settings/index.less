@@ -1,0 +1,132 @@
+.page {
+  :global(.ant-pro-page-container-children-container) {
+    padding-block-start: 16px;
+  }
+}
+
+.settingGroup {
+  max-width: 1080px;
+  margin-bottom: 24px;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.groupHeader :global(.ant-typography) {
+  margin: 0;
+}
+
+.settingCard {
+  max-width: 820px;
+  border: 1px solid #e8edf5;
+  box-shadow: 0 4px 18px rgb(37 55 91 / 5%);
+}
+
+.serviceSummary {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(220px, auto) auto;
+  gap: 24px;
+  align-items: center;
+}
+
+.serviceIdentity {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.serviceIcon {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  color: #315ddc;
+  background: #edf3ff;
+  border-radius: 10px;
+  place-items: center;
+}
+
+.serviceAccount {
+  margin-top: 4px;
+  color: #7a8497;
+  font-size: 12px;
+}
+
+.serviceMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #58647a;
+  font-size: 13px;
+}
+
+.statusAlert {
+  margin-bottom: 18px;
+}
+
+.drawerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.drawerGrid :global(.ant-input-number) {
+  width: 100%;
+}
+
+.updatedMeta {
+  margin-top: 18px;
+  padding-top: 14px;
+  color: #8a94a7;
+  font-size: 12px;
+  border-top: 1px solid #edf0f5;
+}
+
+.ruleCard {
+  margin-bottom: 14px;
+  border-color: #e8edf5;
+}
+
+.ruleRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ruleHint {
+  margin-top: 3px;
+  color: #8a94a7;
+  font-size: 12px;
+}
+
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.scheduleGrid :global(.ant-form-item) {
+  margin-bottom: 0;
+}
+
+.manualActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #edf0f5;
+}
+
+@media (max-width: 840px) {
+  .serviceSummary,
+  .drawerGrid,
+  .scheduleGrid {
+    grid-template-columns: 1fr;
+  }
+}

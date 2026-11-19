@@ -1,3 +1,26 @@
 webapi/.env.admin
 **/__pycache__/
 *.pyc
+
+# Local configuration and generated files
+**/.env
+**/.env.local
+**/.env.admin
+**/.env.smtp
+**/.pytest_cache/
+**/node_modules/
+**/.umi/
+**/.turbopack/
+**/.runtime/
+**/dist/
+**/build/
+**/logs/
+**/tmp/
+**/output/
+**/outputs/
+*.log
+*.pem
+*.key
+*.pfx
+*.p12
+BJGhvFJKFN.txt

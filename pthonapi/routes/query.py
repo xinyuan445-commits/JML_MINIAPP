@@ -88,7 +88,7 @@ def run_query():
         if not only_select(sql):
             return jsonify({"code": 1, "msg": "只允许执行单条 SELECT 语句"}), 400
 
-        conn = get_db2()
+        conn = get_db()
         cur = conn.cursor(dictionary=True)
         cur.execute(sql)
         data = cur.fetchall()
@@ -578,6 +578,22 @@ def query_stock_by_cinvcode():
         cur.execute(sql, (cinvcode,))
         rows = cur.fetchall()
 
+        if not rows:
+            fallback_sql = """
+            SELECT
+                cInvCode,
+                cInvName AS cinvname,
+                iQuantity,
+                cBatch,
+                NULL AS cposname,
+                cWhName,
+                company
+            FROM currentstock_yx
+            WHERE cInvCode = %s
+            """
+            cur.execute(fallback_sql, (cinvcode,))
+            rows = cur.fetchall()
+
         return jsonify({"code": 0, "msg": "success", "data": rows})
 
     except Exception as e:
@@ -669,7 +685,7 @@ def query_label_qty():
         if not re.match(r"^[A-Za-z0-9._*\-|]+$", traceBackCode):
             return jsonify({"code": 1, "msg": "非法的 traceBackCode 格式"}), 400
 
-        conn = get_db()
+        conn = get_db2()
         cur = conn.cursor(dictionary=True)
 
         # ① 剩余数量
@@ -680,7 +696,8 @@ def query_label_qty():
         """
         cur.execute(sql_qty, (traceBackCode,))
         row_qty = cur.fetchone()
-        qty = int(row_qty["qty"]) if row_qty and row_qty["qty"] is not None else 0
+        qty_value = round(float(row_qty["qty"]), 2) if row_qty and row_qty["qty"] is not None else 0.0
+        qty = int(qty_value) if qty_value.is_integer() else qty_value
 
         # ② 最近一次仓库 + 货位
         sql_pos = """
@@ -702,6 +719,39 @@ def query_label_qty():
         cur.execute(sql_pos, (traceBackCode,))
         row_pos = cur.fetchone() or {}
 
+        # ③ 最后一次业务单据是否为材料出库
+        sql_last_order = """
+        SELECT tcode.pdaOrderUuid, tcode.source_db, torder.orderType
+        FROM TraceBackOnlyCode_all tcode
+        LEFT JOIN TraceBackOrder_all torder
+            ON tcode.pdaOrderUuid = torder.pdaOrderUuid
+           AND tcode.source_db = torder.source_db
+        WHERE RTRIM(tcode.traceBackCode) = %s
+        ORDER BY tcode.time DESC, tcode.id DESC, torder.time DESC
+        LIMIT 1
+        """
+        cur.execute(sql_last_order, (traceBackCode,))
+        row_order = cur.fetchone() or {}
+        last_order_type = row_order.get("orderType") or ""
+        issued_qty = 0
+
+        if last_order_type == "材料出库":
+            sql_issued_qty = """
+            SELECT ABS(SUM(`sum`)) AS issued_qty
+            FROM TraceBackOnlyCode_all
+            WHERE RTRIM(traceBackCode) = %s
+              AND pdaOrderUuid = %s
+              AND source_db = %s
+            """
+            cur.execute(sql_issued_qty, (
+                traceBackCode,
+                row_order.get("pdaOrderUuid"),
+                row_order.get("source_db")
+            ))
+            row_issued_qty = cur.fetchone() or {}
+            issued_qty_value = round(float(row_issued_qty.get("issued_qty") or 0), 2)
+            issued_qty = int(issued_qty_value) if issued_qty_value.is_integer() else issued_qty_value
+
         return jsonify({
             "code": 0,
             "msg": "success",
@@ -711,7 +761,10 @@ def query_label_qty():
                 "warehouse": row_pos.get("warehouse", ""),
                 "cPosName": row_pos.get("cPosName", ""),
                 "last_time": row_pos.get("last_time"),
-                "last_user": row_pos.get("last_user")
+                "last_user": row_pos.get("last_user"),
+                "lastOrderType": last_order_type,
+                "isIssued": last_order_type == "材料出库",
+                "issuedQty": issued_qty
             }
         })
 

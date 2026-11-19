@@ -1,0 +1,58 @@
+.searchCard {
+  margin-bottom: 16px;
+}
+
+.searchCard :global(.ant-card-body) {
+  display: flex;
+  gap: 8px;
+}
+
+.searchInput {
+  max-width: 360px;
+}
+
+.timeline {
+  margin-top: 28px;
+}
+
+.stepItem {
+  padding-bottom: 12px;
+}
+
+.stepTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stepBody {
+  padding: 8px 0;
+}
+
+.recordList {
+  display: grid;
+  gap: 8px;
+}
+
+.recordCard {
+  background: var(--ant-color-fill-alter);
+}
+
+.recordGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 16px;
+  margin-bottom: 10px;
+  color: var(--ant-color-text-secondary);
+}
+
+.routeEmpty {
+  margin-top: 48px;
+}
+
+@media (max-width: 700px) {
+  .recordGrid {
+    grid-template-columns: 1fr;
+  }
+}

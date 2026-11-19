@@ -1,0 +1,82 @@
+CREATE TABLE IF NOT EXISTS mo_report_email_setting_yx (
+    id TINYINT NOT NULL PRIMARY KEY,
+    smtp_server VARCHAR(255) NOT NULL,
+    smtp_port INT NOT NULL,
+    smtp_user VARCHAR(255) NOT NULL,
+    smtp_password_ciphertext TEXT NOT NULL,
+    smtp_use_ssl TINYINT NOT NULL DEFAULT 1,
+    revision INT NOT NULL DEFAULT 1,
+    updated_by VARCHAR(100) NULL,
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CHECK (id = 1),
+    CHECK (smtp_port BETWEEN 1 AND 65535),
+    CHECK (smtp_use_ssl IN (0,1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS mo_report_delivery_setting_yx (
+    report_key VARCHAR(64) NOT NULL PRIMARY KEY,
+    is_enabled TINYINT NOT NULL DEFAULT 0,
+    send_mode VARCHAR(16) NOT NULL DEFAULT 'manual',
+    schedule_frequency VARCHAR(16) NOT NULL DEFAULT 'daily',
+    send_time TIME NOT NULL DEFAULT '08:00:00',
+    week_day TINYINT NOT NULL DEFAULT 1,
+    month_day TINYINT NOT NULL DEFAULT 1,
+    to_recipients TEXT NOT NULL,
+    cc_recipients TEXT NOT NULL,
+    bcc_recipients TEXT NOT NULL,
+    email_subject VARCHAR(500) NOT NULL,
+    email_body TEXT NOT NULL,
+    last_sent_slot VARCHAR(32) NULL,
+    last_sent_time DATETIME NULL,
+    last_send_status VARCHAR(16) NULL,
+    last_error VARCHAR(500) NULL,
+    revision INT NOT NULL DEFAULT 1,
+    updated_by VARCHAR(100) NULL,
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CHECK (is_enabled IN (0,1)),
+    CHECK (send_mode IN ('manual','scheduled')),
+    CHECK (schedule_frequency IN ('daily','weekly','monthly')),
+    CHECK (week_day BETWEEN 1 AND 7),
+    CHECK (month_day BETWEEN 1 AND 28)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS mo_approval_email_setting_yx (
+    id TINYINT NOT NULL PRIMARY KEY,
+    instant_enabled TINYINT NOT NULL DEFAULT 0,
+    weekly_enabled TINYINT NOT NULL DEFAULT 0,
+    weekly_day TINYINT NOT NULL DEFAULT 1,
+    weekly_time TIME NOT NULL DEFAULT '08:10:00',
+    to_recipients TEXT NOT NULL,
+    cc_recipients TEXT NOT NULL,
+    bcc_recipients TEXT NOT NULL,
+    revision INT NOT NULL DEFAULT 1,
+    updated_by VARCHAR(100) NULL,
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CHECK (id = 1),
+    CHECK (instant_enabled IN (0,1)),
+    CHECK (weekly_enabled IN (0,1)),
+    CHECK (weekly_day BETWEEN 1 AND 7)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS mo_approval_email_delivery_yx (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    delivery_key VARCHAR(128) NOT NULL UNIQUE,
+    mail_type VARCHAR(32) NOT NULL,
+    approval_id BIGINT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'pending',
+    recipients TEXT NOT NULL,
+    subject VARCHAR(500) NOT NULL DEFAULT '',
+    attempts INT NOT NULL DEFAULT 0,
+    sent_time DATETIME NULL,
+    last_error VARCHAR(500) NULL,
+    requested_by VARCHAR(100) NULL,
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_approval_email_pending (status, attempts, create_time),
+    INDEX idx_approval_email_approval (approval_id, create_time),
+    CHECK (mail_type IN ('approval','weekly','approval_manual','weekly_manual')),
+    CHECK (status IN ('pending','sending','success','failed'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

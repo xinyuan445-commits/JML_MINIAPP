@@ -346,6 +346,8 @@ erDiagram
 
 约束：`mo_code + sort_seq + route_id + seq` 唯一，表示一个工单行在同一路线同一步骤只保留一条主执行记录。
 
+拼皮线自动补录规则：生产现场看板先查本表及 `mo_handover_yx`，已有人工记录时不写入。仅ERP生产部门名称精确等于“拼皮线”、已绑定单工序路线且YX_TEST存在裁切记录时，才用首个裁切时间建立系统执行记录；已审核产成品入库累计量写入 `qty_done/qty_a`，A1/A2/C均为0，最后入库审核时间写入 `end_time`。对应批次写入 `mo_execution_completion_yx`，来源在 `mo_operation_log_yx` 中使用 `panel-sync:*` 唯一标识；检测到非系统完工批次后停止自动更新。该规则只写DB2报工表，不修改ERP和YX_TEST。
+
 ### 4.11 `mo_execution_worker_yx`：工序执行人员快照表
 
 所属数据库：`DB2_NAME`
@@ -578,6 +580,38 @@ erDiagram
 | `dept_path_snapshot` | varchar(1000) | 部门路径快照 |
 | `create_time` | datetime | 创建时间 |
 
+### 4.18 `mo_workorder_context_yx`：工单产品及客户上下文表
+
+所属数据库：`DB2_NAME`
+
+作用：缓存ERP工单的产品、销售来源和客户资料，供报工记录、报表及看板在ERP暂不可用或工单已关闭后继续展示。主键为 `mo_code + sort_seq`。
+
+字段说明：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `mo_code` | varchar(50) | 生产订单号 |
+| `sort_seq` | int | 生产订单行号 |
+| `inv_code` | varchar(100) | 产品编码 |
+| `inv_name` | varchar(255) | 产品名称 |
+| `inv_std` | varchar(255) | 规格型号 |
+| `plan_qty` | decimal(18,4) | 计划生产数量 |
+| `so_code_008` | varchar(60) | 008销售订单号 |
+| `so_row_008` | int | 008销售订单行号 |
+| `source_account` | varchar(10) | 来源账套，如 `001`、`002`、`008` |
+| `source_so_code` | varchar(60) | 来源销售订单号 |
+| `source_so_row` | int | 来源销售订单行号，预留 |
+| `customer_code` | varchar(60) | 客户编码 |
+| `customer_name` | varchar(255) | 客户名称 |
+| `sync_time` | datetime | 最近同步时间 |
+
+同步与读取规则：
+
+- PythonAPI读取工单详情时异步补充该表；历史数据也可通过专用同步脚本回填，写入失败不阻断现场报工。
+- Web生产现场看板先读取U8实时产品资料，再读取本表；对于ERP开放但尚未报工、本表没有记录的工单，继续从MOAPI开放工单列表补齐008销售单、来源账套、来源销售单及客户。
+- 小程序生产现场看板同样以本表为缓存，并用MOAPI开放工单列表补充未报工工单的实时客户；实时返回为空时才保留缓存客户。
+- 缺少本表记录不代表没有客户，也不能据此把工单判断为已删除或已关闭。
+
 ## 5. 钉钉通讯录镜像表
 
 这些表属于 `DB2_NAME`，用于小程序选择开工、接收、返工人员。同步逻辑在 `pthonapi/services/dingtalk_sync.py` 和相关脚本中。
@@ -721,6 +755,13 @@ WHERE RelsDate_b IS NOT NULL
   AND CloseDate_b IS NULL
 ```
 
+计划日期及原值读取规则：
+
+- 当前计划开工、计划完工仍取 `momlist_yx.StartDate_c`、`momlist_yx.DueDate_c`，其来源是U8 `dbo.mom_morder.StartDate`、`DueDate`。
+- U8现有触发器 `dbo.trgAfterupdateOnmom_morder` 名称虽含“update”，实际定义为 `AFTER INSERT`；新建工单时会把 `MoDId`、`StartDate`、`DueDate`、`MoId` 写入 `YX_TEST.dbo.mom_morder`，并标记 `zt='008'`。它不是每次修改日期都追加历史的更新触发器。
+- 生产现场看板把 `YX_TEST.dbo.mom_morder` 作为初始日期快照。同一 `MoDId` 可能存在重复记录，读取时限定 `zt='008'`，按空 `UpdateTime` 优先、随后 `UpdateTime` 升序取第一条；只在原日期与当前日期不同时显示灰色原值。
+- 本方案不新增表或触发器。2026-10-28只读核对57个开放工单行均有快照，其中39行至少一个当前日期与最早快照不同。
+
 ### 7.2 `Inventory`：U8 存货档案表
 
 作用：获取母件和子件名称、产品类别等物料资料。
@@ -816,6 +857,7 @@ Mo 模块用到的字段：
 | `Mo/ProcessMgmt/Index` | `/workorder/list`, `/route/dept-map`, `/wo-status-batch` | U8 `momlist_yx`, `Department`, `mo_wo_state_yx`, `mo_route_yx`, `mo_process_yx` |
 | `Mo/ProcessMgmt/Detailed` | `/workorder/detail`, `/wo-status`, `/start`, `/complete`, `/receive`, `/execution/detail`, `/receive-work/*`, `/rework/*` | U8 `momlist_yx`, `Inventory`, `mom_moallocate`, `mo_execution_yx`, `mo_handover_yx`, `mo_receive_work_yx`, `mo_rework_yx` |
 | `Mo/ProcessMgmt/Edit` | `/process/detail`, `/process/add`, `/process/update` | `mo_process_yx` |
+| `Mo/ProcessMgmt/ProductionBoard` | `/reporting/board` | `mo_workorder_context_yx`、工序执行/交接/返工表、U8开放工单接口 |
 
 ## 9. 主要接口与数据表读写关系
 
@@ -824,6 +866,7 @@ Mo 模块用到的字段：
 | `GET /api/mo/menu` | `mo_menu_yx` |  | 查询现场管理菜单 |
 | `GET /api/mo/workorder/list` | U8 `momlist_yx`, `Inventory`, `Department` |  | 查询待处理工单 |
 | `GET /api/mo/workorder/detail` | U8 `momlist_yx`, `Inventory`, `Department`, `mom_moallocate` |  | 查询工单详情和子件清单 |
+| `GET /api/mo/reporting/board` | `mo_workorder_context_yx`、工序执行/交接/返工表、U8开放工单接口 |  | 小程序生产现场看板；包含未报工开放工单并补实时客户 |
 | `GET /api/mo/wo-status` | `mo_wo_route_yx`, `mo_wo_state_yx`, `mo_route_step_yx`, `mo_process_yx`, `mo_step_station_yx`, `mo_workstation_yx`, `mo_execution_yx`, `mo_handover_yx` |  | 查询单个工单当前状态 |
 | `POST /api/mo/wo-status-batch` | `mo_wo_state_yx`, `mo_route_step_yx`, `mo_process_yx`, `mo_handover_yx` |  | 批量查询列表状态 |
 | `POST /api/mo/start` | `mo_wo_state_yx`, `mo_route_step_yx`, `mo_process_yx`, `mo_workstation_yx`, `ding_user_yx` | `mo_execution_yx`, `mo_execution_worker_yx`, `mo_wo_state_yx` | 工序开工 |

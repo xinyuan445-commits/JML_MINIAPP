@@ -8,6 +8,9 @@ from routes.test import test_bp
 from routes.query import query_bp
 from routes.factory_task import factory_task_bp
 from routes.mo import mo_bp
+from routes.mo_reporting import mo_reporting_bp
+from routes.mo_station_v2 import mo_station_v2_bp
+from routes.nonorder import nonorder_bp
 from routes.natural_gas import natural_gas_bp
 from routes.quote import quote_bp
 from routes.dingtalk import dingtalk_bp
@@ -25,6 +28,9 @@ app.register_blueprint(login_bp, url_prefix='/api/login')
 app.register_blueprint(test_bp, url_prefix='/api/test')  # ← 新增
 app.register_blueprint(factory_task_bp)
 app.register_blueprint(mo_bp, url_prefix='/api/mo')
+app.register_blueprint(mo_reporting_bp, url_prefix='/api/mo')
+app.register_blueprint(mo_station_v2_bp, url_prefix='/api/mo-v2')
+app.register_blueprint(nonorder_bp)
 app.register_blueprint(natural_gas_bp)
 app.register_blueprint(quote_bp, url_prefix='/api/quote')
 app.register_blueprint(dingtalk_bp, url_prefix='/api/mo/dingtalk')

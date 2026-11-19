@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.local
+certs/
+.runtime/
+__pycache__/
+*.pyc
+npm-debug.log*
